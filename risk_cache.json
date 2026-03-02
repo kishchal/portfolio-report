@@ -1,0 +1,97 @@
+{
+  "_meta": {
+    "fetched": "2026-03-01T18:36:54.304660",
+    "source": "yfinance / Yahoo Finance",
+    "symbol_count": 8
+  },
+  "symbols": {
+    "AAPL": {
+      "beta": 1.107,
+      "trailingPE": 33.440506,
+      "forwardPE": 28.408987,
+      "marketCap": 3882897899520,
+      "revenueGrowth": 0.157,
+      "profitMargins": 0.27037,
+      "dividendYield": 0.39,
+      "sector": "Technology",
+      "risk": "Growth"
+    },
+    "AMD": {
+      "beta": 1.949,
+      "trailingPE": 77.00385,
+      "forwardPE": 18.467667,
+      "marketCap": 326424559616,
+      "revenueGrowth": 0.341,
+      "profitMargins": 0.12515001,
+      "dividendYield": null,
+      "sector": "Technology",
+      "risk": "High Risk / Speculative"
+    },
+    "CWBHF": {
+      "beta": 2.146,
+      "trailingPE": null,
+      "forwardPE": -7.5,
+      "marketCap": 119565104,
+      "revenueGrowth": -0.086,
+      "profitMargins": -0.44043,
+      "dividendYield": null,
+      "sector": "Healthcare",
+      "risk": "High Risk / Speculative"
+    },
+    "LCID": {
+      "beta": 1.114,
+      "trailingPE": null,
+      "forwardPE": -2.1551726,
+      "marketCap": 3241684480,
+      "revenueGrowth": 1.229,
+      "profitMargins": -1.9929601,
+      "dividendYield": null,
+      "sector": "Consumer Cyclical",
+      "risk": "High Risk / Speculative"
+    },
+    "META": {
+      "beta": 1.284,
+      "trailingPE": 27.629156,
+      "forwardPE": 18.065216,
+      "marketCap": 1639607173120,
+      "revenueGrowth": 0.238,
+      "profitMargins": 0.30084,
+      "dividendYield": 0.32,
+      "sector": "Communication Services",
+      "risk": "Growth"
+    },
+    "MSFT": {
+      "beta": 1.084,
+      "trailingPE": 24.576971,
+      "forwardPE": 20.843594,
+      "marketCap": 2918992052224,
+      "revenueGrowth": 0.167,
+      "profitMargins": 0.39044,
+      "dividendYield": 0.93,
+      "sector": "Technology",
+      "risk": "Growth"
+    },
+    "NIO": {
+      "beta": 1.124,
+      "trailingPE": null,
+      "forwardPE": -10.156517,
+      "marketCap": 12314569728,
+      "revenueGrowth": 0.167,
+      "profitMargins": -0.31465,
+      "dividendYield": null,
+      "sector": "Consumer Cyclical",
+      "risk": "High Risk / Speculative"
+    },
+    "NVDA": {
+      "beta": 2.314,
+      "trailingPE": 36.087578,
+      "forwardPE": 16.620033,
+      "marketCap": 4306603081728,
+      "revenueGrowth": 0.732,
+      "profitMargins": 0.55603004,
+      "dividendYield": 0.02,
+      "sector": "Technology",
+      "risk": "High Risk / Speculative"
+    }
+  }
+}

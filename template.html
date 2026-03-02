@@ -1,0 +1,2166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Portfolio Report — {{REPORT_DATE}}</title>
+<style>
+  :root {
+    --bg: #f8f9fb; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
+    --text-muted: #64748b; --primary: #1e40af; --primary-light: #dbeafe;
+    --accent: #059669; --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+    --radius: 10px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+
+  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 40px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
+  .header h1 { font-size: 1.8em; font-weight: 600; letter-spacing: -0.5px; }
+  .header .subtitle { color: #94a3b8; font-size: 0.95em; margin-top: 4px; }
+  .header .total { font-size: 2em; font-weight: 700; margin-top: 16px; letter-spacing: -0.5px; }
+  .header .total-label { font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 18px; }
+
+  .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
+
+  .alloc-bar-wrap { margin: 0 0 8px 0; }
+  .alloc-bar { display: flex; height: 32px; border-radius: 6px; overflow: visible; box-shadow: var(--shadow); }
+  .alloc-bar .seg { transition: opacity 0.2s; cursor: pointer; position: relative; }
+  .alloc-bar .seg:hover { opacity: 0.85; }
+  .alloc-bar .seg .tip { display: none; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.75em; white-space: nowrap; z-index: 10; }
+  .alloc-bar .seg:hover .tip { display: block; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 30px 0; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.82em; color: var(--text-muted); }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+  .section-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
+
+  .pivot-tabs { display: inline-flex; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px; }
+  .pivot-tab { padding: 7px 18px; border-radius: 6px; font-size: 0.88em; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted); transition: all 0.2s; }
+  .pivot-tab:hover { color: var(--text); }
+  .pivot-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+
+  .category-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    margin-bottom: 10px; box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s; }
+  .category-card:hover { box-shadow: var(--shadow-lg); }
+
+  .cat-header { display: flex; align-items: center; padding: 14px 20px; cursor: pointer; user-select: none; gap: 14px; }
+  .cat-header:hover { background: #f1f5f9; }
+  .cat-color { width: 6px; height: 36px; border-radius: 3px; flex-shrink: 0; }
+  .cat-info { flex: 1; }
+  .cat-name { font-weight: 600; font-size: 0.95em; }
+  .cat-meta { font-size: 0.8em; color: var(--text-muted); margin-top: 1px; }
+  .cat-value { text-align: right; }
+  .cat-value .amount { font-weight: 700; font-size: 1.05em; }
+  .cat-value .pct { font-size: 0.8em; color: var(--text-muted); }
+  .cat-chevron { font-size: 0.7em; color: var(--text-muted); transition: transform 0.25s ease; width: 18px; text-align: center; }
+  .cat-header.open .cat-chevron { transform: rotate(90deg); }
+
+  .cat-body { display: none; border-top: 1px solid var(--border); }
+  .cat-body.open { display: block; }
+
+  .acct-row { display: flex; align-items: center; padding: 10px 20px 10px 44px; cursor: pointer; user-select: none;
+    border-bottom: 1px solid #f1f5f9; gap: 12px; }
+  .acct-row:last-child { border-bottom: none; }
+  .acct-row:hover { background: #f8fafc; }
+  .acct-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 0.7em; font-weight: 700; flex-shrink: 0; color: white; }
+  .acct-info { flex: 1; }
+  .acct-name { font-weight: 600; font-size: 0.88em; }
+  .acct-num { font-size: 0.75em; color: var(--text-muted); }
+  .acct-value { text-align: right; }
+  .acct-value .amount { font-weight: 600; font-size: 0.92em; }
+  .acct-value .pct { font-size: 0.75em; color: var(--text-muted); }
+  .acct-chevron { font-size: 0.6em; color: #cbd5e1; transition: transform 0.25s ease; width: 16px; text-align: center; }
+  .acct-row.open .acct-chevron { transform: rotate(90deg); }
+
+  .ticker-body { display: none; background: #f8fafc; }
+  .ticker-body.open { display: block; }
+  .ticker-row { display: flex; align-items: center; padding: 7px 20px 7px 90px; border-bottom: 1px solid #eef2f7; font-size: 0.84em; }
+  .ticker-row:last-child { border-bottom: none; }
+  .ticker-sym { font-weight: 700; color: var(--primary); width: 70px; flex-shrink: 0; }
+  .ticker-name { flex: 1; color: var(--text-muted); }
+  .ticker-val { font-weight: 600; min-width: 110px; text-align: right; }
+
+  .risk-group-header { display: flex; align-items: center; padding: 8px 20px 6px 74px; gap: 8px;
+    border-bottom: 1px solid #e2e8f0; background: #eef2f7; }
+  .risk-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .risk-label { font-weight: 700; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px; }
+  .risk-summary { font-size: 0.76em; color: var(--text-muted); margin-left: auto; }
+
+  .overview-grid { margin-bottom: 10px; }
+
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-size: 0.7em; font-weight: 600; margin-left: 6px; }
+  .badge-inv { background: #fef3c7; color: #92400e; }
+  .badge-ret { background: #dbeafe; color: #1e40af; }
+  .badge-ira { background: #e0e7ff; color: #3730a3; }
+  .badge-dcp { background: #ede9fe; color: #5b21b6; }
+  .badge-roth { background: #d1fae5; color: #065f46; }
+  .badge-hsa { background: #fce7f3; color: #9d174d; }
+  .badge-529 { background: #e0f2fe; color: #0369a1; }
+  .badge-utma { background: #fef3c7; color: #92400e; }
+
+  .footer { text-align: center; padding: 30px; color: #94a3b8; font-size: 0.8em; }
+
+  /* Risk insights summary */
+  .insights { margin-top: 30px; }
+  .insights-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
+  .insight-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 22px; margin-bottom: 10px; box-shadow: var(--shadow); }
+  .insight-card h3 { font-size: 0.92em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .insight-card h3 .icon { font-size: 1.1em; }
+  .insight-items { list-style: none; padding: 0; }
+  .insight-items li { font-size: 0.84em; color: var(--text-muted); padding: 3px 0; line-height: 1.5; }
+  .insight-items li strong { color: var(--text); }
+  .insight-sev-high { border-left: 4px solid #dc2626; }
+  .insight-sev-med { border-left: 4px solid #f59e0b; }
+  .insight-sev-low { border-left: 4px solid #059669; }
+
+  /* Suggestions tab */
+  .sugg-section { margin-bottom: 28px; }
+  .sugg-h2 { font-size: 1.08em; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .sugg-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.65; margin: 6px 0 12px 0; }
+  .sugg-tbl-wrap { overflow-x: auto; margin-bottom: 8px; }
+  .sugg-tbl { width: 100%; border-collapse: collapse; font-size: 0.8em; }
+  .sugg-tbl th { background: #f1f5f9; padding: 7px 9px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .sugg-tbl th:hover { background: #e2e8f0; }
+  .sugg-tbl td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; }
+  .sugg-tbl tr:hover { background: #fafbfc; }
+  .sugg-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sugg-tbl .pos { color: #059669; } .sugg-tbl .neg { color: #dc2626; }
+  .sugg-score { display: inline-block; min-width: 22px; padding: 1px 5px; border-radius: 4px; text-align: center; font-weight: 700; font-size: 0.85em; color: white; }
+  .sc-hi { background: #059669; } .sc-med { background: #2563eb; } .sc-lo { background: #f59e0b; } .sc-vlo { background: #dc2626; }
+  .sugg-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 18px 22px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .sugg-card h3 { font-size: 0.95em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .sugg-card .vol-note { font-size: 0.82em; color: var(--text-muted); margin-top: 8px; }
+  .sugg-bars { display: flex; flex-direction: column; gap: 8px; margin: 12px 0; }
+  .sugg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.82em; }
+  .sugg-bar-label { width: 220px; font-weight: 600; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
+  .sugg-bar-track { flex: 1; height: 22px; background: #f1f5f9; border-radius: 4px; overflow: visible; display: flex; position: relative; }
+  .sugg-bar-seg { height: 100%; transition: width 0.3s; position: relative; overflow: visible; }
+  .sugg-bar-seg .stip { display: none; position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; white-space: nowrap; z-index: 5; }
+  .sugg-bar-seg:hover .stip { display: block; }
+  .sugg-bar-pct { width: 50px; text-align: right; font-weight: 600; }
+  .sugg-acct { border-left: 4px solid var(--primary); }
+  .sugg-disclaimer { background: #fffbeb; border: 1px solid #fde68a; border-radius: var(--radius);
+    padding: 16px 20px; margin-top: 12px; font-size: 0.83em; color: #92400e; line-height: 1.6; }
+  .sugg-disclaimer h3 { color: #92400e; font-size: 0.92em; margin-bottom: 6px; }
+  .sugg-disclaimer ul { margin: 6px 0 0 16px; }
+  .sugg-legend { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 4px 0; font-size: 0.78em; color: var(--text-muted); }
+  .sugg-legend-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; margin-right: 4px; vertical-align: middle; }
+
+  /* Withdrawals tab */
+  .wd-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 22px 26px; margin-bottom: 24px; box-shadow: var(--shadow); }
+  .wd-panel h3 { font-size: 1em; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .wd-inputs { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
+  .wd-field { display: flex; flex-direction: column; gap: 4px; }
+  .wd-field label { font-size: 0.78em; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .wd-field input, .wd-field select { width: 110px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+    font-size: 0.9em; background: #f8fafc; }
+  .wd-field input:focus, .wd-field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
+  .wd-btn { padding: 8px 24px; background: var(--primary); color: white; border: none; border-radius: 6px;
+    font-size: 0.88em; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 1px; }
+  .wd-btn:hover { background: #1e3a8a; }
+
+  .wd-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .wd-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; box-shadow: var(--shadow); text-align: center; }
+  .wd-card .wd-card-label { font-size: 0.75em; font-weight: 600; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 6px; }
+  .wd-card .wd-card-value { font-size: 1.5em; font-weight: 700; color: var(--text); }
+  .wd-card .wd-card-sub { font-size: 0.78em; color: var(--text-muted); margin-top: 4px; }
+  .wd-card-green .wd-card-value { color: #059669; }
+  .wd-card-blue .wd-card-value { color: #2563eb; }
+  .wd-card-amber .wd-card-value { color: #d97706; }
+
+  .wd-section { margin-bottom: 28px; }
+  .wd-h2 { font-size: 1.08em; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .wd-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.65; margin: 6px 0 12px 0; }
+
+  .wd-tbl-wrap { overflow-x: auto; margin-bottom: 8px; }
+  .wd-tbl { width: 100%; border-collapse: collapse; font-size: 0.78em; }
+  .wd-tbl th { background: #f1f5f9; padding: 7px 8px; text-align: right; font-weight: 700; border-bottom: 2px solid var(--border); white-space: nowrap; cursor: help; }
+  .wd-tbl th:first-child { text-align: center; }
+  .wd-tbl td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wd-tbl td:first-child { text-align: center; font-weight: 600; }
+  .wd-tbl tr:hover { background: #fafbfc; }
+  .wd-tbl .rmd-row { background: #eff6ff; }
+  .wd-tbl .rmd-row:hover { background: #dbeafe; }
+  .wd-tbl .depletion-row { background: #fef2f2; }
+  .wd-tbl .depletion-row:hover { background: #fee2e2; }
+
+  .wd-chart-wrap { position: relative; margin: 16px 0; }
+  .wd-chart { display: flex; align-items: flex-end; gap: 2px; height: 220px; padding-bottom: 24px; border-bottom: 2px solid var(--border); }
+  .wd-chart-bar { display: flex; flex-direction: column; justify-content: flex-end; flex: 1; min-width: 4px; position: relative; cursor: pointer; height: 196px; }
+  .wd-chart-bar .wd-bar-seg { transition: height 0.3s; position: relative; }
+  .wd-chart-bar:hover .wd-bar-tip { display: block; }
+  .wd-bar-tip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.75em;
+    white-space: nowrap; z-index: 10; margin-bottom: 4px; line-height: 1.5; }
+  .wd-chart-label { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
+    font-size: 0.65em; color: var(--text-muted); white-space: nowrap; }
+  .wd-chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0; font-size: 0.78em; color: var(--text-muted); }
+  .wd-chart-legend span { display: flex; align-items: center; gap: 4px; }
+  .wd-chart-legend .dot { width: 10px; height: 10px; border-radius: 2px; }
+
+  .wd-note { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 20px; margin-bottom: 12px; box-shadow: var(--shadow); }
+  .wd-note h3 { font-size: 0.92em; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+  .wd-note ul { margin: 4px 0 0 16px; font-size: 0.84em; color: var(--text-muted); line-height: 1.7; }
+  .wd-note ul li strong { color: var(--text); }
+  .wd-note-info { border-left: 4px solid #2563eb; }
+  .wd-note-warn { border-left: 4px solid #f59e0b; }
+  .wd-note-tip { border-left: 4px solid #059669; }
+
+  /* Monte Carlo */
+  .mc-fan { width: 100%; height: auto; }
+  .mc-fan .mc-band { opacity: 0.25; }
+  .mc-fan .mc-band-inner { opacity: 0.35; }
+  .mc-fan .mc-median { fill: none; stroke: #2563eb; stroke-width: 2; }
+  .mc-fan .mc-determ { fill: none; stroke: #f59e0b; stroke-width: 1.5; stroke-dasharray: 6,4; }
+  .mc-hist-wrap { display: flex; align-items: flex-end; gap: 2px; height: 160px; margin: 12px 0; }
+  .mc-hist-bar { flex: 1; background: #3b82f6; border-radius: 2px 2px 0 0; min-width: 4px; position: relative; cursor: pointer; transition: background 0.2s; }
+  .mc-hist-bar:hover { background: #1d4ed8; }
+  .mc-hist-bar .mc-hist-tip { display: none; position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
+    background: #1e293b; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.7em; white-space: nowrap; z-index: 10; margin-bottom: 4px; }
+  .mc-hist-bar:hover .mc-hist-tip { display: block; }
+  .mc-success-ring { display: inline-block; position: relative; width: 80px; height: 80px; }
+  .mc-success-ring svg { transform: rotate(-90deg); }
+  .wd-ovr { font-variant-numeric: tabular-nums; width: 90px; }
+  .wd-ovr:focus { outline: none; border-color: #f59e0b !important; box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
+  .wd-field label[title] { cursor: help; border-bottom: 1px dotted var(--text-muted); }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <h1>Portfolio Allocation Report</h1>
+    <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
+    <div class="total-label">Total Portfolio Value</div>
+    <div class="total">{{GRAND_TOTAL}}</div>
+  </div>
+</div>
+
+<div class="container">
+
+<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
+  <div class="pivot-tabs" style="margin-top:18px">
+    <button class="pivot-tab active" data-pivot="acctType">By Account Type</button>
+    <button class="pivot-tab" data-pivot="category">By Investment Category</button>
+    <button class="pivot-tab" data-pivot="acctName">By Account</button>
+    <button class="pivot-tab" data-pivot="suggestions">Suggestions</button>
+    <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
+  </div>
+</div>
+
+<div id="allocOverview">
+<div class="section-title">Allocation Overview</div>
+<div class="overview-grid">
+    <div class="alloc-bar-wrap">
+      <div class="alloc-bar" id="allocBar"></div>
+    </div>
+    <div class="legend" id="legend"></div>
+</div>
+</div>
+
+<div id="drilldown"></div>
+
+<div class="insights">
+  <div class="insights-title">Portfolio Risk Insights <span style="font-weight:400;font-size:0.8em;color:var(--text-muted)">— auto-generated analysis</span></div>
+  <div id="insightsContainer"></div>
+</div>
+
+</div>
+
+<div class="footer">
+  Generated {{REPORT_DATE}}
+</div>
+
+<script>
+const CATEGORY_COLORS = {
+  'US Index Funds':'#2563eb','International Funds':'#059669','Individual Stocks':'#ea580c',
+  'Unspecified':'#94a3b8','Bond Funds':'#7c3aed','Cash / Money Market':'#475569',
+  'Tech Sector Fund':'#db2777','Growth / Leveraged ETFs':'#0891b2','Other':'#a3a3a3'
+};
+const ACCT_TYPE_COLORS = {
+  'Taxable Investment':'#f59e0b','Tax-Deferred Savings':'#3b82f6',
+  'Tax-Deferred 401(k)':'#3b82f6','Tax-Deferred IRA':'#6366f1',
+  'Tax-Deferred DCP':'#8b5cf6','Roth':'#10b981','HSA':'#ec4899',
+  '529 College Savings':'#0ea5e9','Custodial (UTMA)':'#d97706','Cash / Money Market':'#475569',
+  'Other':'#a3a3a3','Investment':'#f59e0b','Retirement':'#3b82f6','Health Savings':'#ec4899'
+};
+const BADGE_CLS = {
+  'Taxable Investment':'badge-inv','Tax-Deferred 401(k)':'badge-ret','Tax-Deferred IRA':'badge-ira',
+  'Tax-Deferred DCP':'badge-dcp','Roth':'badge-roth','HSA':'badge-hsa',
+  '529 College Savings':'badge-529','Custodial (UTMA)':'badge-utma',
+  'Investment':'badge-inv','Retirement':'badge-ret','Health Savings':'badge-hsa'
+};
+const GRAND = {{GRAND_TOTAL_NUM}};
+const DATA = {{DATA_JSON}};
+const SUGG_METRICS = {{SUGGESTIONS_JSON}};
+
+const RISK_COLORS = {
+  'Growth':'#2563eb','High Risk / Speculative':'#dc2626',
+  'Dividend / Value':'#059669','Blue Chip / Core':'#6366f1'
+};
+const RISK_ORDER = ['Blue Chip / Core','Growth','Dividend / Value','High Risk / Speculative'];
+
+function fmt(v){ return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function pct(v){ return (v/GRAND*100).toFixed(1)+'%'; }
+function ylink(sym){ const s=sym.replace(/\*+$/,''); return /^[A-Z]{1,6}$/.test(s)?`<a href="https://finance.yahoo.com/quote/${s}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none" title="View ${s} on Yahoo Finance">${sym}</a>`:sym; }
+
+/* ---- Build Account-Type pivot from the category-based DATA ---- */
+const TAX_DEFERRED_TYPES = ['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP'];
+const CASH_SYMS = ['SPAXX**','FDRXX**','CORE**','FZDXX','BROKERAGELINK'];
+function buildAcctTypePivot(){
+  const map = {};
+  const cashGroup = {type:'Cash / Money Market',total:0,accounts:{}};
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      const rawType = a.type || 'Other';
+      const groupKey = TAX_DEFERRED_TYPES.includes(rawType) ? 'Tax-Deferred Savings' : rawType;
+
+      // Separate cash tickers from non-cash
+      const cashTickers = a.tickers.filter(t=>CASH_SYMS.includes(t.sym));
+      const nonCashTickers = a.tickers.filter(t=>!CASH_SYMS.includes(t.sym));
+      const cashVal = cashTickers.reduce((s,t)=>s+t.val,0);
+      const nonCashVal = nonCashTickers.reduce((s,t)=>s+t.val,0);
+
+      // Add cash tickers to Cash group (grouped by account)
+      if(cashTickers.length){
+        const ck = a.num;
+        if(!cashGroup.accounts[ck]) cashGroup.accounts[ck]={num:a.num,name:a.name,type:a.type,val:0,tickers:[]};
+        cashGroup.accounts[ck].val += cashVal;
+        cashGroup.total += cashVal;
+        cashTickers.forEach(tk=>cashGroup.accounts[ck].tickers.push(tk));
+      }
+
+      // Add non-cash tickers to account type group
+      if(nonCashTickers.length){
+        if(!map[groupKey]) map[groupKey]={type:groupKey,total:0,accounts:{}};
+        const key = a.num;
+        if(!map[groupKey].accounts[key]) map[groupKey].accounts[key]={num:a.num,name:a.name,type:a.type,val:0,tickers:[]};
+        map[groupKey].accounts[key].val += nonCashVal;
+        map[groupKey].total += nonCashVal;
+        nonCashTickers.forEach(tk=>map[groupKey].accounts[key].tickers.push(tk));
+      }
+    });
+  });
+  const result = Object.values(map).map(g=>{
+    g.accounts = Object.values(g.accounts).sort((a,b)=>b.val-a.val);
+    return g;
+  });
+  // Add cash group if it has any holdings
+  if(cashGroup.total > 0){
+    cashGroup.accounts = Object.values(cashGroup.accounts).sort((a,b)=>b.val-a.val);
+    result.push(cashGroup);
+  }
+  return result.sort((a,b)=>b.total-a.total);
+}
+const ACCT_DATA = buildAcctTypePivot();
+
+const ACCT_PALETTE = ['#2563eb','#059669','#ea580c','#7c3aed','#db2777','#0891b2','#d97706','#16a34a','#dc2626','#6366f1','#0d9488','#c026d3','#ca8a04','#4f46e5','#9333ea','#e11d48'];
+function buildAcctNamePivot(){
+  const map={};
+  DATA.forEach(d=>{d.accounts.forEach(a=>{
+    if(!map[a.num]) map[a.num]={num:a.num,name:a.name,type:a.type,total:0,cats:{}};
+    a.tickers.forEach(t=>{
+      const ck=d.cat;
+      if(!map[a.num].cats[ck]) map[a.num].cats[ck]={cat:ck,val:0,tickers:[]};
+      map[a.num].cats[ck].val+=t.val; map[a.num].cats[ck].tickers.push(t); map[a.num].total+=t.val;
+    });
+  });});
+  return Object.values(map).map(a=>{a.cats=Object.values(a.cats).sort((x,y)=>y.val-x.val);return a;}).sort((a,b)=>b.total-a.total);
+}
+const ACCT_NAME_DATA = buildAcctNamePivot();
+
+/* ---- Rendering helpers ---- */
+function renderAllocBar(items, colorFn){
+  let bh='',lh='';
+  items.forEach(d=>{
+    const p=d.total/GRAND*100, c=colorFn(d);
+    bh+=`<div class="seg" style="width:${p}%;background:${c}"><span class="tip">${d.label}: ${fmt(d.total)} (${p.toFixed(1)}%)</span></div>`;
+    lh+=`<div class="legend-item"><div class="legend-dot" style="background:${c}"></div>${d.label} (${p.toFixed(1)}%)</div>`;
+  });
+  document.getElementById('allocBar').innerHTML=bh;
+  document.getElementById('legend').innerHTML=lh;
+}
+
+function buildTickerHtml(tickers){
+  const hasRisk = tickers.some(t=>t.risk);
+  if(!hasRisk){
+    return tickers.map(t=>
+      `<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${t.name}</span><span class="ticker-val">${fmt(t.val)}</span></div>`
+    ).join('');
+  }
+  const acctTotal=tickers.reduce((s,t)=>s+t.val,0);
+  const groups={};
+  tickers.forEach(t=>{
+    const r=t.risk||'Other';
+    if(!groups[r]) groups[r]=[];
+    groups[r].push(t);
+  });
+  let html='';
+  const renderGroup=(r,rc)=>{
+    if(!groups[r]) return;
+    const items=groups[r];
+    const subtotal=items.reduce((s,t)=>s+t.val,0);
+    const p=(subtotal/acctTotal*100).toFixed(1);
+    html+=`<div class="risk-group-header"><div class="risk-dot" style="background:${rc}"></div><span class="risk-label" style="color:${rc}">${r}</span><span class="risk-summary">${items.length} holdings &middot; ${fmt(subtotal)} &middot; ${p}%</span></div>`;
+    items.forEach(t=>{
+      html+=`<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${t.name}</span><span class="ticker-val">${fmt(t.val)}</span></div>`;
+    });
+  };
+  RISK_ORDER.forEach(r=>renderGroup(r, RISK_COLORS[r]||'#94a3b8'));
+  if(groups['Other']) renderGroup('Other','#94a3b8');
+  return html;
+}
+
+function renderCards(groups, colorFn, badgeFn, innerColorFn){
+  const el=document.getElementById('drilldown');
+  el.innerHTML='';
+  groups.forEach((g,gi)=>{
+    const c=colorFn(g);
+    let acctHtml='';
+    g.accounts.forEach((a,ai)=>{
+      const ac=innerColorFn?innerColorFn(a):(ACCT_TYPE_COLORS[a.type]||'#64748b');
+      const bc=BADGE_CLS[a.type]||'';
+      const tickerHtml=buildTickerHtml(a.tickers);
+      acctHtml+=`
+        <div class="acct-row" onclick="toggleAcct(this,event)" data-id="g${gi}a${ai}">
+          <div class="acct-icon" style="background:${ac}">${(a.type||'O').charAt(0)}</div>
+          <div class="acct-info">
+            <div class="acct-name">${a.name} ${badgeFn(a)}</div>
+            <div class="acct-num">${a.num?'#'+a.num:''}</div>
+          </div>
+          <div class="acct-value"><div class="amount">${fmt(a.val)}</div><div class="pct">${pct(a.val)} of total</div></div>
+          <div class="acct-chevron">&#9654;</div>
+        </div>
+        <div class="ticker-body" id="tb-g${gi}a${ai}">${tickerHtml}</div>`;
+    });
+    el.innerHTML+=`
+      <div class="category-card">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <div class="cat-color" style="background:${c}"></div>
+          <div class="cat-info">
+            <div class="cat-name">${g.label}</div>
+            <div class="cat-meta">${g.meta}</div>
+          </div>
+          <div class="cat-value">
+            <div class="amount">${fmt(g.total)}</div>
+            <div class="pct">${pct(g.total)} of portfolio</div>
+          </div>
+          <div class="cat-chevron">&#9654;</div>
+        </div>
+        <div class="cat-body">${acctHtml}</div>
+      </div>`;
+  });
+}
+
+/* ---- Pivot renderers ---- */
+function renderAcctTypePivot(){
+  const items=ACCT_DATA.map(g=>({label:g.type,total:g.total,accounts:g.accounts,
+    meta:`${g.accounts.length} account${g.accounts.length>1?'s':''}`}));
+  renderAllocBar(items, d=>ACCT_TYPE_COLORS[d.label]||'#a3a3a3');
+  renderCards(items, g=>ACCT_TYPE_COLORS[g.label]||'#a3a3a3',
+    a=>`<span class="badge ${BADGE_CLS[a.type]||''}">${a.type}</span>`);
+  computeInsights('acctType');
+}
+
+function renderCategoryPivot(){
+  const items=DATA.map(d=>({label:d.cat,total:d.total,accounts:d.accounts,
+    meta:`${d.accounts.length} account${d.accounts.length>1?'s':''}`}));
+  renderAllocBar(items, d=>CATEGORY_COLORS[d.label]||'#a3a3a3');
+  renderCards(items, g=>CATEGORY_COLORS[g.label]||'#a3a3a3',
+    a=>`<span class="badge ${BADGE_CLS[a.type]||''}">${a.type}</span>`);
+  computeInsights('category');
+}
+
+function renderAcctNamePivot(){
+  const items=ACCT_NAME_DATA.map((a,i)=>({label:a.name,total:a.total,_idx:i,
+    meta:'#'+a.num+' \u00b7 '+a.type+' \u00b7 '+a.cats.length+' categor'+(a.cats.length>1?'ies':'y'),
+    accounts:a.cats.map(c=>({num:'',type:c.cat,name:c.cat,val:c.val,tickers:c.tickers}))}));
+  renderAllocBar(items, d=>ACCT_PALETTE[d._idx%ACCT_PALETTE.length]);
+  renderCards(items, g=>ACCT_PALETTE[g._idx%ACCT_PALETTE.length], a=>'',
+    a=>CATEGORY_COLORS[a.type]||'#64748b');
+  computeInsights('acctName');
+}
+
+/* ---- Suggestions Tab: Static Data ---- */
+const ALLOC_COLORS = {eq:'#2563eb',intl:'#059669',bond:'#7c3aed',cash:'#94a3b8',reit:'#ea580c',alt:'#d97706',other:'#d4d4d4'};
+const FUND_META = {
+  VTI:{n:'Vanguard Total Stock Market ETF',ac:'US Equity',sc:'Total Market',role:'Core broad US equity covering large, mid, and small caps',er:0.03,scores:{g:8,r:6,d:9,c:10}},
+  VOO:{n:'Vanguard S&P 500 ETF',ac:'US Equity',sc:'Large Cap',role:'Core US large-cap exposure tracking the S&P 500',er:0.03,scores:{g:7,r:6,d:8,c:10}},
+  FXAIX:{n:'Fidelity 500 Index Fund',ac:'US Equity',sc:'Large Cap',role:'Core US large-cap index fund — ideal for 401(k)',er:0.015,scores:{g:7,r:6,d:8,c:10}},
+  FSKAX:{n:'Fidelity Total Market Index',ac:'US Equity',sc:'Total Market',role:'Broad US equity via mutual fund',er:0.015,scores:{g:8,r:6,d:9,c:10}},
+  AVUV:{n:'Avantis US Small Cap Value ETF',ac:'US Equity',sc:'Small Cap Value',role:'Factor tilt toward small-cap value for higher expected returns',er:0.25,scores:{g:9,r:8,d:6,c:8}},
+  VXF:{n:'Vanguard Extended Market ETF',ac:'US Equity',sc:'Mid/Small Cap',role:'Complements S&P 500 with mid and small-cap exposure',er:0.06,scores:{g:8,r:7,d:7,c:10}},
+  SCHD:{n:'Schwab US Dividend Equity ETF',ac:'US Equity',sc:'Dividend',role:'Quality dividend stocks for income and lower volatility',er:0.06,scores:{g:6,r:5,d:7,c:10}},
+  QQQM:{n:'Invesco Nasdaq-100 ETF',ac:'US Equity',sc:'Large Cap Growth',role:'Concentrated large-cap growth/tech exposure via Nasdaq-100',er:0.15,scores:{g:9,r:7,d:5,c:9}},
+  COWZ:{n:'Pacer US Cash Cows 100 ETF',ac:'US Equity',sc:'Cash Flow Value',role:'Free-cash-flow-weighted value strategy for quality income',er:0.49,scores:{g:7,r:5,d:6,c:6}},
+  DGRW:{n:'WisdomTree US Quality Dividend Growth',ac:'US Equity',sc:'Dividend Growth',role:'Quality dividend growers blending income and capital appreciation',er:0.28,scores:{g:7,r:5,d:7,c:8}},
+  VXUS:{n:'Vanguard Total Intl Stock ETF',ac:'International Equity',sc:'Total International',role:'Broad international equity including developed and emerging markets',er:0.07,scores:{g:7,r:7,d:9,c:10}},
+  VEA:{n:'Vanguard FTSE Developed Markets ETF',ac:'International Equity',sc:'Developed Markets',role:'International developed market equities ex-US',er:0.05,scores:{g:6,r:6,d:8,c:10}},
+  VWO:{n:'Vanguard FTSE Emerging Markets ETF',ac:'International Equity',sc:'Emerging Markets',role:'Emerging market equities for growth and diversification',er:0.08,scores:{g:8,r:8,d:7,c:9}},
+  FTIHX:{n:'Fidelity Total International Index',ac:'International Equity',sc:'Total International',role:'Broad international equity via mutual fund',er:0.06,scores:{g:7,r:7,d:9,c:10}},
+  AVDV:{n:'Avantis Intl Small Cap Value ETF',ac:'International Equity',sc:'Small Cap Value',role:'International small-cap value factor exposure',er:0.36,scores:{g:8,r:8,d:7,c:7}},
+  SCHE:{n:'Schwab Emerging Markets Equity ETF',ac:'International Equity',sc:'Emerging Markets',role:'Low-cost emerging markets equity alternative',er:0.11,scores:{g:8,r:8,d:7,c:9}},
+  IEMG:{n:'iShares Core MSCI Emerging Markets ETF',ac:'International Equity',sc:'Emerging Markets',role:'Broad emerging markets with small-cap inclusion',er:0.09,scores:{g:8,r:8,d:8,c:10}},
+  EFA:{n:'iShares MSCI EAFE ETF',ac:'International Equity',sc:'Developed Markets',role:'Large/mid-cap developed markets ex-US (Europe, Australasia, Far East)',er:0.32,scores:{g:6,r:6,d:8,c:7}},
+  BND:{n:'Vanguard Total Bond Market ETF',ac:'Bonds',sc:'US Aggregate',role:'Core US investment-grade bond exposure for stability',er:0.03,scores:{g:3,r:3,d:8,c:10}},
+  FXNAX:{n:'Fidelity US Bond Index',ac:'Bonds',sc:'US Aggregate',role:'Core bond allocation via mutual fund',er:0.025,scores:{g:3,r:3,d:8,c:10}},
+  VGSH:{n:'Vanguard Short-Term Treasury ETF',ac:'Bonds',sc:'Short-Term Treasury',role:'Capital preservation with minimal interest rate risk',er:0.04,scores:{g:2,r:1,d:5,c:10}},
+  SCHP:{n:'Schwab US TIPS ETF',ac:'Bonds',sc:'TIPS',role:'Inflation protection via Treasury Inflation-Protected Securities',er:0.05,scores:{g:3,r:2,d:6,c:10}},
+  BNDX:{n:'Vanguard Total Intl Bond ETF',ac:'Bonds',sc:'International Bond',role:'International bond diversification (hedged to USD)',er:0.07,scores:{g:3,r:3,d:7,c:9}},
+  HYG:{n:'iShares High Yield Corp Bond ETF',ac:'Bonds',sc:'High Yield',role:'Higher income from below-investment-grade corporate bonds',er:0.49,scores:{g:5,r:5,d:6,c:6}},
+  AGG:{n:'iShares Core US Aggregate Bond ETF',ac:'Bonds',sc:'US Aggregate',role:'Broad US investment-grade bond exposure — iShares alternative to BND',er:0.03,scores:{g:3,r:3,d:8,c:10}},
+  VCSH:{n:'Vanguard Short-Term Corporate Bond ETF',ac:'Bonds',sc:'Short-Term Corporate',role:'Short-duration corporate bonds for higher yield with limited rate risk',er:0.04,scores:{g:3,r:2,d:6,c:10}},
+  VTIP:{n:'Vanguard Short-Term TIPS ETF',ac:'Bonds',sc:'Short-Term TIPS',role:'Short-duration inflation protection with minimal interest rate sensitivity',er:0.04,scores:{g:2,r:1,d:5,c:10}},
+  MUB:{n:'iShares National Muni Bond ETF',ac:'Bonds',sc:'Municipal Bond',role:'Tax-exempt municipal bonds — ideal for taxable accounts in high tax brackets',er:0.07,scores:{g:3,r:2,d:7,c:9}},
+  TLT:{n:'iShares 20+ Year Treasury Bond ETF',ac:'Bonds',sc:'Long-Term Treasury',role:'Long-duration treasuries for maximum rate sensitivity and deflation hedge',er:0.15,scores:{g:3,r:7,d:5,c:9}},
+  VNQ:{n:'Vanguard Real Estate ETF',ac:'Real Estate',sc:'REITs',role:'Real estate exposure for income and inflation hedge',er:0.12,scores:{g:6,r:6,d:7,c:9}},
+  VNQI:{n:'Vanguard Global ex-US Real Estate ETF',ac:'Real Estate',sc:'International REITs',role:'International real estate diversification beyond US markets',er:0.12,scores:{g:6,r:7,d:8,c:9}},
+  GLD:{n:'SPDR Gold Shares',ac:'Alternatives',sc:'Gold',role:'Gold exposure as inflation hedge and crisis diversifier',er:0.40,scores:{g:4,r:5,d:8,c:6}},
+  PDBC:{n:'Invesco Optimum Yield Diversified Commodity ETF',ac:'Alternatives',sc:'Commodities',role:'Broad commodity exposure for inflation protection and diversification',er:0.59,scores:{g:5,r:6,d:8,c:5}},
+};
+const MODELS = {
+  high:{name:'High Risk / High Growth',color:'#dc2626',icon:'\u{1F534}',
+    desc:'Targets maximum long-term growth with higher volatility. Overweights equities, especially small-cap value and emerging markets. Suitable for 15+ year horizons.',
+    vol:'High (18\u201322% annual std dev). Expect drawdowns of 30\u201350% in severe bear markets.',
+    vs60:'Significantly more volatile than a 60/40 portfolio. Higher expected returns over 10+ years but with much larger interim losses.',
+    alloc:[{t:'VTI',pct:30,role:'Core US broad market'},{t:'AVUV',pct:15,role:'Small-cap value factor tilt'},{t:'VXUS',pct:25,role:'International diversification'},{t:'VWO',pct:10,role:'Emerging market growth'},{t:'AVDV',pct:10,role:'Intl small-cap value'},{t:'BND',pct:5,role:'Minimal bond ballast'},{t:'VNQ',pct:5,role:'Real estate diversification'}],
+    taxSplit:[
+      {bucket:'Taxable',color:'#f59e0b',pct:20,funds:'VTI 20%',reason:'Tax-efficient index funds with low turnover and qualified dividends'},
+      {bucket:'Tax-Deferred',color:'#3b82f6',pct:20,funds:'VXUS 15% \u00b7 BND 5%',reason:'International funds (foreign tax credit less useful in Roth) and bonds (interest taxed as ordinary income)'},
+      {bucket:'Tax-Free',color:'#10b981',pct:60,funds:'AVUV 15% \u00b7 VWO 10% \u00b7 AVDV 10% \u00b7 VTI 10% \u00b7 VXUS 10% \u00b7 VNQ 5%',reason:'Highest-growth assets (small-cap value, EM, REITs) benefit most from tax-free compounding'},
+    ]},
+  medium:{name:'Medium Risk / Balanced Growth',color:'#f59e0b',icon:'\u{1F7E1}',
+    desc:'Balanced mix of equity and bonds for moderate growth with lower volatility. Broadly diversified across US, international equities and investment-grade bonds.',
+    vol:'Moderate (12\u201316% annual std dev). Expect drawdowns of 20\u201335% in bear markets.',
+    vs60:'Similar risk to a traditional 60/40 portfolio with better diversification across factors and geographies.',
+    alloc:[{t:'VTI',pct:25,role:'Core US equity'},{t:'VXUS',pct:15,role:'International equity'},{t:'SCHD',pct:10,role:'Dividend income + stability'},{t:'AVUV',pct:5,role:'Small-cap value tilt'},{t:'BND',pct:25,role:'Core bond stability'},{t:'SCHP',pct:10,role:'Inflation protection'},{t:'BNDX',pct:5,role:'Intl bond diversification'},{t:'VNQ',pct:5,role:'Real estate income'}],
+    taxSplit:[
+      {bucket:'Taxable',color:'#f59e0b',pct:25,funds:'VTI 15% \u00b7 SCHD 10%',reason:'Tax-efficient index funds and qualified dividends get preferential tax rates'},
+      {bucket:'Tax-Deferred',color:'#3b82f6',pct:40,funds:'BND 25% \u00b7 SCHP 10% \u00b7 BNDX 5%',reason:'All bonds here \u2014 interest income sheltered from annual taxation'},
+      {bucket:'Tax-Free',color:'#10b981',pct:35,funds:'VTI 10% \u00b7 VXUS 15% \u00b7 AVUV 5% \u00b7 VNQ 5%',reason:'Growth equities and REITs (non-qualified dividends) maximize tax-free compounding'},
+    ]},
+  low:{name:'Low Risk / Capital Preservation',color:'#059669',icon:'\u{1F7E2}',
+    desc:'Emphasizes capital preservation and income with minimal volatility. Heavy allocation to high-quality short and intermediate bonds with modest equity exposure.',
+    vol:'Low (5\u20139% annual std dev). Expect drawdowns of 10\u201315% in bear markets.',
+    vs60:'Significantly less volatile than a 60/40. Lower expected returns but much smoother ride.',
+    alloc:[{t:'VTI',pct:15,role:'Modest equity for growth'},{t:'SCHD',pct:10,role:'Dividend income + stability'},{t:'BND',pct:30,role:'Core bond stability'},{t:'VGSH',pct:20,role:'Short-term treasury safety'},{t:'SCHP',pct:15,role:'Inflation protection'},{t:'BNDX',pct:10,role:'Intl bond diversification'}],
+    taxSplit:[
+      {bucket:'Taxable',color:'#f59e0b',pct:15,funds:'VTI 5% \u00b7 SCHD 10%',reason:'Tax-efficient equity with qualified dividends; keep minimal in taxable'},
+      {bucket:'Tax-Deferred',color:'#3b82f6',pct:65,funds:'BND 30% \u00b7 VGSH 15% \u00b7 SCHP 10% \u00b7 BNDX 10%',reason:'Bond-heavy \u2014 all interest income sheltered in tax-deferred accounts'},
+      {bucket:'Tax-Free',color:'#10b981',pct:20,funds:'VTI 10% \u00b7 VGSH 5% \u00b7 SCHP 5%',reason:'Some equity for tax-free growth; short-term bonds for Roth flexibility'},
+    ]},
+};
+const ACCT_GUIDE = [
+  {id:'401k',title:'401(k)',color:'#3b82f6',icon:'\u{1F3E2}',
+    strategy:'Use for core equity and bond index funds available in your plan menu. Most plans offer S&P 500, total market, international, and aggregate bond index funds at low institutional share-class expense ratios. Always maximize employer match first.',
+    alloc:{'US Equity (FXAIX/FSKAX)':'40\u201360%','International Equity (FTIHX)':'15\u201325%','US Bond Index (FXNAX)':'15\u201330%','Stable Value / Money Market':'0\u20135%'},
+    rationale:'The 401(k) is ideal for core index fund allocations since plan menus typically offer low-cost institutional share classes. Tax-deferred growth means bond interest isn\u0027t taxed annually. Employer match is essentially free money \u2014 always maximize this first.'},
+  {id:'trad_ira',title:'Traditional IRA',color:'#7c3aed',icon:'\u{1F3E6}',
+    strategy:'Emphasize bond-heavy and income-generating investments. Since withdrawals are taxed as ordinary income, bond interest and REIT dividends don\u0027t create additional tax drag here.',
+    alloc:{'US Aggregate Bond (BND/FXNAX)':'30\u201340%','TIPS (SCHP)':'10\u201315%','International Bond (BNDX)':'5\u201310%','REITs (VNQ)':'5\u201310%','US Equity Index':'20\u201330%','High Yield Bond (HYG)':'0\u201310%'},
+    rationale:'Bonds generate interest taxed as ordinary income \u2014 placing them in tax-deferred accounts avoids annual taxation. REITs produce non-qualified dividends that are also tax-inefficient. Keep the most tax-inefficient assets here.'},
+  {id:'roth',title:'Roth IRA',color:'#10b981',icon:'\u{1F331}',
+    strategy:'Maximize highest expected growth assets here. Since Roth withdrawals are tax-free, allocate assets with the greatest long-term appreciation potential. Small-cap value, emerging markets, and growth-oriented equity funds are ideal.',
+    alloc:{'US Small Cap Value (AVUV)':'20\u201330%','Emerging Markets (VWO)':'15\u201320%','Intl Small Cap Value (AVDV)':'15\u201320%','US Total Market (VTI)':'20\u201330%','Extended Market (VXF)':'10\u201315%'},
+    rationale:'The Roth\u0027s tax-free growth makes it perfect for the highest-growth, most volatile assets. Small-cap value and emerging markets have the highest historical expected returns. Their gains compound tax-free, maximizing the benefit.'},
+];
+
+/* ---- Suggestions Tab: Rendering ---- */
+function scCls(v){return v>=9?'sc-hi':v>=7?'sc-med':v>=4?'sc-lo':'sc-vlo';}
+function metricVal(sym,key){const m=SUGG_METRICS&&SUGG_METRICS.funds&&SUGG_METRICS.funds[sym];return m?m[key]:null;}
+function fmtPct(v,sign){if(v==null)return'<span style="color:#cbd5e1">N/A</span>';const c=v>=0?'pos':'neg';const s=sign&&v>0?'+':'';return`<span class="${c}">${s}${v.toFixed(1)}%</span>`;}
+function fmtEr(v){return v!=null?(v<0.1?v.toFixed(3):v.toFixed(2))+'%':'N/A';}
+function scoreBadge(v){return`<span class="sugg-score ${scCls(v)}">${v}</span>`;}
+
+function computeCurrentAlloc(){
+  const cats={};DATA.forEach(d=>{cats[d.cat]=d.total;});
+  const eq=(cats['US Index Funds']||0)+(cats['Individual Stocks']||0)+(cats['Tech Sector Fund']||0)+(cats['Growth / Leveraged ETFs']||0);
+  const intl=cats['International Funds']||0;
+  const bond=cats['Bond Funds']||0;
+  const cash=cats['Cash / Money Market']||0;
+  const other=cats['Other']||0;
+  return{eq,intl,bond,cash,other,total:GRAND};
+}
+
+function allocBar(items,total){
+  let h='<div class="sugg-bar-track">';
+  items.forEach(i=>{const p=i.val/total*100;if(p>0.3)h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span></div>`;});
+  h+='</div>';return h;
+}
+
+function renderSuggestions(){
+  const el=document.getElementById('drilldown');
+  const insEl=document.getElementById('insightsContainer');
+  document.getElementById('allocOverview').style.display='none';
+  insEl.parentElement.style.display='none';
+
+  const cur=computeCurrentAlloc();
+  let html='';
+
+  /* --- Section 1: Current vs Model Allocation --- */
+  html+=`<div class="sugg-section"><div class="sugg-h2">\u{1F4CA} Your Current Allocation vs Model Portfolios</div>`;
+  html+=`<div class="sugg-legend">`;
+  [{l:'US Equity',c:ALLOC_COLORS.eq},{l:'International',c:ALLOC_COLORS.intl},{l:'Bonds',c:ALLOC_COLORS.bond},{l:'Cash',c:ALLOC_COLORS.cash},{l:'Real Estate',c:ALLOC_COLORS.reit},{l:'Alternatives',c:ALLOC_COLORS.alt}].forEach(x=>{
+    html+=`<span><span class="sugg-legend-dot" style="background:${x.c}"></span>${x.l}</span>`;});
+  html+=`</div><div class="sugg-bars">`;
+
+  function modelBreakdown(allocs){
+    let eq=0,intl=0,bond=0,reit=0,alt=0;
+    allocs.forEach(a=>{const ac=FUND_META[a.t]?.ac||'';
+      if(ac==='US Equity')eq+=a.pct;else if(ac==='International Equity')intl+=a.pct;
+      else if(ac==='Bonds')bond+=a.pct;else if(ac==='Real Estate')reit+=a.pct;else if(ac==='Alternatives')alt+=a.pct;});
+    return{eq,intl,bond,cash:0,reit,alt};
+  }
+  const rows=[{label:'Your Portfolio',d:{eq:cur.eq/GRAND*100,intl:cur.intl/GRAND*100,bond:cur.bond/GRAND*100,cash:cur.cash/GRAND*100,reit:0}}];
+  ['high','medium','low'].forEach(k=>{rows.push({label:MODELS[k].name,d:modelBreakdown(MODELS[k].alloc)});});
+
+  rows.forEach(r=>{
+    const items=[{val:r.d.eq,color:ALLOC_COLORS.eq,label:'US Equity'},{val:r.d.intl,color:ALLOC_COLORS.intl,label:'International'},
+      {val:r.d.bond,color:ALLOC_COLORS.bond,label:'Bonds'},{val:r.d.cash||0,color:ALLOC_COLORS.cash,label:'Cash'},{val:r.d.reit||0,color:ALLOC_COLORS.reit,label:'Real Estate'},{val:r.d.alt||0,color:ALLOC_COLORS.alt,label:'Alternatives'}];
+    html+=`<div class="sugg-bar-row"><div class="sugg-bar-label" title="${r.label}">${r.label}</div>${allocBar(items,100)}<div class="sugg-bar-pct">100%</div></div>`;
+  });
+  html+=`</div></div>`;
+
+  /* --- Section 2b: Your Portfolio by Tax Treatment --- */
+  html+=`<div class="sugg-section"><div class="sugg-h2">\u{1F4B0} Your Portfolio by Tax Treatment</div>`;
+  html+=`<p class="sugg-desc">How your current holdings break down by tax treatment and asset class bucket. Use the other drill-down tabs for account and ticker-level detail.</p>`;
+
+  // Build per-account bucket breakdown from DATA, then group by tax treatment
+  const acctMap={};
+  DATA.forEach(d=>{
+    const bucket = (d.cat==='US Index Funds'||d.cat==='Individual Stocks'||d.cat==='Tech Sector Fund'||d.cat==='Growth / Leveraged ETFs') ? 'US Equity'
+      : d.cat==='International Funds' ? 'International'
+      : d.cat==='Bond Funds' ? 'Bonds'
+      : d.cat==='Cash / Money Market' ? 'Cash'
+      : 'Other';
+    d.accounts.forEach(a=>{
+      const key=a.num;
+      if(!acctMap[key]) acctMap[key]={num:a.num,name:a.name,type:a.type,buckets:{},total:0};
+      acctMap[key].buckets[bucket]=(acctMap[key].buckets[bucket]||0)+a.val;
+      acctMap[key].total+=a.val;
+    });
+  });
+
+  // Group accounts into 3 tax categories
+  const TAX_GROUPS = [
+    {key:'taxable',label:'Taxable Accounts',sub:'Individual, Joint, UTMA',color:'#f59e0b',
+     types:['Taxable Investment','Custodial (UTMA)']},
+    {key:'deferred',label:'Tax-Deferred Accounts',sub:'401(k), Traditional IRA, DCP',color:'#3b82f6',
+     types:['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP']},
+    {key:'taxfree',label:'Tax-Free Accounts',sub:'Roth IRA, HSA, 529',color:'#10b981',
+     types:['Roth','HSA','529 College Savings']},
+  ];
+  const taxGroups=TAX_GROUPS.map(g=>{
+    const bk={};let tot=0;const accts=[];
+    Object.values(acctMap).forEach(a=>{
+      if(!g.types.includes(a.type)||a.total<=0) return;
+      accts.push(a.name);
+      tot+=a.total;
+      Object.entries(a.buckets).forEach(([b,v])=>{bk[b]=(bk[b]||0)+v;});
+    });
+    return{...g,buckets:bk,total:tot,acctCount:accts.length};
+  });
+
+  const bucketOrder=['US Equity','International','Bonds','Cash','Other'];
+  const bucketColors={'US Equity':ALLOC_COLORS.eq,'International':ALLOC_COLORS.intl,'Bonds':ALLOC_COLORS.bond,'Cash':ALLOC_COLORS.cash,'Other':'#d4d4d4'};
+
+  html+=`<div class="sugg-tbl-wrap"><table class="sugg-tbl"><thead><tr><th>Tax Treatment</th><th>Total</th>`;
+  bucketOrder.forEach(b=>{html+=`<th class="num">${b}</th>`;});
+  html+=`<th>Allocation</th></tr></thead><tbody>`;
+
+  taxGroups.forEach(g=>{
+    if(g.total<=0) return;
+    html+=`<tr><td><strong style="color:${g.color}">\u25CF ${g.label}</strong><br><span style="font-size:0.82em;color:var(--text-muted)">${g.sub} \u00b7 ${g.acctCount} account${g.acctCount>1?'s':''}</span></td>`;
+    html+=`<td class="num"><strong>${fmt(g.total)}</strong><br><span style="font-size:0.85em;color:var(--text-muted)">${(g.total/GRAND*100).toFixed(1)}% of portfolio</span></td>`;
+    bucketOrder.forEach(b=>{
+      const v=g.buckets[b]||0;
+      const p=g.total>0?(v/g.total*100).toFixed(1):'0.0';
+      html+=`<td class="num">${v>0?fmt(v)+'<br><span style="font-size:0.85em;color:var(--text-muted)">'+p+'%</span>':'\u2014'}</td>`;
+    });
+    html+=`<td style="min-width:120px"><div class="sugg-bar-track" style="height:16px">`;
+    bucketOrder.forEach(b=>{
+      const v=g.buckets[b]||0;
+      const p=g.total>0?v/g.total*100:0;
+      if(p>0.5) html+=`<div class="sugg-bar-seg" style="width:${p}%;background:${bucketColors[b]}"><span class="stip">${b}: ${p.toFixed(1)}%</span></div>`;
+    });
+    html+=`</div></td></tr>`;
+  });
+
+  // Grand total row
+  const grandBuckets={};
+  taxGroups.forEach(g=>{bucketOrder.forEach(b=>{grandBuckets[b]=(grandBuckets[b]||0)+(g.buckets[b]||0);});});
+  html+=`<tr style="border-top:2px solid var(--border);font-weight:700"><td>Total Portfolio</td><td class="num">${fmt(GRAND)}</td>`;
+  bucketOrder.forEach(b=>{
+    const v=grandBuckets[b]||0;
+    html+=`<td class="num">${fmt(v)}<br><span style="font-size:0.85em;color:var(--text-muted)">${(v/GRAND*100).toFixed(1)}%</span></td>`;
+  });
+  html+=`<td></td></tr>`;
+
+  html+=`</tbody></table></div></div>`;
+
+  /* --- Section 3: Model Portfolios --- */
+  html+=`<div class="sugg-section"><div class="sugg-h2">\u{1F4CB} Three Model Portfolios</div>`;
+  html+=`<p class="sugg-desc">Each portfolio is designed for a U.S.-based long-term investor (15+ year horizon) using tax-advantaged accounts. Allocations sum to 100%.</p>`;
+
+  ['high','medium','low'].forEach(k=>{
+    const m=MODELS[k];
+    html+=`<div class="sugg-card" style="border-left:4px solid ${m.color}"><h3>${m.icon} ${m.name}</h3>`;
+    html+=`<p class="sugg-desc">${m.desc}</p>`;
+    html+=`<table class="sugg-tbl"><thead><tr><th>Ticker</th><th>Asset Class</th><th>Alloc %</th><th>Key Role</th><th>Expense</th></tr></thead><tbody>`;
+    m.alloc.forEach(a=>{
+      const f=FUND_META[a.t]||{};
+      html+=`<tr><td><strong style="color:var(--primary)">${ylink(a.t)}</strong></td><td>${f.ac||''}</td><td class="num">${a.pct}%</td><td>${a.role}</td><td class="num">${fmtEr(f.er)}</td></tr>`;
+    });
+    const wavgEr=m.alloc.reduce((s,a)=>s+(FUND_META[a.t]?.er||0)*a.pct/100,0);
+    html+=`</tbody></table>`;
+    html+=`<div class="vol-note"><strong>Expected volatility:</strong> ${m.vol}<br><strong>vs 60/40:</strong> ${m.vs60}<br><strong>Weighted expense ratio:</strong> ${(wavgEr*100).toFixed(2)} bps</div>`;
+    // Tax bucket split
+    if(m.taxSplit){
+      html+=`<div style="margin-top:14px"><strong style="font-size:0.88em">Recommended Account Placement</strong></div>`;
+      html+=`<table class="sugg-tbl" style="margin-top:6px"><thead><tr><th>Tax Bucket</th><th class="num">Allocation</th><th>Funds</th><th>Rationale</th></tr></thead><tbody>`;
+      m.taxSplit.forEach(s=>{
+        const linkedFunds=s.funds.replace(/\b([A-Z]{2,5})\b/g,(m)=>FUND_META[m]?ylink(m):m);
+        html+=`<tr><td><strong style="color:${s.color}">\u25CF ${s.bucket}</strong></td><td class="num"><strong>${s.pct}%</strong></td><td style="font-size:0.88em">${linkedFunds}</td><td style="font-size:0.85em;color:var(--text-muted)">${s.reason}</td></tr>`;
+      });
+      html+=`</tbody></table>`;
+    }
+    html+=`</div>`;
+  });
+  html+=`</div>`;
+
+  /* --- Section 4: Account Guidance --- */
+  html+=`<div class="sugg-section"><div class="sugg-h2">\u{1F3E6} Account-Specific Guidance</div>`;
+  html+=`<p class="sugg-desc">Tax-efficient placement principles: put highest-growth assets in Roth (tax-free growth), income-heavy assets in Traditional IRA (tax-deferred), and core index funds in 401(k) (employer match + low-cost institutional shares).</p>`;
+
+  ACCT_GUIDE.forEach(ag=>{
+    html+=`<div class="sugg-card sugg-acct" style="border-left-color:${ag.color}"><h3>${ag.icon} ${ag.title}</h3>`;
+    html+=`<p class="sugg-desc"><strong>Strategy:</strong> ${ag.strategy}</p>`;
+    html+=`<table class="sugg-tbl"><thead><tr><th>Asset Class / Fund</th><th>Target Range</th></tr></thead><tbody>`;
+    Object.entries(ag.alloc).forEach(([cls,range])=>{const lc=cls.replace(/\b([A-Z]{2,5})\b/g,(m)=>/^[A-Z]{2,5}$/.test(m)?ylink(m):m);html+=`<tr><td>${lc}</td><td class="num"><strong>${range}</strong></td></tr>`;});
+    html+=`</tbody></table>`;
+    html+=`<p class="sugg-desc"><strong>Rationale:</strong> ${ag.rationale}</p></div>`;
+  });
+  html+=`</div>`;
+
+  /* --- Section 5: Fund-by-Fund Analysis --- */
+  const metaDate=SUGG_METRICS&&SUGG_METRICS._meta?SUGG_METRICS._meta.fetched:'N/A';
+  html+=`<div class="sugg-section"><div class="sugg-h2">\u{1F50D} Fund-by-Fund Analysis</div>`;
+  html+=`<p class="sugg-desc">Performance data sourced from Yahoo Finance as of ${metaDate}. Expense ratios from fund sponsor fact sheets. Scores are 1\u201310 (higher = better for Growth/Diversification/Cost, lower = less risky for Risk).</p>`;
+  html+=`<div class="sugg-tbl-wrap"><table class="sugg-tbl"><thead><tr>`;
+  ['Ticker','Name','Category','Expense','1Y','2Y Ann.','3Y Ann.','5Y Ann.','Vol','Max DD','Growth','Risk','Divers.','Cost'].forEach((h,i)=>{html+=`<th style="cursor:pointer;user-select:none" onclick="sortSuggTable(this,${i})">${h} <span class="sort-arrow"></span></th>`;});
+  html+=`</tr></thead><tbody id="suggTbody">`;
+
+  const order=['US Equity','International Equity','Bonds','Real Estate','Alternatives'];
+  const sorted=Object.entries(FUND_META).sort((a,b)=>order.indexOf(a[1].ac)-order.indexOf(b[1].ac));
+
+  sorted.forEach(([sym,f])=>{
+    const r1=metricVal(sym,'ret1y'),r2=metricVal(sym,'ret2y'),r3=metricVal(sym,'ret3y'),r5=metricVal(sym,'ret5y'),vol=metricVal(sym,'vol3y'),dd=metricVal(sym,'maxDD');
+    html+=`<tr><td><strong style="color:var(--primary)">${ylink(sym)}</strong></td><td>${f.n}</td><td>${f.sc}</td>`;
+    html+=`<td class="num">${fmtEr(f.er)}</td><td class="num">${fmtPct(r1,true)}</td><td class="num">${fmtPct(r2,true)}</td><td class="num">${fmtPct(r3,true)}</td><td class="num">${fmtPct(r5,true)}</td>`;
+    html+=`<td class="num">${vol!=null?vol.toFixed(1)+'%':'<span style="color:#cbd5e1">N/A</span>'}</td>`;
+    html+=`<td class="num">${fmtPct(dd)}</td>`;
+    html+=`<td class="num">${scoreBadge(f.scores.g)}</td><td class="num">${scoreBadge(f.scores.r)}</td>`;
+    html+=`<td class="num">${scoreBadge(f.scores.d)}</td><td class="num">${scoreBadge(f.scores.c)}</td></tr>`;
+  });
+  html+=`</tbody></table></div>`;
+  html+=`<p class="sugg-desc"><strong>Score guide:</strong> <span class="sugg-score sc-hi">9-10</span> Excellent &nbsp; <span class="sugg-score sc-med">7-8</span> Good &nbsp; <span class="sugg-score sc-lo">4-6</span> Moderate &nbsp; <span class="sugg-score sc-vlo">1-3</span> Low</p>`;
+  html+=`</div>`;
+
+  /* --- Section 6: Disclaimers --- */
+  html+=`<div class="sugg-disclaimer"><h3>\u26A0\uFE0F Important Disclaimers</h3><ul>`;
+  html+=`<li>This is <strong>educational research only</strong>, not personalized financial advice or a fiduciary recommendation.</li>`;
+  html+=`<li>Past performance does not guarantee future results. Markets are uncertain and all investments carry risk of loss.</li>`;
+  html+=`<li>The model portfolios are generic suggestions based on broad academic research and modern portfolio theory. They do not account for your specific financial situation, tax circumstances, or risk tolerance.</li>`;
+  html+=`<li>Fund data is sourced from Yahoo Finance and fund sponsor fact sheets. Some metrics may be unavailable or delayed.</li>`;
+  html+=`<li>Scores are subjective assessments based on fund characteristics and should not be the sole basis for investment decisions.</li>`;
+  html+=`<li><strong>Always consult a qualified financial advisor</strong> before making investment decisions. This tool does not provide guarantees or absolute predictions.</li>`;
+  html+=`</ul></div>`;
+
+  el.innerHTML=html;
+}
+
+/* ---- Sortable Fund Table ---- */
+let _suggSortCol=-1,_suggSortAsc=true;
+function sortSuggTable(th,colIdx){
+  _suggSortAsc=(_suggSortCol===colIdx)?!_suggSortAsc:true;
+  _suggSortCol=colIdx;
+  th.closest('thead').querySelectorAll('.sort-arrow').forEach(s=>s.textContent='');
+  th.querySelector('.sort-arrow').textContent=_suggSortAsc?' \u25B2':' \u25BC';
+  const tbody=document.getElementById('suggTbody');
+  const rows=Array.from(tbody.querySelectorAll('tr'));
+  rows.sort((a,b)=>{
+    let av=a.cells[colIdx].textContent.trim(),bv=b.cells[colIdx].textContent.trim();
+    /* strip $, %, commas for numeric compare */
+    const an=parseFloat(av.replace(/[$,%,N\/A]/g,'')),bn=parseFloat(bv.replace(/[$,%,N\/A]/g,''));
+    if(!isNaN(an)&&!isNaN(bn)) return _suggSortAsc?an-bn:bn-an;
+    return _suggSortAsc?av.localeCompare(bv):bv.localeCompare(av);
+  });
+  rows.forEach(r=>tbody.appendChild(r));
+}
+
+/* ---- Withdrawals Tab ---- */
+
+/* IRS Uniform Lifetime Table 2025 (age → distribution period) */
+const RMD_TABLE={72:27.4,73:26.5,74:25.5,75:24.6,76:23.7,77:22.9,78:22.0,79:21.1,80:20.2,
+81:19.4,82:18.5,83:17.7,84:16.8,85:16.0,86:15.2,87:14.4,88:13.7,89:12.9,90:12.2,
+91:11.5,92:10.8,93:10.1,94:9.5,95:8.9,96:8.4,97:7.8,98:7.3,99:6.8,100:6.4,
+101:6.0,102:5.6,103:5.2,104:4.9,105:4.6,106:4.3,107:4.1,108:3.9,109:3.7,110:3.5,
+111:3.4,112:3.3,113:3.1,114:3.0,115:2.9,116:2.8,117:2.7,118:2.5,119:2.3,120:2.0};
+
+/* 2025 Federal Tax Brackets (Married Filing Jointly) */
+const TAX_BRACKETS_MFJ=[
+  {rate:0.10,limit:23850},{rate:0.12,limit:96950},{rate:0.22,limit:206700},
+  {rate:0.24,limit:394600},{rate:0.32,limit:501050},{rate:0.35,limit:751600},{rate:0.37,limit:Infinity}
+];
+const TAX_BRACKETS_SINGLE=[
+  {rate:0.10,limit:11925},{rate:0.12,limit:48475},{rate:0.22,limit:103350},
+  {rate:0.24,limit:197300},{rate:0.32,limit:250525},{rate:0.35,limit:626350},{rate:0.37,limit:Infinity}
+];
+const LTCG_RATE=0.15; /* long-term capital gains rate for taxable account withdrawals */
+
+/* Social Security benefit scaling relative to FRA (age 67 = 100%) */
+const SS_AGE_FACTOR={62:0.70,63:0.75,64:0.80,65:0.867,66:0.933,67:1.00,68:1.08,69:1.16,70:1.24};
+
+/* Social Security taxation — IRS Publication 915 worksheet
+   Combined income = other ordinary income + 50% of SS benefits
+   MFJ: base=$32,000, upper=$44,000 | Single: base=$25,000, upper=$34,000
+   Tier 1 (base–upper): taxable = min(50% of SS, 50% of (combined − base))
+   Tier 2 (>upper): taxable = min(85% of SS, tier1 + 85% of (combined − upper)) */
+function calcSSTaxableAmount(ssIncome,otherOrdinaryIncome,filing){
+  const combined=otherOrdinaryIncome+ssIncome*0.5;
+  const base=filing==='mfj'?32000:25000;
+  const upper=filing==='mfj'?44000:34000;
+  if(combined<=base) return 0;
+  /* Tier1 is capped at the base-to-upper range per IRS Pub 915 worksheet */
+  const tier1=Math.min(ssIncome*0.50, 0.50*Math.min(combined-base, upper-base));
+  if(combined<=upper) return tier1;
+  return Math.min(ssIncome*0.85, tier1+0.85*(combined-upper));
+}
+
+function calcTax(ordinaryIncome,brackets){
+  let tax=0,prev=0;
+  for(const b of brackets){
+    if(ordinaryIncome<=prev) break;
+    const taxable=Math.min(ordinaryIncome,b.limit)-prev;
+    if(taxable>0) tax+=taxable*b.rate;
+    prev=b.limit;
+  }
+  return tax;
+}
+
+/* ---- Monte Carlo Simulation Engine ---- */
+/* Box-Muller transform for normal random numbers */
+function randNormal(){
+  let u=0,v=0;
+  while(u===0) u=Math.random();
+  while(v===0) v=Math.random();
+  return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v);
+}
+
+function runMonteCarlo(params){
+  const {nSims,yearsInRetirement,retAge,retPct,inflPct,vol,filing,
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,totalAtRetire,
+    ssAnnualFRA,ssStartAge,spSSAnnualFRA,spSSStartAge,hasSpouse,
+    spAgeOffset,lifeExp,spLifeExp,curAge,spAge,
+    rothConvStrategy,convBracketLimit,brackets,RMD_START_AGE,annualExpense}=params;
+
+  const baseWithdrawal=annualExpense>0?annualExpense:totalAtRetire*0.04;
+  const mu=Math.log(1+retPct)-vol*vol/2; /* log-normal drift */
+
+  /* Storage: per-year arrays of portfolio totals across all sims */
+  const yearTotals=Array.from({length:yearsInRetirement},()=>[]);
+  const endingBalances=[];
+  let successCount=0;
+
+  for(let sim=0;sim<nSims;sim++){
+    let bT=bTaxableInit,bD=bDeferredInit,bR=bRothInit,bH=bHSAInit;
+
+    for(let yr=0;yr<yearsInRetirement;yr++){
+      const age=retAge+yr;
+      const spouseAge=hasSpouse?(age+spAgeOffset):0;
+      const inflMult=Math.pow(1+inflPct,yr);
+      /* Random return for this year (log-normal) */
+      const yearReturn=Math.exp(mu+vol*randNormal())-1;
+
+      /* SS income (same logic as deterministic) */
+      let yourSS=0,spouseSS=0;
+      if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp)
+        yourSS=ssAnnualFRA*(SS_AGE_FACTOR[ssStartAge]||1)*inflMult;
+      if(hasSpouse&&spSSAnnualFRA>0&&spouseAge>=spSSStartAge&&spouseAge<=spLifeExp)
+        spouseSS=spSSAnnualFRA*(SS_AGE_FACTOR[spSSStartAge]||1)*inflMult;
+      const ssIncome=yourSS+spouseSS;
+
+      const curTotal=bT+bD+bR+bH;
+      if(curTotal<=0){ yearTotals[yr].push(0); continue; }
+
+      /* Spending need (guardrails only when using 4% rule) */
+      let need=baseWithdrawal*inflMult;
+      if(annualExpense<=0) need=Math.max(curTotal*0.035,Math.min(curTotal*0.055,need));
+      let target=Math.max(0,need-ssIncome);
+      target=Math.min(target,curTotal);
+
+      /* RMD */
+      let rmd=0;
+      if(age>=RMD_START_AGE&&bD>0){
+        const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));
+        rmd=bD/div;
+      }
+
+      /* Simplified tax-efficient sequencing */
+      let wT=0,wD=0,wR=0,wH=0,rem=target;
+      const annMed=age>=65?5000*inflMult:0;
+      if(age>=65&&bH>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
+      if(age>=RMD_START_AGE){
+        wD=Math.min(rmd,bD); rem-=wD;
+        if(rem>0){ const f=Math.min(rem,bT); wT=f; rem-=f; }
+        if(rem>0){ const m=Math.min(rem,bD-wD); wD+=m; rem-=m; }
+        if(rem>0){ const f=Math.min(rem,bR); wR=f; rem-=f; }
+      } else {
+        const f=Math.min(rem,bT); wT=f; rem-=f;
+        if(rem>0){ const bracketLim=filing==='mfj'?206700:103350; const d=Math.min(rem,bracketLim,bD); wD=d; rem-=d; }
+        if(rem>0){ const f2=Math.min(rem,bR); wR=f2; rem-=f2; }
+        if(rem>0){ const m=Math.min(rem,bD-wD); wD+=m; rem-=m; }
+      }
+      /* Last resort: drain remaining HSA */
+      if(rem>0&&bH>wH){ const moreH=Math.min(rem,bH-wH); wH+=moreH; rem-=moreH; }
+
+      /* Grow balances with randomized return */
+      bT=Math.max(0,(bT-wT)*(1+yearReturn));
+      bD=Math.max(0,(bD-wD)*(1+yearReturn));
+      bR=Math.max(0,(bR-wR)*(1+yearReturn));
+      bH=Math.max(0,(bH-wH)*(1+yearReturn));
+      yearTotals[yr].push(bT+bD+bR+bH);
+    }
+    const endBal=bT+bD+bR+bH;
+    endingBalances.push(endBal);
+    if(endBal>0) successCount++;
+  }
+
+  /* Compute percentiles per year */
+  function percentile(arr,p){
+    const sorted=[...arr].sort((a,b)=>a-b);
+    const idx=(p/100)*(sorted.length-1);
+    const lo=Math.floor(idx),hi=Math.ceil(idx);
+    return lo===hi?sorted[lo]:sorted[lo]*(hi-idx)+sorted[hi]*(idx-lo);
+  }
+  const pctiles=[10,25,50,75,90];
+  const bands=pctiles.map(p=>yearTotals.map(yt=>percentile(yt,p)));
+  const successRate=(successCount/nSims*100);
+
+  return {bands,pctiles,endingBalances,successRate,nSims};
+}
+
+/* Classify accounts into tax buckets from portfolio DATA */
+function getAccountBuckets(){
+  const taxable={label:'Taxable',total:0,color:'#f59e0b',accounts:[]};
+  const deferred={label:'Tax-Deferred',total:0,color:'#3b82f6',accounts:[]};
+  const roth={label:'Roth (Tax-Free)',total:0,color:'#10b981',accounts:[]};
+  const hsa={label:'HSA',total:0,color:'#ec4899',accounts:[]};
+
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      const t=a.type||'Other';
+      const val=a.tickers.reduce((s,tk)=>s+tk.val,0);
+      const info={num:a.num,name:a.name,type:t,val};
+      if(t==='Roth') { roth.total+=val; roth.accounts.push(info); }
+      else if(t==='HSA') { hsa.total+=val; hsa.accounts.push(info); }
+      else if(t==='529 College Savings') { roth.total+=val; roth.accounts.push(info); }
+      else if(TAX_DEFERRED_TYPES.includes(t)||t==='Tax-Deferred Savings') {
+        deferred.total+=val; deferred.accounts.push(info);
+      } else if(t==='Taxable Investment'||t==='Custodial (UTMA)'||t.includes('Individual')||t.includes('Joint')) {
+        taxable.total+=val; taxable.accounts.push(info);
+      } else { taxable.total+=val; taxable.accounts.push(info); }
+    });
+  });
+  return {taxable,deferred,roth,hsa};
+}
+
+function renderWithdrawals(){
+  const el=document.getElementById('drilldown');
+  const insEl=document.getElementById('insightsContainer');
+  document.getElementById('allocOverview').style.display='none';
+  insEl.parentElement.style.display='none';
+
+  /* Hide overview and insights for this tab */
+
+  const buckets=getAccountBuckets();
+  let html='';
+
+  /* Input panel */
+  html+=`<div class="wd-panel"><h3>\u{1F4C5} Retirement Withdrawal Planner</h3>`;
+  html+=`<p class="wd-desc">Enter your details below. The engine will project year-by-year withdrawals using a tax-efficient strategy optimized to minimize taxes and maximize portfolio longevity.</p>`;
+  html+=`<div class="wd-inputs">`;
+
+  /* Shared fields */
+  html+=`<div class="wd-field"><label>Expected Return %</label><input type="number" id="wdReturn" value="6" min="1" max="15" step="0.5"></div>`;
+  html+=`<div class="wd-field"><label title="Used for Monte Carlo simulation">Volatility %</label><input type="number" id="wdVol" value="15" min="5" max="40" step="1"></div>`;
+  html+=`<div class="wd-field"><label>Inflation %</label><input type="number" id="wdInflation" value="3" min="0" max="10" step="0.5"></div>`;
+  html+=`<div class="wd-field"><label title="Today's dollars · Set to 0 to use the 4% rule">Monthly Expenses</label><input type="number" id="wdExpense" value="0" min="0" max="50000" step="500" placeholder="0 = use 4% rule"></div>`;
+  html+=`<div class="wd-field"><label>Filing Status</label><select id="wdFiling"><option value="mfj">Married Filing Jointly</option><option value="single">Single</option></select></div>`;
+  html+=`<div class="wd-field"><label>Roth Conversion</label><select id="wdRothConv" onchange="document.getElementById('wdCustomPctWrap').style.display=this.value==='custom'?'flex':'none'"><option value="none" selected>None</option><option value="conservative">Conservative (12%)</option><option value="moderate">Moderate (22%)</option><option value="aggressive">Aggressive (24%)</option><option value="custom">Custom…</option></select></div>`;
+  html+=`<div class="wd-field" id="wdCustomPctWrap" style="display:none"><label>Custom Bracket %</label><input type="number" id="wdCustomPct" value="15" min="1" max="37" step="1"></div>`;
+  html+=`</div>`;
+
+  /* Participant 1 — You */
+  html+=`<div style="margin-top:14px;padding:12px;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #3b82f6">`;
+  html+=`<div style="font-weight:700;font-size:0.9em;margin-bottom:8px;color:#3b82f6">\u{1F464} You</div>`;
+  html+=`<div class="wd-inputs">`;
+  html+=`<div class="wd-field"><label>Current Age</label><input type="number" id="wdAge" value="50" min="25" max="80"></div>`;
+  html+=`<div class="wd-field"><label>Retirement Age</label><input type="number" id="wdRetire" value="65" min="30" max="85"></div>`;
+  html+=`<div class="wd-field"><label>Life Expectancy</label><input type="number" id="wdLife" value="90" min="70" max="120"></div>`;
+  html+=`<div class="wd-field"><label title="Your FRA benefit in today's dollars">Monthly SS Income</label><input type="number" id="wdSSIncome" value="0" min="0" max="10000" step="100" placeholder="0 = none"></div>`;
+  html+=`<div class="wd-field"><label>SS Starting Age</label><select id="wdSSAge"><option value="62">62 — Early (70%)</option><option value="63">63 (75%)</option><option value="64">64 (80%)</option><option value="65">65 (86.7%)</option><option value="66">66 (93.3%)</option><option value="67" selected>67 — Full (FRA)</option><option value="68">68 (108%)</option><option value="69">69 (116%)</option><option value="70">70 — Max (124%)</option></select></div>`;
+  html+=`</div></div>`;
+
+  /* Participant 2 — Spouse (toggle) */
+  html+=`<div style="margin-top:10px"><label style="display:flex;align-items:center;gap:6px;cursor:pointer;font-size:0.85em;font-weight:600"><input type="checkbox" id="wdSpouseToggle" onchange="document.getElementById('wdSpousePanel').style.display=this.checked?'block':'none'"> Include Spouse</label></div>`;
+  html+=`<div id="wdSpousePanel" style="display:none;margin-top:8px;padding:12px;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #ec4899">`;
+  html+=`<div style="font-weight:700;font-size:0.9em;margin-bottom:8px;color:#ec4899">\u{1F465} Spouse</div>`;
+  html+=`<div class="wd-inputs">`;
+  html+=`<div class="wd-field"><label>Current Age</label><input type="number" id="wdSpAge" value="48" min="25" max="80"></div>`;
+  html+=`<div class="wd-field"><label>Retirement Age</label><input type="number" id="wdSpRetire" value="65" min="30" max="85"></div>`;
+  html+=`<div class="wd-field"><label>Life Expectancy</label><input type="number" id="wdSpLife" value="92" min="70" max="120"></div>`;
+  html+=`<div class="wd-field"><label title="Spouse FRA benefit in today's dollars">Monthly SS Income</label><input type="number" id="wdSpSSIncome" value="0" min="0" max="10000" step="100" placeholder="0 = none"></div>`;
+  html+=`<div class="wd-field"><label>SS Starting Age</label><select id="wdSpSSAge"><option value="62">62 — Early (70%)</option><option value="63">63 (75%)</option><option value="64">64 (80%)</option><option value="65">65 (86.7%)</option><option value="66">66 (93.3%)</option><option value="67" selected>67 — Full (FRA)</option><option value="68">68 (108%)</option><option value="69">69 (116%)</option><option value="70">70 — Max (124%)</option></select></div>`;
+  html+=`</div></div>`;
+
+  html+=`<button class="wd-btn" onclick="computeWithdrawalPlan()" style="margin-top:14px">Calculate Withdrawal Plan</button>`;
+  html+=`</div>`;
+
+  /* Current account buckets summary */
+  html+=`<div style="margin-top:16px;font-size:0.82em;color:var(--text-muted)"><strong>Current Portfolio by Tax Bucket:</strong> `;
+  html+=`<span style="color:${buckets.taxable.color}">\u25CF Taxable ${fmt(buckets.taxable.total)}</span> &nbsp; `;
+  html+=`<span style="color:${buckets.deferred.color}">\u25CF Tax-Deferred ${fmt(buckets.deferred.total)}</span> &nbsp; `;
+  html+=`<span style="color:${buckets.roth.color}">\u25CF Roth ${fmt(buckets.roth.total)}</span> &nbsp; `;
+  html+=`<span style="color:${buckets.hsa.color}">\u25CF HSA ${fmt(buckets.hsa.total)}</span>`;
+  html+=`</div></div>`;
+
+  html+=`<div id="wd-results"></div>`;
+  el.innerHTML=html;
+}
+
+function computeWithdrawalPlan(){
+  const curAge=parseInt(document.getElementById('wdAge').value);
+  const retAge=parseInt(document.getElementById('wdRetire').value);
+  const lifeExp=parseInt(document.getElementById('wdLife').value);
+  const retPct=parseFloat(document.getElementById('wdReturn').value)/100;
+  const volPct=parseFloat(document.getElementById('wdVol').value)/100;
+  const inflPct=parseFloat(document.getElementById('wdInflation').value)/100;
+  const monthlyExpense=parseFloat(document.getElementById('wdExpense').value)||0;
+  const annualExpense=monthlyExpense*12; /* 0 means use 4% rule */
+  const filing=document.getElementById('wdFiling').value;
+  const ssMonthly=parseFloat(document.getElementById('wdSSIncome').value)||0;
+  const ssStartAge=parseInt(document.getElementById('wdSSAge').value);
+  const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
+
+  /* Spouse parameters */
+  const hasSpouse=document.getElementById('wdSpouseToggle').checked;
+  const spAge=hasSpouse?parseInt(document.getElementById('wdSpAge').value):0;
+  const spRetAge=hasSpouse?parseInt(document.getElementById('wdSpRetire').value):0;
+  const spLifeExp=hasSpouse?parseInt(document.getElementById('wdSpLife').value):0;
+  const spSSMonthly=hasSpouse?(parseFloat(document.getElementById('wdSpSSIncome').value)||0):0;
+  const spSSStartAge=hasSpouse?parseInt(document.getElementById('wdSpSSAge').value):0;
+
+  if(retAge<=curAge||lifeExp<=retAge){
+    document.getElementById('wd-results').innerHTML=`<div class="wd-note wd-note-warn"><h3>\u26A0\uFE0F Invalid Inputs</h3><p>Retirement age must be greater than current age, and life expectancy must be greater than retirement age.</p></div>`;
+    return;
+  }
+  if(hasSpouse&&(spRetAge<=spAge||spLifeExp<=spRetAge)){
+    document.getElementById('wd-results').innerHTML=`<div class="wd-note wd-note-warn"><h3>\u26A0\uFE0F Invalid Spouse Inputs</h3><p>Spouse retirement age must be greater than spouse current age, and life expectancy must be greater than retirement age.</p></div>`;
+    return;
+  }
+
+  /* Household planning horizon: earliest retirement to latest life expectancy (based on your age timeline) */
+  const effectiveRetAge=hasSpouse?Math.min(retAge,retAge+(spRetAge-spAge)+(curAge-curAge)):retAge;
+  const planEndAge=hasSpouse?Math.max(lifeExp,curAge+(spLifeExp-spAge)):lifeExp;
+
+  const buckets=getAccountBuckets();
+  const RMD_START_AGE=73;
+  const yearsToRetire=retAge-curAge;
+  const yearsInRetirement=planEndAge-retAge;
+  const rothConvStrategy=document.getElementById('wdRothConv').value;
+
+  /* Roth conversion bracket limits (2025 bracket thresholds) */
+  const CONV_LIMITS={
+    none:0,
+    conservative:filing==='mfj'?96950:48475,
+    moderate:filing==='mfj'?206700:103350,
+    aggressive:filing==='mfj'?394600:197300
+  };
+  /* For custom: find bracket ceiling for the user-entered marginal rate */
+  if(rothConvStrategy==='custom'){
+    const customPct=parseFloat(document.getElementById('wdCustomPct').value)/100;
+    const bkts=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
+    /* Find bracket whose rate matches, or the first bracket whose rate >= customPct */
+    let customLimit=bkts[bkts.length-2].limit; /* fallback: second-to-last bracket */
+    for(const b of bkts){ if(b.rate>=customPct-0.001){customLimit=b.limit;break;} }
+    if(customLimit===Infinity) customLimit=bkts[bkts.length-2].limit;
+    CONV_LIMITS.custom=customLimit;
+  }
+  const convBracketLimit=CONV_LIMITS[rothConvStrategy]||0;
+
+  /* Project growth to retirement */
+  const bTaxableInit=buckets.taxable.total*Math.pow(1+retPct,yearsToRetire);
+  const bDeferredInit=buckets.deferred.total*Math.pow(1+retPct,yearsToRetire);
+  const bRothInit=buckets.roth.total*Math.pow(1+retPct,yearsToRetire);
+  const bHSAInit=buckets.hsa.total*Math.pow(1+retPct,yearsToRetire);
+  const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
+
+   /* Base withdrawal: user-specified expense or 4% rule */
+  const baseWithdrawal=annualExpense>0?annualExpense:totalAtRetire*0.04;
+  /* SS annual incomes at FRA (entered as monthly in today's dollars) */
+  const ssAnnualFRA=ssMonthly*12;
+  const spSSAnnualFRA=spSSMonthly*12;
+  /* Age offset: spouse age relative to your timeline */
+  const spAgeOffset=hasSpouse?(spAge-curAge):0; /* e.g., if you're 50 and spouse 48, offset=-2 */
+
+  /* Simulation function — runs with or without Roth conversions */
+  function runSimulation(enableConversions){
+    let bTaxable=bTaxableInit,bDeferred=bDeferredInit,bRoth=bRothInit,bHSA=bHSAInit;
+    const rows=[];
+    let cumTax=0,cumConvTax=0,totalConversions=0,cumSS=0,cumSpSS=0;
+
+  for(let yr=0;yr<yearsInRetirement;yr++){
+    const age=retAge+yr;
+    const spouseAge=hasSpouse?(age+spAgeOffset):0; /* spouse's current age this year */
+    const inflMult=Math.pow(1+inflPct,yr);
+    /* Your Social Security income (inflation-adjusted, age-scaled) */
+    let yourSS=0;
+    if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp){
+      yourSS=ssAnnualFRA*(SS_AGE_FACTOR[ssStartAge]||1.0)*inflMult;
+    }
+    /* Spouse Social Security income */
+    let spouseSS=0;
+    if(hasSpouse&&spSSAnnualFRA>0&&spouseAge>=spSSStartAge&&spouseAge<=spLifeExp){
+      spouseSS=spSSAnnualFRA*(SS_AGE_FACTOR[spSSStartAge]||1.0)*inflMult;
+    }
+    const ssIncome=yourSS+spouseSS;
+    cumSS+=yourSS;
+    cumSpSS+=spouseSS;
+    /* Total spending need minus SS = how much we need from the portfolio */
+    let totalSpendingNeed=baseWithdrawal*inflMult;
+
+    /* Guardrails: only apply 3.5%–5.5% guardrails when using 4% rule (not user-specified expenses) */
+    const curTotal=bTaxable+bDeferred+bRoth+bHSA;
+    if(curTotal<=0){ /* portfolio depleted — SS still provides income */
+      const ssTaxable=ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0;
+      const ssTax=ssTaxable>0?calcTax(ssTaxable,brackets):0;
+      rows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,totalW:ssIncome,tax:ssTax,afterTax:ssIncome-ssTax,
+        bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,bTotal:0,rmd:0,depleted:true,rothConv:0,convTax:0});
+      continue;
+    }
+    if(annualExpense<=0){
+      const floor=curTotal*0.035;
+      const ceiling=curTotal*0.055;
+      totalSpendingNeed=Math.max(floor,Math.min(ceiling,totalSpendingNeed));
+    }
+
+    /* Portfolio withdrawal = spending need minus SS income */
+    let targetWithdraw=Math.max(0,totalSpendingNeed-ssIncome);
+
+    /* Don't withdraw more than available */
+    targetWithdraw=Math.min(targetWithdraw,curTotal);
+
+    /* Calculate RMD if applicable */
+    let rmd=0;
+    if(age>=RMD_START_AGE && bDeferred>0){
+      const divisor=RMD_TABLE[age]??(age>120?2.0:Math.max(2.0,120-age));
+      rmd=bDeferred/divisor;
+    }
+
+    /* Tax-efficient withdrawal sequencing */
+    let wTaxable=0,wDeferred=0,wRoth=0,wHSA=0;
+    let remaining=targetWithdraw;
+
+    /* HSA: preserve until age 65+ (Medicare age), then use for medical expenses.
+       Before 65: no HSA withdrawals (let it grow tax-free — triple tax advantage).
+       After 65: modest medical expense allocation (~5K/yr inflation-adjusted).
+       HSA is also used as last-resort for any remaining need (taxed as ordinary income after 65). */
+    const annualMedical=age>=65?5000*Math.pow(1+inflPct,age-retAge):0;
+    if(age>=65&&bHSA>0){
+      wHSA=Math.min(annualMedical,bHSA,remaining);
+      remaining-=wHSA;
+    }
+
+    if(age>=RMD_START_AGE){
+      /* RMD years: must take RMD first from tax-deferred */
+      const rmdAmount=Math.min(rmd,bDeferred);
+      wDeferred=rmdAmount;
+      remaining-=wDeferred;
+
+      /* If RMD exceeds target, that's the withdrawal from deferred */
+      if(remaining>0){
+        /* Then taxable (capital gains rate) */
+        const fromTaxable=Math.min(remaining,bTaxable);
+        wTaxable=fromTaxable;
+        remaining-=fromTaxable;
+      }
+      if(remaining>0){
+        /* Then more from deferred if needed */
+        const moreDef=Math.min(remaining,bDeferred-wDeferred);
+        wDeferred+=moreDef;
+        remaining-=moreDef;
+      }
+      if(remaining>0){
+        /* Finally Roth */
+        const fromRoth=Math.min(remaining,bRoth);
+        wRoth=fromRoth;
+        remaining-=fromRoth;
+      }
+    } else {
+      /* Pre-RMD: Taxable first, then deferred (fill low brackets), then Roth last */
+      const fromTaxable=Math.min(remaining,bTaxable);
+      wTaxable=fromTaxable;
+      remaining-=fromTaxable;
+
+      if(remaining>0){
+        /* Fill up to 22% bracket from deferred for tax efficiency + Roth conversion opportunity */
+        const bracketLimit=filing==='mfj'?206700:103350;
+        const deferredTarget=Math.min(remaining,bracketLimit,bDeferred);
+        wDeferred=deferredTarget;
+        remaining-=deferredTarget;
+      }
+      if(remaining>0){
+        const fromRoth=Math.min(remaining,bRoth);
+        wRoth=fromRoth;
+        remaining-=fromRoth;
+      }
+      if(remaining>0){
+        /* Last resort: more from deferred */
+        const moreDef=Math.min(remaining,bDeferred-wDeferred);
+        wDeferred+=moreDef;
+        remaining-=moreDef;
+      }
+    }
+
+    /* Last resort: drain remaining HSA beyond medical allocation (taxed as ordinary income after 65) */
+    if(remaining>0&&bHSA>wHSA){
+      const moreHSA=Math.min(remaining,bHSA-wHSA);
+      wHSA+=moreHSA;
+      remaining-=moreHSA;
+    }
+
+    /* Roth conversion: fill bracket room in pre-RMD years */
+    let rothConv=0,convTax=0;
+    if(enableConversions&&age<RMD_START_AGE&&bDeferred>wDeferred&&convBracketLimit>0){
+      /* Account for SS taxable income when calculating bracket room */
+      const ssTaxableForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred,filing):0;
+      const ordinaryBeforeConv=wDeferred+ssTaxableForConv;
+      const bracketRoom=Math.max(0,convBracketLimit-ordinaryBeforeConv);
+      rothConv=Math.min(bracketRoom,bDeferred-wDeferred);
+      if(rothConv>0){
+        convTax=calcTax(ordinaryBeforeConv+rothConv,brackets)-calcTax(ordinaryBeforeConv,brackets);
+        totalConversions+=rothConv;
+        cumConvTax+=convTax;
+      }
+    }
+
+    /* Tax estimation */
+    /* Non-medical HSA withdrawals after 65 are taxed as ordinary income */
+    const hsaNonMedical=Math.max(0,wHSA-annualMedical);
+    const ordinaryIncome=wDeferred+rothConv+hsaNonMedical;
+    const capitalGainsTax=wTaxable*LTCG_RATE; /* simplified: assume all taxable is LTCG */
+    /* SS taxation: up to 85% of SS is taxable depending on combined income */
+    const ssTaxableAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,ordinaryIncome,filing):0;
+    const totalOrdinaryIncome=ordinaryIncome+ssTaxableAmt;
+    const incomeTax=calcTax(totalOrdinaryIncome,brackets);
+    const totalTax=incomeTax+capitalGainsTax;
+    /* HSA medical withdrawals and Roth are tax-free; SS after-tax is ssIncome-ssTax portion */
+    const totalWithdraw=wTaxable+wDeferred+wRoth+wHSA+ssIncome;
+    const afterTax=totalWithdraw-totalTax;
+    cumTax+=totalTax;
+
+    /* Update balances: subtract withdrawals + conversions, then grow */
+    bTaxable=Math.max(0,(bTaxable-wTaxable)*(1+retPct));
+    bDeferred=Math.max(0,(bDeferred-wDeferred-rothConv)*(1+retPct));
+    bRoth=Math.max(0,(bRoth-wRoth+rothConv)*(1+retPct)); /* conversion adds to Roth */
+    bHSA=Math.max(0,(bHSA-wHSA)*(1+retPct));
+
+    rows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,ssIncome,yourSS,spouseSS,
+      totalW:totalWithdraw,tax:totalTax,afterTax,rothConv,convTax,
+      bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,rmd,depleted:false});
+  }
+  return {rows,cumTax,cumConvTax,totalConversions,cumSS,cumSpSS};
+  } /* end runSimulation */
+
+  /* Run both scenarios */
+  const withConv=runSimulation(rothConvStrategy!=='none');
+  const withoutConv=rothConvStrategy!=='none'?runSimulation(false):null;
+  const rows=withConv.rows;
+  const cumTax=withConv.cumTax;
+  let html='';
+  const fmtK=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v);
+  const fmtD=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const depleteAge=rows.find(r=>r.depleted&&r.ssIncome<=0); /* truly depleted = no portfolio AND no SS */
+  const portfolioDepleteAge=rows.find(r=>r.bTotal<=0);
+  const yr1=rows[0];
+  const effectiveRate=yr1.totalW>0?(yr1.tax/yr1.totalW*100).toFixed(1):0;
+  const hasSS=ssMonthly>0||spSSMonthly>0;
+  const totalSSMonthly=ssMonthly+spSSMonthly;
+
+  /* Summary cards */
+  html+=`<div class="wd-cards">`;
+  html+=`<div class="wd-card wd-card-blue"><div class="wd-card-label">Portfolio at Retirement (Age ${retAge})</div><div class="wd-card-value">${fmtK(totalAtRetire)}</div><div class="wd-card-sub">Projected from ${fmtK(buckets.taxable.total+buckets.deferred.total+buckets.roth.total+buckets.hsa.total)} today</div></div>`;
+  html+=`<div class="wd-card wd-card-green"><div class="wd-card-label">Year 1 Total Income</div><div class="wd-card-value">${fmtK(yr1.totalW)}</div><div class="wd-card-sub">${fmtK(yr1.afterTax)} after tax &middot; ${fmtK(yr1.afterTax/12)}/mo${yr1.ssIncome>0?' (incl. SS)':''}</div></div>`;
+  html+=`<div class="wd-card wd-card-amber"><div class="wd-card-label">Year 1 Effective Tax Rate</div><div class="wd-card-value">${effectiveRate}%</div><div class="wd-card-sub">Est. tax: ${fmtD(Math.round(yr1.tax))}</div></div>`;
+  if(hasSS){
+    const ssYr1=yr1.ssIncome;
+    const lifetimeSS=withConv.cumSS+withConv.cumSpSS;
+    const ssLabel=hasSpouse?'Combined SS':'Social Security';
+    const ssSubParts=[];
+    if(ssMonthly>0) ssSubParts.push(`You: ${fmtK(ssMonthly*12*(SS_AGE_FACTOR[ssStartAge]||1))}/yr @ ${ssStartAge}`);
+    if(spSSMonthly>0) ssSubParts.push(`Spouse: ${fmtK(spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1))}/yr @ ${spSSStartAge}`);
+    html+=`<div class="wd-card" style="border-top:3px solid #6366f1"><div class="wd-card-label">\u{1F4B5} ${ssLabel}</div><div class="wd-card-value">${fmtK(ssYr1>0?ssYr1:(ssMonthly*12*(SS_AGE_FACTOR[ssStartAge]||1)+spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1)))}/yr</div><div class="wd-card-sub">${ssSubParts.join(' · ')} · Lifetime: ${fmtK(lifetimeSS)}</div></div>`;
+  }
+  html+=`<div class="wd-card"><div class="wd-card-label">Portfolio Longevity</div><div class="wd-card-value">${portfolioDepleteAge?(hasSS?'Age '+portfolioDepleteAge.age+' *':'\u26A0\uFE0F Age '+portfolioDepleteAge.age):'\u2705 Lifetime'}</div><div class="wd-card-sub">${portfolioDepleteAge?(hasSS?'Portfolio depletes but SS continues':'Portfolio depletes before life expectancy'):'Funds last through age '+planEndAge}</div></div>`;
+  html+=`</div>`;
+
+  /* Roth conversion comparison cards */
+  if(withoutConv&&withConv.totalConversions>0){
+    const taxSavings=withoutConv.cumTax-withConv.cumTax;
+    const lastWith=rows[rows.length-1];
+    const lastWithout=withoutConv.rows[withoutConv.rows.length-1];
+    const rothDiff=lastWith.bRoth-lastWithout.bRoth;
+    const convYears=rows.filter(r=>r.rothConv>0).length;
+    html+=`<div class="wd-section"><div class="wd-h2">\u{1F4B1} Roth Conversion Impact</div>`;
+    html+=`<div class="wd-cards">`;
+    html+=`<div class="wd-card wd-card-green"><div class="wd-card-label">Lifetime Tax Savings</div><div class="wd-card-value">${taxSavings>0?fmtK(taxSavings):'-'+fmtK(Math.abs(taxSavings))}</div><div class="wd-card-sub">${taxSavings>0?'Less taxes paid over retirement':'Higher upfront taxes, but more tax-free growth'}</div></div>`;
+    html+=`<div class="wd-card wd-card-blue"><div class="wd-card-label">Total Converted to Roth</div><div class="wd-card-value">${fmtK(withConv.totalConversions)}</div><div class="wd-card-sub">Over ${convYears} years &middot; Conversion tax: ${fmtK(withConv.cumConvTax)}</div></div>`;
+    html+=`<div class="wd-card"><div class="wd-card-label">Ending Roth Balance</div><div class="wd-card-value">${fmtK(lastWith.bRoth)}</div><div class="wd-card-sub">${fmtK(rothDiff)} more than without conversions</div></div>`;
+    html+=`<div class="wd-card wd-card-amber"><div class="wd-card-label">Without Conversions Tax</div><div class="wd-card-value">${fmtK(withoutConv.cumTax)}</div><div class="wd-card-sub">vs ${fmtK(withConv.cumTax)} with conversions</div></div>`;
+    html+=`</div>`;
+    /* Note if deferred fully converted before window closes */
+    const lastConvRow=rows.filter(r=>r.rothConv>0).pop();
+    const deferredDepletedByConv=lastConvRow&&lastConvRow.bDeferred<1000;
+    if(deferredDepletedByConv&&rothConvStrategy!=='conservative'){
+      html+=`<div style="font-size:0.82em;color:var(--text-muted);margin-top:8px;padding:8px 12px;background:#f0fdf4;border-radius:6px;border-left:3px solid #10b981">\u{1F4A1} <strong>Note:</strong> Your Tax-Deferred balance was fully converted to Roth by age ${lastConvRow.age}. A less aggressive strategy (e.g., Conservative) would spread conversions over more years at lower tax rates, while Moderate and Aggressive produce the same result when the deferred balance is fully depleted before age 73.</div>`;
+    }
+    html+=`</div>`;
+  }
+
+  /* Social Security Age Recommendation */
+  if(hasSS){
+    /* Helper to build SS age comparison table */
+    function buildSSTable(label,fraMonthly,personAge,personLifeExp,color){
+      const ages=[62,67,70];
+      const scenarios=ages.map(a=>{
+        const factor=SS_AGE_FACTOR[a]||1;
+        const monthly=fraMonthly*factor;
+        const annual=monthly*12;
+        const yearsCollecting=Math.max(0,personLifeExp-a);
+        let lifetime=0;
+        for(let y=0;y<yearsCollecting;y++) lifetime+=annual*Math.pow(1+inflPct,y+(a-personAge));
+        return {age:a,factor,monthly,annual,yearsCollecting,lifetime};
+      });
+      const best=scenarios.reduce((a,b)=>b.lifetime>a.lifetime?b:a);
+      let h=`<div style="margin-bottom:16px;border-left:3px solid ${color};padding-left:12px">`;
+      h+=`<div style="font-weight:700;font-size:0.9em;margin-bottom:6px;color:${color}">${label}</div>`;
+      h+=`<div class="wd-tbl-wrap"><table class="wd-tbl"><thead><tr><th>Start Age</th><th>Monthly</th><th>Annual</th><th>% of FRA</th><th>Years</th><th>Lifetime Total*</th><th></th></tr></thead><tbody>`;
+      scenarios.forEach(s=>{
+        const isBest=s.age===best.age;
+        const lbl=s.age===62?'Early':s.age===67?'Full (FRA)':'Maximum';
+        h+=`<tr style="${isBest?'background:#f0fdf4;font-weight:600':''}">`;
+        h+=`<td>${s.age} — ${lbl}</td><td>${fmtD(Math.round(s.monthly))}</td><td>${fmtD(Math.round(s.annual))}</td>`;
+        h+=`<td>${(s.factor*100).toFixed(0)}%</td><td>${s.yearsCollecting}</td><td>${fmtK(s.lifetime)}</td>`;
+        h+=`<td>${isBest?'\u2B50 Recommended':''}</td></tr>`;
+      });
+      h+=`</tbody></table></div>`;
+      if(best.age===70) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Delay to 70</strong> — with life expectancy ${personLifeExp}, the 24% bonus maximizes lifetime benefits.</div>`;
+      else if(best.age===67) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at FRA (67)</strong> — balances benefit size with collection years.</div>`;
+      else h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at 62</strong> — collecting earlier maximizes lifetime total for life expectancy ${personLifeExp}.</div>`;
+      h+=`</div>`;
+      return h;
+    }
+
+    html+=`<div class="wd-section"><div class="wd-h2">\u{1F3AF} Social Security Age Recommendation</div>`;
+    if(ssMonthly>0) html+=buildSSTable(hasSpouse?'\u{1F464} You':'Your Benefits',ssMonthly,curAge,lifeExp,'#3b82f6');
+    if(hasSpouse&&spSSMonthly>0) html+=buildSSTable('\u{1F465} Spouse',spSSMonthly,spAge,spLifeExp,'#ec4899');
+    html+=`<div style="font-size:0.75em;color:var(--text-muted)">* Lifetime totals are inflation-adjusted (${inflPct*100}%/yr). Each year delayed past 62 adds ~8%/yr to benefit.</div>`;
+    html+=`</div>`;
+  }
+
+  /* Account depletion chart */
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4C9} Account Balance Projection</div>`;
+  html+=`<div class="wd-chart-legend">`;
+  html+=`<span><span class="dot" style="background:#f59e0b"></span>Taxable</span>`;
+  html+=`<span><span class="dot" style="background:#3b82f6"></span>Tax-Deferred</span>`;
+  html+=`<span><span class="dot" style="background:#10b981"></span>Roth</span>`;
+  html+=`<span><span class="dot" style="background:#ec4899"></span>HSA</span>`;
+  html+=`</div>`;
+  const maxBal=Math.max(...rows.map(r=>r.bTotal),totalAtRetire);
+  const chartH=196; /* pixels, matches .wd-chart-bar height */
+  html+=`<div class="wd-chart-wrap"><div class="wd-chart">`;
+
+  /* Show every year, but label every 5th */
+  rows.forEach((r,i)=>{
+    const totalH=maxBal>0?(r.bTotal/maxBal*chartH):0;
+    const tH=r.bTotal>0?(r.bTaxable/r.bTotal*totalH):0;
+    const dH=r.bTotal>0?(r.bDeferred/r.bTotal*totalH):0;
+    const rH=r.bTotal>0?(r.bRoth/r.bTotal*totalH):0;
+    const hsaH=r.bTotal>0?(r.bHSA/r.bTotal*totalH):0;
+    const showLabel=(i%5===0||i===rows.length-1);
+    html+=`<div class="wd-chart-bar">`;
+    html+=`<div class="wd-bar-tip">Age ${r.age}<br>Total: ${fmtK(r.bTotal)}<br>Taxable: ${fmtK(r.bTaxable)}<br>Deferred: ${fmtK(r.bDeferred)}<br>Roth: ${fmtK(r.bRoth)}<br>HSA: ${fmtK(r.bHSA)}</div>`;
+    html+=`<div class="wd-bar-seg" style="height:${hsaH}px;background:#ec4899"></div>`;
+    html+=`<div class="wd-bar-seg" style="height:${rH}px;background:#10b981"></div>`;
+    html+=`<div class="wd-bar-seg" style="height:${dH}px;background:#3b82f6"></div>`;
+    html+=`<div class="wd-bar-seg" style="height:${tH}px;background:#f59e0b"></div>`;
+    if(showLabel) html+=`<span class="wd-chart-label">${r.age}</span>`;
+    html+=`</div>`;
+  });
+  html+=`</div></div></div>`;
+
+  /* ---- Monte Carlo Simulation ---- */
+  const mcParams={nSims:500,yearsInRetirement,retAge,retPct,inflPct,vol:volPct,filing,
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,totalAtRetire,
+    ssAnnualFRA,ssStartAge,spSSAnnualFRA:hasSpouse?spSSAnnualFRA:0,
+    spSSStartAge:hasSpouse?spSSStartAge:0,hasSpouse,
+    spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
+    curAge,spAge:hasSpouse?spAge:0,
+    rothConvStrategy,convBracketLimit,brackets,RMD_START_AGE,annualExpense};
+  const mc=runMonteCarlo(mcParams);
+
+  /* Year-by-year table with editable overrides */
+  /* Store simulation context for recalculation */
+  window._wdCtx={rows:JSON.parse(JSON.stringify(rows)),retPct,inflPct,filing,brackets,
+    RMD_START_AGE,LTCG_RATE:0.15,hasConv:rows.some(r=>r.rothConv>0),hasSSData:rows.some(r=>r.ssIncome>0),
+    yearsToRetire,retAge,ssMonthly,spSSMonthly,hasSpouse,
+    ssStartAge,spSSStartAge:hasSpouse?spSSStartAge:0,
+    ssAnnualFRA,spSSAnnualFRA:hasSpouse?spSSAnnualFRA:0,
+    spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
+    overrides:{}, /* {rowIdx: {taxableW, deferredW, rothW, hsaW}} */
+    convBracketLimit,rothConvStrategy,annualExpense,planEndAge,
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit};
+
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CB} Year-by-Year Withdrawal Schedule <span style="font-size:0.6em;font-weight:400;color:var(--text-muted)">— click withdrawal cells to override</span></div>`;
+  html+=`<div id="wd-tbl-container">`;
+  html+=`</div>`;
+  /* Render initial table */
+  const hasConv=rows.some(r=>r.rothConv>0);
+  html+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:6px">\u{1F4CC} = RMD required year &nbsp; * = includes Required Minimum Distribution &nbsp; Blue rows = RMD years &nbsp; Red rows = portfolio depleted${hasConv?' &nbsp; Green border = Roth conversion year':''} &nbsp; <span style="color:#7c3aed">Purple (PV) = present value in today's dollars (discounted at ${inflPct*100}% inflation)</span> &nbsp; <span style="color:#b45309">\u{270F}\uFE0F Orange = user override (edit to recalculate)</span></div>`;
+  html+=`</div>`;
+
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F3B2} Monte Carlo Analysis <span style="font-size:0.65em;font-weight:400;color:var(--text-muted)">(${mc.nSims} simulations)</span></div>`;
+  html+=`<p class="wd-desc">Each simulation randomizes annual market returns using a log-normal distribution (mean ${retPct*100}%, volatility ${volPct*100}%). This shows the range of possible outcomes rather than a single deterministic projection.</p>`;
+
+  /* MC Summary cards */
+  const mcEndSorted=[...mc.endingBalances].sort((a,b)=>a-b);
+  const mcMedian=mcEndSorted[Math.floor(mcEndSorted.length*0.5)];
+  const mc10=mcEndSorted[Math.floor(mcEndSorted.length*0.1)];
+  const mc90=mcEndSorted[Math.floor(mcEndSorted.length*0.9)];
+  const successColor=mc.successRate>=90?'#059669':mc.successRate>=75?'#d97706':'#dc2626';
+  const successLabel=mc.successRate>=90?'Excellent':mc.successRate>=75?'Good':mc.successRate>=50?'Moderate':'At Risk';
+
+  html+=`<div class="wd-cards">`;
+  /* Success rate with ring */
+  html+=`<div class="wd-card" style="border-top:3px solid ${successColor}"><div class="wd-card-label">Success Rate</div>`;
+  html+=`<div style="display:flex;align-items:center;justify-content:center;gap:12px">`;
+  const circumf=2*Math.PI*34;
+  const dashOffset=circumf*(1-mc.successRate/100);
+  html+=`<div class="mc-success-ring"><svg width="80" height="80"><circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="${successColor}" stroke-width="7" stroke-dasharray="${circumf}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.1em;font-weight:700;color:${successColor}">${mc.successRate.toFixed(0)}%</div></div>`;
+  html+=`</div><div class="wd-card-sub">${successLabel} — portfolio lasts in ${mc.successRate.toFixed(0)}% of scenarios</div></div>`;
+  html+=`<div class="wd-card wd-card-blue"><div class="wd-card-label">Median Ending Balance</div><div class="wd-card-value">${fmtK(mcMedian)}</div><div class="wd-card-sub">50th percentile at age ${planEndAge}</div></div>`;
+  html+=`<div class="wd-card wd-card-amber"><div class="wd-card-label">Pessimistic (10th pctl)</div><div class="wd-card-value">${fmtK(mc10)}</div><div class="wd-card-sub">Bad luck scenario</div></div>`;
+  html+=`<div class="wd-card wd-card-green"><div class="wd-card-label">Optimistic (90th pctl)</div><div class="wd-card-value">${fmtK(mc90)}</div><div class="wd-card-sub">Good luck scenario</div></div>`;
+  html+=`</div>`;
+
+  /* Percentile fan chart (SVG) */
+  html+=`<div style="margin:16px 0"><div style="font-weight:600;font-size:0.88em;margin-bottom:8px">Portfolio Balance Percentile Bands</div>`;
+  const svgW=1400,svgH=200,padL=60,padR=20,padT=10,padB=30;
+  const plotW=svgW-padL-padR,plotH=svgH-padT-padB;
+  /* Find max value across all percentile bands */
+  const allBandVals=mc.bands.flat();
+  const mcMaxVal=Math.max(...allBandVals,totalAtRetire);
+  const xScale=yr=>padL+(yr/(yearsInRetirement-1))*plotW;
+  const yScale=v=>padT+plotH-(v/mcMaxVal)*plotH;
+
+  html+=`<svg viewBox="0 0 ${svgW} ${svgH}" class="mc-fan" preserveAspectRatio="xMidYMid meet">`;
+  /* Grid lines */
+  for(let g=0;g<=4;g++){
+    const gy=padT+plotH*g/4;
+    const gv=mcMaxVal*(1-g/4);
+    html+=`<line x1="${padL}" y1="${gy}" x2="${svgW-padR}" y2="${gy}" stroke="#e5e7eb" stroke-width="0.5"/>`;
+    html+=`<text x="${padL-6}" y="${gy+4}" text-anchor="end" font-size="9" fill="#94a3b8">${fmtK(gv)}</text>`;
+  }
+  /* X-axis labels */
+  for(let yr=0;yr<yearsInRetirement;yr+=5){
+    html+=`<text x="${xScale(yr)}" y="${svgH-4}" text-anchor="middle" font-size="9" fill="#94a3b8">${retAge+yr}</text>`;
+  }
+  if(yearsInRetirement>5) html+=`<text x="${xScale(yearsInRetirement-1)}" y="${svgH-4}" text-anchor="middle" font-size="9" fill="#94a3b8">${retAge+yearsInRetirement-1}</text>`;
+
+  /* Band: 10th–90th (outer) */
+  const p10=mc.bands[0],p90=mc.bands[4];
+  let outerPath=`M${xScale(0)},${yScale(p90[0])}`;
+  for(let yr=1;yr<yearsInRetirement;yr++) outerPath+=` L${xScale(yr)},${yScale(p90[yr])}`;
+  for(let yr=yearsInRetirement-1;yr>=0;yr--) outerPath+=` L${xScale(yr)},${yScale(p10[yr])}`;
+  outerPath+=' Z';
+  html+=`<path d="${outerPath}" class="mc-band" fill="#3b82f6"/>`;
+
+  /* Band: 25th–75th (inner) */
+  const p25=mc.bands[1],p75=mc.bands[3];
+  let innerPath=`M${xScale(0)},${yScale(p75[0])}`;
+  for(let yr=1;yr<yearsInRetirement;yr++) innerPath+=` L${xScale(yr)},${yScale(p75[yr])}`;
+  for(let yr=yearsInRetirement-1;yr>=0;yr--) innerPath+=` L${xScale(yr)},${yScale(p25[yr])}`;
+  innerPath+=' Z';
+  html+=`<path d="${innerPath}" class="mc-band-inner" fill="#3b82f6"/>`;
+
+  /* Median line (50th) */
+  const p50=mc.bands[2];
+  let medPath=`M${xScale(0)},${yScale(p50[0])}`;
+  for(let yr=1;yr<yearsInRetirement;yr++) medPath+=` L${xScale(yr)},${yScale(p50[yr])}`;
+  html+=`<path d="${medPath}" class="mc-median"/>`;
+
+  /* Deterministic line (from original simulation) */
+  let detPath=`M${xScale(0)},${yScale(rows[0].bTotal)}`;
+  for(let yr=1;yr<rows.length;yr++) detPath+=` L${xScale(yr)},${yScale(rows[yr].bTotal)}`;
+  html+=`<path d="${detPath}" class="mc-determ"/>`;
+
+  html+=`</svg>`;
+  html+=`<div style="display:flex;gap:16px;font-size:0.75em;color:var(--text-muted);margin-top:4px">`;
+  html+=`<span><span style="display:inline-block;width:24px;height:3px;background:#3b82f6;vertical-align:middle;border-radius:2px;opacity:0.25;margin-right:4px"></span>10th–90th percentile</span>`;
+  html+=`<span><span style="display:inline-block;width:24px;height:3px;background:#3b82f6;vertical-align:middle;border-radius:2px;opacity:0.5;margin-right:4px"></span>25th–75th percentile</span>`;
+  html+=`<span><span style="display:inline-block;width:24px;height:3px;background:#2563eb;vertical-align:middle;border-radius:2px;margin-right:4px"></span>Median (50th)</span>`;
+  html+=`<span><span style="display:inline-block;width:24px;height:3px;background:#f59e0b;vertical-align:middle;border-radius:2px;border-top:1px dashed #f59e0b;margin-right:4px"></span>Deterministic (${retPct*100}% fixed)</span>`;
+  html+=`</div></div>`;
+
+  /* Outcome distribution histogram */
+  html+=`<div style="margin:16px 0"><div style="font-weight:600;font-size:0.88em;margin-bottom:8px">Ending Balance Distribution</div>`;
+  const nBins=20;
+  const minEnd=Math.min(...mc.endingBalances);
+  const maxEnd=Math.max(...mc.endingBalances);
+  const binWidth=(maxEnd-minEnd)/nBins||1;
+  const bins=Array(nBins).fill(0);
+  mc.endingBalances.forEach(v=>{
+    const b=Math.min(Math.floor((v-minEnd)/binWidth),nBins-1);
+    bins[b]++;
+  });
+  const maxBin=Math.max(...bins);
+  html+=`<div class="mc-hist-wrap">`;
+  bins.forEach((count,i)=>{
+    const h=maxBin>0?(count/maxBin*100):0;
+    const lo=minEnd+i*binWidth;
+    const hi=lo+binWidth;
+    const isDepleted=hi<=0;
+    html+=`<div class="mc-hist-bar" style="height:${h}%;${isDepleted?'background:#ef4444':''}"><div class="mc-hist-tip">${fmtK(lo)}–${fmtK(hi)}<br>${count} sims (${(count/mc.nSims*100).toFixed(1)}%)</div></div>`;
+  });
+  html+=`</div>`;
+  html+=`<div style="display:flex;justify-content:space-between;font-size:0.7em;color:var(--text-muted)"><span>${fmtK(minEnd)}</span><span>Ending Portfolio Balance</span><span>${fmtK(maxEnd)}</span></div>`;
+  html+=`</div>`;
+
+  /* MC interpretation */
+  html+=`<div class="wd-note wd-note-info"><h3>\u{1F4CA} How to Read These Results</h3><ul>`;
+  html+=`<li><strong>Success rate of ${mc.successRate.toFixed(0)}%</strong> means your portfolio lasted through age ${planEndAge} in ${mc.successRate.toFixed(0)} out of every 100 simulated market scenarios.</li>`;
+  html+=`<li><strong>The fan chart</strong> shows the range of portfolio balances. The darker inner band (25th–75th percentile) is where your balance lands in half the scenarios. The lighter outer band covers 80% of scenarios.</li>`;
+  html+=`<li><strong>The dashed orange line</strong> is the deterministic projection (fixed ${retPct*100}% return) — it's typically near the median but doesn't capture the uncertainty.</li>`;
+  html+=`<li><strong>The ending balance histogram</strong> shows how much money you'd have left at age ${planEndAge} across all ${mc.nSims} simulations. Each bar represents a range of ending balances — taller bars mean more simulations landed there. <span style="color:#ef4444">Red bars</span> indicate simulations where you ran out of money. Unlike the year-by-year table (which assumes one fixed return), this reveals <em>sequence-of-returns risk</em> — even with the same average return, bad markets early in retirement can deplete your portfolio far sooner than the deterministic projection suggests.</li>`;
+  if(mc.successRate<75) html+=`<li style="color:#dc2626"><strong>\u26A0\uFE0F Consider:</strong> A success rate below 75% suggests risk of running out of money. Consider: lower withdrawal rate, delaying retirement, increasing savings, or adding Social Security income.</li>`;
+  else if(mc.successRate<90) html+=`<li><strong>\u{1F4A1} Tip:</strong> A success rate of 75–90% is reasonable but has room for improvement. Consider slightly lower spending, adding SS income, or a more conservative withdrawal rate.</li>`;
+  html+=`<li><strong>Assumptions:</strong> Returns follow a log-normal distribution (mean ${retPct*100}%, volatility ${volPct*100}%). Inflation, tax brackets, and withdrawal logic are identical to the deterministic model. ${mc.nSims} independent simulations.</li>`;
+  html+=`</ul></div>`;
+  html+=`</div>`;
+
+  /* Strategy notes */
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4A1} Withdrawal Strategy Explained</div>`;
+
+  html+=`<div class="wd-note wd-note-info"><h3>\u{1F3AF} Withdrawal Order</h3><ul>`;
+  html+=`<li><strong>Ages ${retAge}–${Math.min(72,lifeExp)}${retAge<=72?' (Pre-RMD)':''}:</strong> Withdraw from <strong>Taxable accounts first</strong> (capital gains taxed at 15% vs up to 37% ordinary income). Then fill lower tax brackets with Tax-Deferred withdrawals. Roth preserved for last — grows tax-free.</li>`;
+  if(lifeExp>=73) html+=`<li><strong>Ages 73+${retAge>=73?' (Your entire retirement)':''}:</strong> <strong>Required Minimum Distributions (RMDs)</strong> from Tax-Deferred accounts are mandatory. RMDs are taken first, then Taxable, then Roth. RMD amounts increase each year as the IRS divisor shrinks.</li>`;
+  html+=`<li><strong>HSA:</strong> Preserved until age 65 (Medicare age) — triple tax advantage makes it the most powerful account to let grow. After 65, used only for qualified medical expenses (~$5K/yr inflation-adjusted). Non-medical withdrawals after 65 are penalty-free but taxed as ordinary income.</li>`;
+  html+=`<li><strong>Roth IRA:</strong> Withdrawn last — no RMDs, tax-free growth, excellent for legacy/estate planning.</li>`;
+  if(hasSS){
+    let ssNote=`<li><strong>Social Security:</strong> `;
+    if(ssMonthly>0) ssNote+=`You: age ${ssStartAge} (${(SS_AGE_FACTOR[ssStartAge]*100).toFixed(0)}% of FRA). `;
+    if(hasSpouse&&spSSMonthly>0) ssNote+=`Spouse: age ${spSSStartAge} (${(SS_AGE_FACTOR[spSSStartAge]*100).toFixed(0)}% of FRA). `;
+    ssNote+=`Combined SS income reduces portfolio withdrawals each year, extending portfolio longevity. Up to 85% of SS may be taxable.</li>`;
+    html+=ssNote;
+  }
+  html+=`</ul></div>`;
+
+  /* Roth conversion window */
+  if(retAge<73){
+    const convRows=rows.filter(r=>r.rothConv>0);
+    const customPctLabel=rothConvStrategy==='custom'?document.getElementById('wdCustomPct').value+'%':'';
+    const bracketNames={conservative:'12%',moderate:'22%',aggressive:'24%',custom:customPctLabel};
+    const bracketName=bracketNames[rothConvStrategy]||'';
+    html+=`<div class="wd-note wd-note-tip"><h3>\u{2728} Roth Conversion Strategy${rothConvStrategy!=='none'?' — Active':' — Opportunity Window'} (Ages ${retAge}–72)</h3><ul>`;
+    html+=`<li>The years between retirement and RMD age (73) are a <strong>golden window for Roth conversions</strong>.</li>`;
+    if(convRows.length>0){
+      html+=`<li><strong>Your plan converts ${fmtK(withConv.totalConversions)} over ${convRows.length} years</strong> (ages ${convRows[0].age}–${convRows[convRows.length-1].age}), filling up to the <strong>${bracketName} bracket</strong>.</li>`;
+      html+=`<li>Conversion tax paid: <strong>${fmtK(withConv.cumConvTax)}</strong> now, but saves <strong>${fmtK(Math.max(0,withoutConv.cumTax-withConv.cumTax))}</strong> in lifetime taxes.</li>`;
+      html+=`<li>Average annual conversion: <strong>${fmtK(withConv.totalConversions/convRows.length)}</strong> &middot; Year 1 conversion: <strong>${fmtK(convRows[0].rothConv)}</strong></li>`;
+    } else {
+      html+=`<li>Convert Tax-Deferred funds to Roth while in lower tax brackets — pay taxes now at lower rates to avoid higher RMDs later.</li>`;
+      html+=`<li>Strategy: Convert enough each year to fill up to the <strong>${filing==='mfj'?'22% bracket ($201,050 MFJ)':'22% bracket ($100,525 Single)'}</strong> without spilling into the next bracket.</li>`;
+    }
+    html+=`<li>Each conversion has a <strong>5-year holding period</strong> before penalty-free withdrawal (if under 59½).</li>`;
+    html+=`<li>Conversions reduce future RMDs, lower Medicare IRMAA surcharges, and create more tax-free income in later years.</li>`;
+    html+=`</ul></div>`;
+  }
+
+  /* Tax efficiency notes */
+  html+=`<div class="wd-note wd-note-warn"><h3>\u{1F4B0} Tax Efficiency Notes</h3><ul>`;
+  html+=`<li><strong>Taxable account withdrawals</strong> are taxed at long-term capital gains rates (assumed 15%) — much lower than ordinary income rates on Tax-Deferred withdrawals.</li>`;
+  html+=`<li><strong>Tax-Deferred withdrawals</strong> (401k, Traditional IRA, Rollover IRA) are taxed as ordinary income — ${filing==='mfj'?'10% to 37% (MFJ)':'10% to 37% (Single)'}.</li>`;
+  html+=`<li><strong>Roth withdrawals</strong> are completely tax-free (contributions + growth) — no impact on tax brackets or Medicare premiums.</li>`;
+  html+=`<li><strong>HSA medical withdrawals</strong> are tax-free for qualified medical expenses.</li>`;
+  html+=`<li><strong>Social Security taxation:</strong> Up to 85% of SS benefits may be taxable depending on "combined income" (AGI + 50% of SS). ${filing==='mfj'?'MFJ: 0% taxable below $32K, 50% at $32K–$44K, 85% above $44K':'Single: 0% taxable below $25K, 50% at $25K–$34K, 85% above $34K'}. SS income also affects Roth conversion bracket room.</li>`;
+  html+=`<li><strong>Medicare IRMAA:</strong> High income in retirement can trigger Medicare premium surcharges. Managing Tax-Deferred withdrawals and SS timing helps avoid IRMAA thresholds.</li>`;
+  html+=`</ul></div>`;
+
+  /* Assumptions */
+  const curTotal=buckets.taxable.total+buckets.deferred.total+buckets.roth.total+buckets.hsa.total;
+  html+=`<div class="wd-note"><h3>\u{1F4DD} Assumptions & Methodology</h3><ul>`;
+  html+=`<li><strong>Current portfolio:</strong> ${fmtK(curTotal)} → projected to <strong>${fmtK(totalAtRetire)}</strong> at retirement (${retPct*100}% annual return over ${yearsToRetire} years)</li>`;
+  if(hasSpouse) html+=`<li><strong>Planning horizon:</strong> Your age ${retAge}–${planEndAge} (${yearsInRetirement} years). Spouse age ${spAge+(retAge-curAge)}–${spAge+(planEndAge-curAge)}. Plan extends to the longer-surviving spouse.</li>`;
+  if(annualExpense>0){
+    html+=`<li><strong>Annual spending:</strong> $${fmtD(Math.round(annualExpense))}/yr ($${fmtD(Math.round(monthlyExpense))}/mo in today's dollars), inflation-adjusted at ${inflPct*100}%/yr. No guardrails applied — fixed expense target.</li>`;
+  } else {
+    html+=`<li><strong>Withdrawal rate:</strong> 4% initial (inflation-adjusted), with guardrails: floor 3.5%, ceiling 5.5% of current portfolio</li>`;
+  }
+  html+=`<li><strong>Growth during retirement:</strong> ${retPct*100}% nominal, ${inflPct*100}% inflation → ~${((retPct-inflPct)*100).toFixed(1)}% real return</li>`;
+  html+=`<li><strong>Tax brackets:</strong> 2025 federal ${filing==='mfj'?'Married Filing Jointly':'Single'} (not inflation-adjusted in projection)</li>`;
+  html+=`<li><strong>Taxable account:</strong> Assumed 15% long-term capital gains rate on all withdrawals</li>`;
+  html+=`<li><strong>No additional contributions</strong> assumed after current date</li>`;
+  if(hasSS){
+    let ssAssump=`<li><strong>Social Security:</strong> `;
+    if(ssMonthly>0) ssAssump+=`You: $${fmtD(Math.round(ssMonthly))}/mo @ age ${ssStartAge} (${(SS_AGE_FACTOR[ssStartAge]*100).toFixed(0)}% FRA). `;
+    if(hasSpouse&&spSSMonthly>0) ssAssump+=`Spouse: $${fmtD(Math.round(spSSMonthly))}/mo @ age ${spSSStartAge} (${(SS_AGE_FACTOR[spSSStartAge]*100).toFixed(0)}% FRA). `;
+    const lifetimeSS=withConv.cumSS+withConv.cumSpSS;
+    ssAssump+=`Inflation-adjusted at ${inflPct*100}%/yr. Taxation uses combined income thresholds (up to 85% taxable). Lifetime SS: <strong>${fmtK(lifetimeSS)}</strong></li>`;
+    html+=ssAssump;
+  } else {
+    html+=`<li><strong>Social Security:</strong> Not included (enter Monthly SS Income above to model). SS would reduce needed portfolio withdrawals and extend portfolio longevity.</li>`;
+  }
+  if(rothConvStrategy!=='none'){
+    const customLimitLabel=rothConvStrategy==='custom'?document.getElementById('wdCustomPct').value+'% ($'+fmtD(convBracketLimit)+')':'';
+    const bracketNames={conservative:'12% ($'+(filing==='mfj'?'94,300':'47,150')+')',moderate:'22% ($'+(filing==='mfj'?'201,050':'100,525')+')',aggressive:'24% ($'+(filing==='mfj'?'383,900':'191,950')+')',custom:customLimitLabel};
+    html+=`<li><strong>Roth conversions:</strong> Filling to top of ${bracketNames[rothConvStrategy]} bracket each pre-RMD year. Conversion tax included in Est. Tax column.</li>`;
+  }
+  html+=`<li>Cumulative estimated taxes over retirement: <strong>${fmtK(cumTax)}</strong></li>`;
+  html+=`</ul></div>`;
+
+  /* Disclaimer */
+  html+=`<div class="sugg-disclaimer"><h3>\u26A0\uFE0F Important Disclaimer</h3><ul>`;
+  html+=`<li>This is an <strong>educational projection tool</strong>, not personalized financial advice.</li>`;
+  html+=`<li>Actual returns, inflation, tax rates, and spending needs will vary significantly.</li>`;
+  html+=`<li>Does not account for: pensions, annuities, state/local taxes, estate taxes, or life changes.${hasSS?'':' Social Security not modeled (enter amount above to include).'}</li>`;
+  html+=`<li>RMD calculations use the IRS Uniform Lifetime Table (2025). Rules may change.</li>`;
+  html+=`<li><strong>Consult a qualified financial advisor and tax professional</strong> for personalized retirement planning.</li>`;
+  html+=`</ul></div>`;
+
+  document.getElementById('wd-results').innerHTML=html;
+  /* Render the initial table after DOM is ready */
+  renderWdTable();
+}
+
+/* ---- Editable Withdrawal Table with Recalculation ---- */
+function renderWdTable(){
+  try{
+  const ctx=window._wdCtx;
+  if(!ctx) return;
+  const {retPct,inflPct,filing,brackets,RMD_START_AGE,hasConv,hasSSData,yearsToRetire,retAge,
+    ssAnnualFRA,spSSAnnualFRA,hasSpouse,ssStartAge,spSSStartAge,spAgeOffset,lifeExp,spLifeExp,
+    convBracketLimit,rothConvStrategy,annualExpense,
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit}=ctx;
+  const overrides=ctx.overrides;
+  const fmtK=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v);
+  const fmtD=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
+  const baseRows=ctx.rows;
+  const hasOverrides=Object.keys(overrides).length>0;
+
+  /* If no overrides, use stored baseline rows directly (guaranteed correct) */
+  let rRows;
+  if(!hasOverrides){
+    rRows=baseRows.map(r=>Object.assign({},r,{overridden:false}));
+  } else {
+    /* Re-simulate with overrides: use baseline withdrawal amounts for non-overridden rows,
+       override amounts for overridden rows, recalculate taxes & balances from scratch */
+    const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
+    const baseWithdrawal=annualExpense>0?annualExpense:totalAtRetire*0.04;
+    let bTaxable=bTaxableInit,bDeferred=bDeferredInit,bRoth=bRothInit,bHSA=bHSAInit;
+    rRows=[];
+
+  for(let i=0;i<baseRows.length;i++){
+    const br=baseRows[i];
+    const age=br.age;
+    const spouseAge=br.spouseAge;
+    const inflMult=Math.pow(1+inflPct,i);
+    /* SS */
+    let yourSS=0,spouseSS=0;
+    if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp)
+      yourSS=ssAnnualFRA*(SS_AGE_FACTOR[ssStartAge]||1)*inflMult;
+    if(hasSpouse&&spSSAnnualFRA>0&&spouseAge>=spSSStartAge&&spouseAge<=spLifeExp)
+      spouseSS=spSSAnnualFRA*(SS_AGE_FACTOR[spSSStartAge]||1)*inflMult;
+    const ssIncome=yourSS+spouseSS;
+
+    const curTotal=bTaxable+bDeferred+bRoth+bHSA;
+    if(curTotal<=0){
+      const ssTaxable=ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0;
+      const ssTax=ssTaxable>0?calcTax(ssTaxable,brackets):0;
+      rRows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,
+        totalW:ssIncome,tax:ssTax,afterTax:ssIncome-ssTax,rothConv:0,convTax:0,rmd:0,
+        bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,bTotal:0,depleted:true,overridden:false});
+      continue;
+    }
+
+    /* Check for overrides */
+    const ov=overrides[i];
+    let wTaxable,wDeferred,wRoth,wHSA,overridden=false;
+    const annualMedical=age>=65?5000*inflMult:0;
+    if(ov){
+      overridden=true;
+      wTaxable=Math.min(ov.taxableW!=null?ov.taxableW:br.taxableW,bTaxable);
+      wDeferred=Math.min(ov.deferredW!=null?ov.deferredW:br.deferredW,bDeferred);
+      wRoth=Math.min(ov.rothW!=null?ov.rothW:br.rothW,bRoth);
+      wHSA=Math.min(ov.hsaW!=null?ov.hsaW:br.hsaW,bHSA);
+    } else {
+      /* Use engine logic (simplified: recompute like original) */
+      let need=baseWithdrawal*inflMult;
+      if(annualExpense<=0) need=Math.max(curTotal*0.035,Math.min(curTotal*0.055,need));
+      let target=Math.max(0,need-ssIncome);
+      target=Math.min(target,curTotal);
+      let rmd=0;
+      if(age>=RMD_START_AGE&&bDeferred>0){
+        const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));
+        rmd=bDeferred/div;
+      }
+      wTaxable=0;wDeferred=0;wRoth=0;wHSA=0;
+      let rem=target;
+      if(age>=65&&bHSA>0){ const med=Math.min(annualMedical,bHSA,rem); wHSA=med; rem-=med; }
+      if(age>=RMD_START_AGE){
+        wDeferred=Math.min(rmd,bDeferred); rem-=wDeferred;
+        if(rem>0){ const f=Math.min(rem,bTaxable); wTaxable=f; rem-=f; }
+        if(rem>0){ const m=Math.min(rem,bDeferred-wDeferred); wDeferred+=m; rem-=m; }
+        if(rem>0){ const f=Math.min(rem,bRoth); wRoth=f; rem-=f; }
+      } else {
+        const f=Math.min(rem,bTaxable); wTaxable=f; rem-=f;
+        if(rem>0){ const bl=filing==='mfj'?206700:103350; const d=Math.min(rem,bl,bDeferred); wDeferred=d; rem-=d; }
+        if(rem>0){ const f2=Math.min(rem,bRoth); wRoth=f2; rem-=f2; }
+        if(rem>0){ const m=Math.min(rem,bDeferred-wDeferred); wDeferred+=m; rem-=m; }
+      }
+      /* Last resort: drain remaining HSA (taxed as ordinary income after 65) */
+      if(rem>0&&bHSA>wHSA){ const moreHSA=Math.min(rem,bHSA-wHSA); wHSA+=moreHSA; rem-=moreHSA; }
+    }
+
+    /* Roth conversion — compute for all rows (overridden rows still get conversions) */
+    let rothConv=0,convTax=0;
+    if(rothConvStrategy!=='none'&&age<RMD_START_AGE&&bDeferred>wDeferred&&convBracketLimit>0){
+      const ssTaxForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred,filing):0;
+      const ordBefore=wDeferred+ssTaxForConv;
+      const room=Math.max(0,convBracketLimit-ordBefore);
+      rothConv=Math.min(room,bDeferred-wDeferred);
+      if(rothConv>0) convTax=calcTax(ordBefore+rothConv,brackets)-calcTax(ordBefore,brackets);
+    }
+
+    /* RMD for display */
+    let rmd=0;
+    if(age>=RMD_START_AGE&&bDeferred>0){
+      const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));
+      rmd=bDeferred/div;
+    }
+
+    /* Tax — non-medical HSA withdrawals after 65 are taxed as ordinary income */
+    const hsaNonMedical=Math.max(0,wHSA-annualMedical);
+    const ordInc=wDeferred+rothConv+hsaNonMedical;
+    const capTax=wTaxable*0.15;
+    const ssTaxAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,ordInc,filing):0;
+    const incTax=calcTax(ordInc+ssTaxAmt,brackets);
+    const totalTax=incTax+capTax;
+    const totalW=wTaxable+wDeferred+wRoth+wHSA+ssIncome;
+    const afterTax=totalW-totalTax;
+
+    /* Grow */
+    bTaxable=Math.max(0,(bTaxable-wTaxable)*(1+retPct));
+    bDeferred=Math.max(0,(bDeferred-wDeferred-rothConv)*(1+retPct));
+    bRoth=Math.max(0,(bRoth-wRoth+rothConv)*(1+retPct));
+    bHSA=Math.max(0,(bHSA-wHSA)*(1+retPct));
+
+    rRows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,
+      ssIncome,yourSS,spouseSS,totalW,tax:totalTax,afterTax,rothConv,convTax,rmd,
+      bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,depleted:false,overridden});
+  }
+  } /* end hasOverrides else */
+
+  /* Build table HTML */
+  let t=`<div class="wd-tbl-wrap"><table class="wd-tbl"><thead><tr>`;
+  t+=`<th title="Your age in each retirement year">Age</th>`;
+  t+=`<th title="Withdrawal from taxable brokerage accounts — taxed at 15% long-term capital gains rate">Taxable</th>`;
+  t+=`<th title="Withdrawal from tax-deferred accounts (401k, Traditional IRA) — taxed as ordinary income. Includes RMDs at age 73+">Tax-Deferred</th>`;
+  if(hasConv) t+=`<th style="background:#ecfdf5;color:#065f46" title="Roth conversion amount — moved from tax-deferred to Roth, taxed as ordinary income in the conversion year but grows tax-free thereafter">Roth Conv</th>`;
+  t+=`<th title="Withdrawal from Roth accounts — completely tax-free (contributions and earnings)">Roth <span style="cursor:help;font-size:0.75em;color:#059669">✦</span></th>`;
+  t+=`<th title="Withdrawal from HSA — tax-free for medical expenses ($5K/yr). Beyond that, taxed as ordinary income after age 65">HSA <span style="cursor:help;font-size:0.75em;color:#059669">✦</span></th>`;
+  if(hasSSData) t+=`<th style="background:#eef2ff;color:#3730a3" title="Social Security income — inflation-adjusted. Up to 85% may be taxable depending on combined income (IRS Pub 915)">SS Income</th>`;
+  t+=`<th title="Total income = all withdrawals + Social Security">Total Income</th>`;
+  t+=`<th title="Estimated federal tax = income tax on ordinary income (deferred + conversions + non-medical HSA + taxable SS) + 15% LTCG on taxable withdrawals">Est. Tax</th>`;
+  t+=`<th title="After-tax income = Total Income minus Estimated Tax">After-Tax</th>`;
+  t+=`<th style="background:#f5f3ff;color:#6d28d9" title="After-tax income in today's purchasing power, discounted at the inflation rate">After-Tax (PV)</th>`;
+  t+=`<th title="Remaining balance in taxable brokerage accounts after this year's withdrawal and investment growth">Taxable Bal</th>`;
+  t+=`<th title="Remaining balance in tax-deferred accounts (401k, IRA) after withdrawals, Roth conversions, and growth">Deferred Bal</th>`;
+  t+=`<th title="Remaining balance in Roth accounts after withdrawals, plus any Roth conversions, and growth">Roth Bal</th>`;
+  t+=`<th title="Remaining balance in HSA after withdrawals and investment growth">HSA Bal</th>`;
+  t+=`<th title="Total portfolio balance across all account types">Total Bal</th>`;
+  t+=`<th style="background:#f5f3ff;color:#6d28d9" title="Total portfolio balance in today's purchasing power, discounted at the inflation rate">Total Bal (PV)</th>`;
+  t+=`</tr></thead><tbody>`;
+
+  rRows.forEach((r,i)=>{
+    const cls=r.depleted&&r.bTotal<=0?'depletion-row':(r.age>=RMD_START_AGE&&r.bTotal>0?'rmd-row':'');
+    const convBorder=r.rothConv>0?'border-left:3px solid #10b981;':'';
+    const pvFactor=1/Math.pow(1+inflPct,i+yearsToRetire);
+    const ovBg=r.overridden?'background:#fffbeb;':'';
+    const ovStyle=r.overridden?'color:#b45309;font-weight:700':'';
+    /* Editable input helper */
+    const mkInput=(field,val)=>`<input type="number" class="wd-ovr" data-row="${i}" data-field="${field}" value="${Math.round(val)}" style="width:90px;padding:2px 4px;border:1px solid ${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#f59e0b':'#e2e8f0'};border-radius:4px;font-size:0.85em;text-align:right;background:${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#fffbeb':'transparent'}" onchange="wdOverride(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();wdOverride(this);}">`;
+
+    t+=`<tr class="${cls}" style="${convBorder}${ovBg}">`;
+    t+=`<td>${r.age}${r.age>=RMD_START_AGE&&r.bTotal>0?' \u{1F4CC}':''}</td>`;
+    t+=`<td>${mkInput('taxableW',r.taxableW)}</td>`;
+    t+=`<td>${mkInput('deferredW',r.deferredW)}${r.rmd>0?' *':''}</td>`;
+    if(hasConv){
+      const convChanged=r.overridden&&Math.abs(r.rothConv-(baseRows[i]?baseRows[i].rothConv:r.rothConv))>1;
+      t+=`<td style="color:#059669;font-weight:600;background:${r.rothConv>0?'#ecfdf5':'transparent'}">${r.rothConv>0?fmtD(Math.round(r.rothConv)):'-'}${convChanged?' <span title="Roth conversion auto-adjusted to fill bracket — tax stays the same because ordinary income (deferred + conversion) is unchanged" style="cursor:help;color:#d97706;font-size:0.75em">⟳</span>':''}</td>`;
+    }
+    t+=`<td>${mkInput('rothW',r.rothW)}</td>`;
+    t+=`<td>${mkInput('hsaW',r.hsaW)}</td>`;
+    if(hasSSData) t+=`<td style="color:#4338ca;background:${r.ssIncome>0?'#eef2ff':'transparent'}">${r.ssIncome>0?fmtD(Math.round(r.ssIncome)):'-'}</td>`;
+    t+=`<td style="${ovStyle}"><strong>${fmtD(Math.round(r.totalW))}</strong></td>`;
+    t+=`<td style="color:#dc2626">${fmtD(Math.round(r.tax))}</td>`;
+    t+=`<td style="color:#059669"><strong>${fmtD(Math.round(r.afterTax))}</strong></td>`;
+    t+=`<td style="color:#7c3aed;background:#faf5ff">${fmtD(Math.round(r.afterTax*pvFactor))}</td>`;
+    t+=`<td>${fmtK(r.bTaxable)}</td><td>${fmtK(r.bDeferred)}</td><td>${fmtK(r.bRoth)}</td><td>${fmtK(r.bHSA)}</td>`;
+    t+=`<td><strong>${fmtK(r.bTotal)}</strong></td>`;
+    t+=`<td style="color:#7c3aed;background:#faf5ff"><strong>${fmtK(r.bTotal*pvFactor)}</strong></td>`;
+    t+=`</tr>`;
+  });
+  t+=`</tbody></table></div>`;
+  t+=`<div style="font-size:0.8em;color:#6b7280;margin-top:6px;padding:0 4px"><span style="color:#059669">✦</span> Tax-free — Roth &amp; HSA withdrawals do not affect income tax. &nbsp; <span style="color:#d97706">⟳</span> Roth conversion auto-adjusted to fill tax bracket — total ordinary income unchanged, so tax stays the same.</div>`;
+
+  const container=document.getElementById('wd-tbl-container');
+  if(container) container.innerHTML=t;
+  }catch(e){console.error('renderWdTable error:',e);const c=document.getElementById('wd-tbl-container');if(c) c.innerHTML='<div style=\"color:red;padding:10px\">Recalc Error: '+e.message+'<br>'+e.stack+'</div>';}
+}
+
+let _wdDebounce=null;
+function wdOverride(el){
+  try{
+    const ctx=window._wdCtx;
+    if(!ctx) return;
+    /* Capture data from element immediately (before any DOM changes) */
+    const row=parseInt(el.dataset.row);
+    const field=el.dataset.field;
+    const val=parseFloat(el.value)||0;
+    if(!ctx.overrides[row]) ctx.overrides[row]={};
+    /* Store the override; if value matches original, remove override */
+    const orig=ctx.rows[row][field];
+    if(Math.abs(val-Math.round(orig))<1){
+      delete ctx.overrides[row][field];
+      if(Object.keys(ctx.overrides[row]).length===0) delete ctx.overrides[row];
+    } else {
+      ctx.overrides[row][field]=val;
+    }
+    /* Debounce + defer DOM update to avoid blur/keydown conflict */
+    clearTimeout(_wdDebounce);
+    _wdDebounce=setTimeout(()=>{
+      renderWdTable();
+      const newInput=document.querySelector('.wd-ovr[data-row="'+row+'"][data-field="'+field+'"]');
+      if(newInput){newInput.focus();newInput.select();}
+    },10);
+  }catch(e){console.error('wdOverride error:',e);}
+}
+
+/* ---- Tab switching with state caching ---- */
+const _tabCache={};
+function _saveTab(key){
+  _tabCache[key]={
+    drill:document.getElementById('drilldown').innerHTML,
+    alloc:document.getElementById('allocOverview').style.display,
+    insights:document.querySelector('.insights').style.display,
+    allocBar:document.getElementById('allocBar').innerHTML,
+    legend:document.getElementById('legend').innerHTML
+  };
+}
+function _restoreTab(key){
+  const c=_tabCache[key];
+  document.getElementById('drilldown').innerHTML=c.drill;
+  document.getElementById('allocOverview').style.display=c.alloc;
+  document.querySelector('.insights').style.display=c.insights;
+  document.getElementById('allocBar').innerHTML=c.allocBar;
+  document.getElementById('legend').innerHTML=c.legend;
+}
+let _activeTab='acctType';
+
+document.querySelectorAll('.pivot-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    /* Save current tab state */
+    _saveTab(_activeTab);
+    document.querySelectorAll('.pivot-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    const newTab=btn.dataset.pivot;
+
+    /* Restore or render */
+    document.querySelector('.insights').style.display='';
+    document.getElementById('allocOverview').style.display='';
+    if(_tabCache[newTab]){
+      _restoreTab(newTab);
+    } else {
+      if(newTab==='acctType') renderAcctTypePivot();
+      else if(newTab==='acctName') renderAcctNamePivot();
+      else if(newTab==='suggestions') renderSuggestions();
+      else if(newTab==='withdrawals') renderWithdrawals();
+      else renderCategoryPivot();
+    }
+    _activeTab=newTab;
+  });
+});
+
+/* Default view */
+renderAcctTypePivot();
+
+function toggleCat(el){
+  el.classList.toggle('open');
+  el.nextElementSibling.classList.toggle('open');
+}
+function toggleAcct(el,e){
+  e.stopPropagation();
+  el.classList.toggle('open');
+  document.getElementById('tb-'+el.dataset.id).classList.toggle('open');
+}
+
+/* ---- Portfolio Risk Insights Engine ---- */
+function computeInsights(pivot){
+  const insights = [];
+  const p = v => (v/GRAND*100).toFixed(1);
+  const fmt2 = v => '$'+(v/1e3).toFixed(0)+'K';
+
+  // Flatten all tickers
+  const allHoldings = [];
+  DATA.forEach(d => d.accounts.forEach(a => a.tickers.forEach(t => {
+    allHoldings.push({...t, acctName:a.name, acctNum:a.num, acctType:a.type, cat:d.cat});
+  })));
+  const bySymbol = {};
+  allHoldings.forEach(h => { bySymbol[h.sym] = (bySymbol[h.sym]||0) + h.val; });
+  const sorted = Object.entries(bySymbol).sort((a,b) => b[1]-a[1]);
+
+  /* ==========================================================
+     SHARED — Concentration Risk (shown for both pivots)
+     ========================================================== */
+  const concItems = [];
+  const top5 = sorted.slice(0,5), top5total = top5.reduce((s,x)=>s+x[1],0);
+  const top10 = sorted.slice(0,10), top10total = top10.reduce((s,x)=>s+x[1],0);
+  if(top5total/GRAND > 0.3) concItems.push(`Top 5 holdings represent <strong>${p(top5total)}%</strong> of portfolio (${top5.map(x=>x[0]).join(', ')}) — significant concentration risk.`);
+  if(top10total/GRAND > 0.5) concItems.push(`Top 10 holdings represent <strong>${p(top10total)}%</strong> of portfolio.`);
+  sorted.filter(x => x[1]/GRAND > 0.10).forEach(([sym,val]) => {
+    concItems.push(`<strong>${sym}</strong> alone is ${p(val)}% of total portfolio (${fmt2(val)}) — consider if this aligns with your risk tolerance.`);
+  });
+  if(concItems.length) insights.push({title:'Concentration Risk', icon:'⚠️', sev:'high', items:concItems});
+
+  /* ==========================================================
+     BY ACCOUNT TYPE pivot — tax efficiency, per-type risk
+     ========================================================== */
+  if(pivot === 'acctType') {
+    // Tax Efficiency
+    const acctItems = [];
+    const typeTotals = {};
+    ACCT_DATA.forEach(g => { typeTotals[g.type] = g.total; });
+    const taxablePct = (typeTotals['Taxable Investment']||0)/GRAND*100;
+    const taxDefPct = TAX_DEFERRED_TYPES.reduce((s,t)=>s+(typeTotals[t]||0),0)/GRAND*100;
+    const rothPct = (typeTotals['Roth']||0)/GRAND*100;
+    const hsaPct = (typeTotals['HSA']||0)/GRAND*100;
+
+    if(taxablePct > 50) acctItems.push(`Taxable accounts hold <strong>${taxablePct.toFixed(1)}%</strong> — majority of portfolio is in tax-inefficient wrappers. Distributions, dividends, and capital gains are taxed annually.`);
+    if(rothPct < 10) acctItems.push(`Roth accounts are only <strong>${rothPct.toFixed(1)}%</strong> — consider maximizing Roth contributions for tax-free growth and withdrawals.`);
+    if(taxDefPct > 60) acctItems.push(`Tax-deferred accounts hold <strong>${taxDefPct.toFixed(1)}%</strong> — heavy RMD obligations after age 73. Consider Roth conversion ladder strategy.`);
+    else if(taxDefPct > 40) acctItems.push(`Tax-deferred accounts hold <strong>${taxDefPct.toFixed(1)}%</strong> — be mindful of future RMD obligations starting at age 73.`);
+    if(hsaPct > 0) acctItems.push(`HSA at <strong>${hsaPct.toFixed(1)}%</strong> — triple tax advantage. Maximize contributions ($4,300 individual / $8,550 family for 2026).`);
+    if(acctItems.length) insights.push({title:'Tax Efficiency', icon:'🏦', sev:'med', items:acctItems});
+
+    // Per Account Type — risk & allocation
+    const typeItems = [];
+    ACCT_DATA.forEach(g => {
+      const tickers = [];
+      g.accounts.forEach(a => a.tickers.forEach(t => tickers.push(t)));
+      const riskBuckets = {};
+      tickers.filter(t=>t.risk).forEach(t => { riskBuckets[t.risk] = (riskBuckets[t.risk]||0)+t.val; });
+      const tTotal = tickers.reduce((s,t)=>s+t.val,0);
+      const hrVal = riskBuckets['High Risk / Speculative']||0;
+      const hrP = hrVal/tTotal*100;
+      const grVal = riskBuckets['Growth']||0;
+      const grP = grVal/tTotal*100;
+
+      if(g.type === 'Taxable Investment' || g.type.startsWith('Tax-Deferred')) {
+        if(hrP > 10) typeItems.push(`<strong>${g.type}</strong>: ${hrP.toFixed(1)}% in High Risk/Speculative (${fmt2(hrVal)}) — consider keeping speculative bets in Roth accounts where losses don\u0027t waste tax advantages.`);
+        if(grP > 60) typeItems.push(`<strong>${g.type}</strong>: ${grP.toFixed(1)}% in Growth stocks — heavy growth tilt; tax-inefficient due to low dividends and potential high capital gains.`);
+      }
+      if(g.type === 'Roth') {
+        if(hrP < 5 && grP < 30) typeItems.push(`<strong>Roth</strong>: Only ${(hrP+grP).toFixed(1)}% in Growth + High Risk — Roth is ideal for aggressive/high-growth holdings since gains are tax-free. Consider moving growth stocks here.`);
+      }
+    });
+    if(typeItems.length) insights.push({title:'Account Type Optimization', icon:'🔄', sev:'med', items:typeItems});
+
+    // Account Dominance
+    const domItems = [];
+    const acctByVal = {};
+    DATA.forEach(d=>d.accounts.forEach(a=>{ acctByVal[a.num]=(acctByVal[a.num]||{name:a.name,val:0}); acctByVal[a.num].val+=a.val; }));
+    Object.entries(acctByVal).sort((a,b)=>b[1].val-a[1].val).forEach(([num,o])=>{
+      if(o.val/GRAND>0.20) domItems.push(`Account <strong>${o.name}</strong> (#${num}) holds ${p(o.val)}% — if this account has limited beneficiary protections, consider diversifying across accounts.`);
+    });
+    if(domItems.length) insights.push({title:'Account Concentration', icon:'📋', sev:'low', items:domItems});
+  }
+
+  /* ==========================================================
+     BY CATEGORY pivot — allocation benchmarks & recommendations
+     ========================================================== */
+  if(pivot === 'category') {
+    const catTotals = {};
+    DATA.forEach(d => { catTotals[d.cat] = d.total; });
+
+    // Compute actual %
+    const actual = {};
+    const cats = ['Individual Stocks','US Stock Funds','International Funds','Bond Funds','Sector / Thematic','Target-Date / Balanced','Cash / Money Market'];
+    cats.forEach(c => { actual[c] = (catTotals[c]||0)/GRAND*100; });
+    const equityPct = (actual['Individual Stocks']||0)+(actual['US Stock Funds']||0)+(actual['Sector / Thematic']||0);
+    const intlPct = actual['International Funds']||0;
+    const bondPct = actual['Bond Funds']||0;
+    const cashPct = actual['Cash / Money Market']||0;
+    const tdPct = actual['Target-Date / Balanced']||0;
+
+    // Recommended ranges (moderate-aggressive growth investor)
+    const benchItems = [];
+    benchItems.push(`<strong>Your allocation:</strong> Equities ${equityPct.toFixed(1)}% · International ${intlPct.toFixed(1)}% · Bonds ${bondPct.toFixed(1)}% · Cash ${cashPct.toFixed(1)}%`);
+
+    // Equity allocation
+    if(equityPct > 80) {
+      benchItems.push(`⚠️ <strong>Equities at ${equityPct.toFixed(1)}%</strong> — well above the typical 60-70% recommendation. Excellent for growth but high drawdown risk in corrections. A moderate portfolio targets 60-70% equities.`);
+    } else if(equityPct > 70) {
+      benchItems.push(`Equities at <strong>${equityPct.toFixed(1)}%</strong> — slightly aggressive but within range for a growth-oriented investor. Recommended: 60-70%.`);
+    } else if(equityPct < 50) {
+      benchItems.push(`Equities at only <strong>${equityPct.toFixed(1)}%</strong> — below recommended 60-70%. May limit long-term growth potential.`);
+    } else {
+      benchItems.push(`✅ Equities at <strong>${equityPct.toFixed(1)}%</strong> — within the recommended 60-70% range for a balanced growth portfolio.`);
+    }
+
+    // Individual stocks vs funds
+    if(actual['Individual Stocks'] > 30) {
+      benchItems.push(`⚠️ <strong>Individual stocks at ${actual['Individual Stocks'].toFixed(1)}%</strong> — most advisors recommend ≤20% in individual stocks vs diversified funds. High idiosyncratic risk.`);
+    } else if(actual['Individual Stocks'] > 20) {
+      benchItems.push(`Individual stocks at <strong>${actual['Individual Stocks'].toFixed(1)}%</strong> — at the upper end of the recommended ≤20% guideline.`);
+    } else if(actual['Individual Stocks'] > 0) {
+      benchItems.push(`✅ Individual stocks at <strong>${actual['Individual Stocks'].toFixed(1)}%</strong> — within the recommended ≤20% range.`);
+    }
+
+    // International
+    if(intlPct < 10) {
+      benchItems.push(`⚠️ <strong>International at ${intlPct.toFixed(1)}%</strong> — well below the recommended 15-25%. US-only portfolios miss global diversification. Consider broad international index funds.`);
+    } else if(intlPct < 15) {
+      benchItems.push(`International at <strong>${intlPct.toFixed(1)}%</strong> — slightly below the recommended 15-25% of total portfolio. Consider increasing for geographic diversification.`);
+    } else if(intlPct <= 25) {
+      benchItems.push(`✅ International at <strong>${intlPct.toFixed(1)}%</strong> — within the recommended 15-25% range.`);
+    } else {
+      benchItems.push(`International at <strong>${intlPct.toFixed(1)}%</strong> — above the typical 15-25% range. Adds diversification but introduces currency and geopolitical risk.`);
+    }
+
+    // Bonds
+    if(bondPct < 5) {
+      benchItems.push(`⚠️ <strong>Bonds at ${bondPct.toFixed(1)}%</strong> — well below the recommended 15-30%. Very limited downside protection. In a market crash, bonds provide critical ballast.`);
+    } else if(bondPct < 15) {
+      benchItems.push(`⚠️ <strong>Bonds at ${bondPct.toFixed(1)}%</strong> — below the recommended 15-30%. Consider increasing for stability and income, especially as retirement approaches.`);
+    } else if(bondPct <= 30) {
+      benchItems.push(`✅ Bonds at <strong>${bondPct.toFixed(1)}%</strong> — within the recommended 15-30% range for a growth portfolio.`);
+    } else {
+      benchItems.push(`Bonds at <strong>${bondPct.toFixed(1)}%</strong> — above 30% is conservative. Fine for capital preservation but may limit long-term growth.`);
+    }
+
+    // Cash
+    if(cashPct > 10) {
+      benchItems.push(`⚠️ <strong>Cash at ${cashPct.toFixed(1)}%</strong> — above the recommended 3-5%. Significant drag on returns. Consider deploying into index funds or bonds.`);
+    } else if(cashPct > 5) {
+      benchItems.push(`Cash at <strong>${cashPct.toFixed(1)}%</strong> — slightly above the typical 3-5% recommendation. Provides flexibility but has opportunity cost.`);
+    } else if(cashPct >= 2) {
+      benchItems.push(`✅ Cash at <strong>${cashPct.toFixed(1)}%</strong> — within the recommended 3-5% liquidity buffer.`);
+    } else {
+      benchItems.push(`Cash at only <strong>${cashPct.toFixed(1)}%</strong> — below the recommended 3-5% minimum. May want to maintain an emergency buffer.`);
+    }
+
+    insights.push({title:'Asset Allocation vs Recommended Ranges', icon:'📊', sev: (equityPct>80||bondPct<5)?'high':'med', items:benchItems});
+
+    // Per-category deep dive
+    const catDeep = [];
+    // US Stock Funds
+    if(actual['US Stock Funds']>0) {
+      const pct = actual['US Stock Funds'];
+      if(pct > 40) catDeep.push(`<strong>US Stock Funds</strong> at ${pct.toFixed(1)}% — heavy reliance on US equities. Provides strong growth exposure but may be correlated with your individual stock picks.`);
+      else catDeep.push(`<strong>US Stock Funds</strong> at ${pct.toFixed(1)}% — provides broad US market exposure through diversified funds.`);
+    }
+    // Sector/Thematic
+    if(actual['Sector / Thematic']>0) {
+      const pct = actual['Sector / Thematic'];
+      if(pct > 10) catDeep.push(`⚠️ <strong>Sector/Thematic</strong> at ${pct.toFixed(1)}% — above recommended ≤10%. Concentrated sector bets amplify volatility.`);
+      else catDeep.push(`✅ <strong>Sector/Thematic</strong> at ${pct.toFixed(1)}% — within the recommended ≤10% allocation.`);
+    }
+    // Target-Date
+    if(tdPct > 0) {
+      catDeep.push(`<strong>Target-Date/Balanced</strong> at ${tdPct.toFixed(1)}% — these auto-rebalance over time. Watch for overlap with your other holdings which could create unintended overweights.`);
+    }
+    if(catDeep.length) insights.push({title:'Category Deep Dive', icon:'🔍', sev:'low', items:catDeep});
+
+    // Risk profile within stocks category
+    const riskItems = [];
+    const riskTotals = {};
+    const stockTotal = allHoldings.filter(h=>h.risk).reduce((s,h)=>s+h.val,0);
+    allHoldings.filter(h=>h.risk).forEach(h => { riskTotals[h.risk]=(riskTotals[h.risk]||0)+h.val; });
+    if(stockTotal > 0) {
+      const hr = (riskTotals['High Risk / Speculative']||0)/stockTotal*100;
+      const gr = (riskTotals['Growth']||0)/stockTotal*100;
+      const dv = (riskTotals['Dividend / Value']||0)/stockTotal*100;
+      const bc = (riskTotals['Blue Chip / Core']||0)/stockTotal*100;
+
+      riskItems.push(`<strong>Stock risk breakdown:</strong> Growth ${gr.toFixed(1)}% · Blue Chip ${bc.toFixed(1)}% · Dividend/Value ${dv.toFixed(1)}% · High Risk ${hr.toFixed(1)}%`);
+      if(gr > 50) riskItems.push(`⚠️ Growth stocks dominate at <strong>${gr.toFixed(1)}%</strong> — recommended: ≤40% Growth for balanced risk. Vulnerable to interest rate hikes and market rotation.`);
+      if(hr > 10) riskItems.push(`⚠️ High Risk/Speculative at <strong>${hr.toFixed(1)}%</strong> — recommended: ≤10%. Consider trimming speculative positions.`);
+      if(dv < 15) riskItems.push(`Dividend/Value at only <strong>${dv.toFixed(1)}%</strong> — recommended: ≥20% for income stability and downside protection.`);
+      if(bc < 20) riskItems.push(`Blue Chip/Core at <strong>${bc.toFixed(1)}%</strong> — recommended: ≥25% for portfolio stability.`);
+
+      // Sector concentration
+      const sectorSyms = {tech:['MSFT','AAPL','NVDA','AVGO','AMD','META','GOOGL','GOOG','AMZN','NFLX','CRM','ORCL','NOW','ADBE','INTU'],
+        finance:['JPM','GS','BAC','WFC','MS','C','BLK','SCHW','COF','USB','PNC','AXP','MA','V','ICE','MCO']};
+      const techVal = sorted.filter(([s])=>sectorSyms.tech.includes(s)).reduce((sum,[,v])=>sum+v,0);
+      const finVal = sorted.filter(([s])=>sectorSyms.finance.includes(s)).reduce((sum,[,v])=>sum+v,0);
+      const techP = techVal/GRAND*100, finP = finVal/GRAND*100;
+      if(techP > 20) riskItems.push(`⚠️ Tech mega-caps alone are <strong>${techP.toFixed(1)}%</strong> of total portfolio — recommended sector cap: ≤20%. High correlation risk.`);
+      if(finP > 15) riskItems.push(`Financials at <strong>${finP.toFixed(1)}%</strong> — monitor for interest rate sensitivity and credit cycle exposure.`);
+    }
+    if(riskItems.length) insights.push({title:'Stock Risk Profile', icon:'🔴', sev:'med', items:riskItems});
+  }
+
+  /* ==========================================================
+     SHARED — Diversification (shown for both pivots)
+     ========================================================== */
+  const divItems = [];
+  const uniqueStocks = sorted.filter(([s])=> !s.endsWith('**') && s.length<=5).length;
+  if(uniqueStocks > 150) divItems.push(`Portfolio holds <strong>${uniqueStocks} individual stocks</strong> — very broad but may be difficult to monitor. Consider consolidating into index funds for similar exposure with less management overhead.`);
+  if(divItems.length) insights.push({title:'Diversification', icon:'📋', sev:'low', items:divItems});
+
+  // Render
+  const el = document.getElementById('insightsContainer');
+  const label = pivot==='acctType' ? 'By Account Type' : pivot==='acctName' ? 'By Account' : 'By Investment Category';
+  if(!insights.length){ el.innerHTML='<div class="insight-card"><p style="color:var(--text-muted);font-size:0.88em">No significant risk flags detected.</p></div>'; return; }
+  el.innerHTML = insights.map(ins => `
+    <div class="insight-card insight-sev-${ins.sev}">
+      <h3><span class="icon">${ins.icon}</span>${ins.title}</h3>
+      <ul class="insight-items">${ins.items.map(i=>`<li>${i}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+</script>
+</body>
+</html>
