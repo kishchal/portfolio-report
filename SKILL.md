@@ -1,9 +1,11 @@
 ---
 name: portfolio-report
 description: Generate an interactive HTML portfolio allocation report from a Fidelity CSV export with five pivot views (By Account Type / By Investment Category / By Account / Suggestions / Withdrawals), data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios and account guidance, and a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, and Monte Carlo analysis.
-tools:
-  - powershell
-  - python
+allowed-tools: powershell python
+compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
+metadata:
+  author: portfolio-report
+  version: "3.11.0"
 ---
 
 # Portfolio Report Skill
@@ -26,14 +28,14 @@ Use this skill when the user asks:
 
 ```bash
 # Python (ALWAYS use --refresh-all for new CSVs)
-python ~/.copilot/skills/portfolio-report/main.py \
+python ~/.copilot/skills/portfolio-report/scripts/main.py \
     "/path/to/Portfolio_Positions.csv" \
     --refresh-all
 ```
 
 ```powershell
 # PowerShell (ALWAYS use -RefreshAll for new CSVs)
-& "$env:USERPROFILE\.copilot\skills\portfolio-report\main.ps1" `
+& "$env:USERPROFILE\.copilot\skills\portfolio-report\scripts\main.ps1" `
     -CsvPath "C:\path\to\Portfolio_Positions.csv" `
     -RefreshAll
 ```
@@ -50,7 +52,7 @@ Only omit the refresh flags when re-generating the same report within the same d
 **Python (default, cross-platform — works on macOS, Linux, Windows):**
 
 ```bash
-python ~/.copilot/skills/portfolio-report/main.py \
+python ~/.copilot/skills/portfolio-report/scripts/main.py \
     "/path/to/Portfolio_Positions.csv" \
     --output "/path/to/Portfolio_Report.html"
 ```
@@ -58,7 +60,7 @@ python ~/.copilot/skills/portfolio-report/main.py \
 **PowerShell (alternative, Windows):**
 
 ```powershell
-& "$env:USERPROFILE\.copilot\skills\portfolio-report\main.ps1" `
+& "$env:USERPROFILE\.copilot\skills\portfolio-report\scripts\main.ps1" `
     -CsvPath "C:\path\to\Portfolio_Positions.csv" `
     -OutputPath "C:\path\to\Portfolio_Report.html"
 ```
@@ -67,7 +69,7 @@ If `--output` / `-OutputPath` is omitted, the report is saved alongside the CSV 
 
 ### Parameters
 
-**Python (`main.py`):**
+**Python (`scripts/main.py`):**
 
 | Parameter    | Required | Description                                      | Example                                              |
 |--------------|----------|--------------------------------------------------|------------------------------------------------------|
@@ -77,7 +79,7 @@ If `--output` / `-OutputPath` is omitted, the report is saved alongside the CSV 
 | --refresh-risk | No     | Fetch fresh financial data from Yahoo Finance to update risk classification cache | `--refresh-risk` |
 | --refresh-suggestions | No | Fetch fresh fund metrics (returns, volatility) from Yahoo Finance for the Suggestions tab | `--refresh-suggestions` |
 
-**PowerShell (`main.ps1`):**
+**PowerShell (`scripts/main.ps1`):**
 
 | Parameter    | Required | Description                                      | Example                                              |
 |--------------|----------|--------------------------------------------------|------------------------------------------------------|
@@ -124,7 +126,7 @@ An interactive HTML report featuring:
    - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
    - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
    - **Suggestions** — Investment research and portfolio construction guidance featuring:
-     - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown against three model portfolios
+     - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown (US Equity, International, Bonds, Cash, Real Estate, Alternatives, Other) against three model portfolios. All holdings always sum to 100% — unmapped categories (CDs, Unspecified) are captured in the "Other" bucket.
      - **Fund-by-Fund Analysis** — table of 19 recommended ETFs/index funds/bond funds with performance metrics (1Y/3Y returns, volatility, max drawdown), expense ratios, and suitability scores (Growth, Risk, Diversification, Cost on 1–10 scale)
      - **Three Model Portfolios** — High Risk/High Growth, Medium Risk/Balanced, Low Risk/Capital Preservation with specific ticker allocations, weighted expense ratios, and volatility expectations
      - **Account-Specific Guidance** — tax-efficient placement recommendations for 401(k), Traditional IRA, and Roth IRA with target allocation ranges and rationale
@@ -139,9 +141,24 @@ An interactive HTML report featuring:
        - Percentile fan chart (SVG): 10th–90th and 25th–75th percentile bands with median line and deterministic overlay
        - Ending balance distribution histogram
        - Interpretation notes with actionable guidance based on success rate
-     - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange
-     - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules), assumptions & methodology
-     - **Financial Engine** — 4% rule with guardrails (3.5% floor, 5.5% ceiling), IRS Uniform Lifetime Table RMDs at 73+, 2025 federal tax brackets, 15% LTCG rate, dual-participant SS with independent benefit age scaling (62–70), SS taxation (combined income thresholds: 0%/50%/85% taxable), household planning horizon extending to the longer-surviving spouse, Monte Carlo engine (500 sims, log-normal returns, Box-Muller transform)
+       - Tax estimation in MC: simplified income tax + LTCG + HSA penalty per simulated year
+     - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated.
+     - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules, standard deduction, HSA penalty rules), assumptions & methodology
+     - **Financial Engine**:
+       - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
+       - IRS Uniform Lifetime Table RMDs — dynamic start age: 75 for born 1960+ (SECURE 2.0), 73 for born 1951-1959, 72 for born ≤1950
+       - 2025 federal tax brackets (OBBBA) with age-aware standard deduction: base $31,500 MFJ / $15,750 Single + additional $1,600/person MFJ ($2,000 Single) at age 65+
+       - Tiered LTCG rates: 0% up to $96,700 MFJ / $48,350 Single, 15% up to $600,050/$533,400, 20% above — stacked on ordinary taxable income
+       - SS taxation per IRS Pub 915 — combined income (AGI + LTCG + 50% of SS) determines 0%/50%/85% taxable thresholds ($32K/$44K MFJ, $25K/$34K Single)
+       - **IRMAA (Medicare surcharges)**: 2025 CMS brackets (6 tiers, MFJ + Single), Part B + Part D surcharges, 2-year MAGI lookback, per-person calculation for ages 65+
+       - HSA tax rules: tax-free for medical ($5K/yr inflation-adjusted at 65+), ordinary income after 65 for non-medical, 20% penalty + ordinary income before age 65
+       - **Roth Conversion Optimizer**: Compares None/Conservative(12%)/Moderate(22%)/Aggressive(24%)/Custom strategies with configurable conversion window (start/end ages); bracket room = ceiling + std deduction − ordinary income
+       - **Spending Phases**: User-defined spending by age (e.g., go-go/slow-go/no-go) with per-phase monthly amounts; phases inflate from today's dollars; 4% guardrails disabled when phases active
+       - Excess RMD surplus reinvested into taxable brokerage account
+       - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
+       - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
+       - Monte Carlo engine (500 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
+       - **Settings persistence**: All withdrawal inputs saved to browser localStorage with merge logic. Pre-tab-switch save ensures no data loss. Settings auto-restore on reopen.
 4. **3-level drill-down cards** — click top-level group → see Accounts → click Account → see Tickers
 5. **Risk classification** — Individual stock tickers are grouped within each account by risk category:
    - **Blue Chip / Core** — Large, stable companies (AAPL, MSFT, JNJ, PG, WMT, etc.)
@@ -189,15 +206,15 @@ Holdings are automatically categorized:
 | Tech Sector Fund       | FSPTX                                   |
 | Growth / Leveraged ETFs| TQQQ, VOOG, PBW                         |
 | Individual Stocks      | AAPL, AMD, MSFT, NVDA, META, etc        |
-| Cash / Money Market    | SPAXX**, FDRXX**, CORE**, FZDXX, BROKERAGELINK |
+| Cash / Money Market    | SPAXX**, FDRXX**, CORE**, FZDXX, BROKERAGELINK, CDs (auto-detected by description) |
 
-Unknown symbols default to "Other" category.
+Unknown symbols default to "Other" category. CDs (Certificates of Deposit) are auto-detected by description pattern ("certificate of deposit", "brokered CD") and classified as Cash / Money Market.
 
 ### Risk Classification (Individual Stocks)
 
 Stocks within each account are sub-grouped by risk profile with color-coded headers showing holding count, subtotal, and percentage of account.
 
-**Data-driven classification** (default): Uses financial metrics fetched from Yahoo Finance via `yfinance` and cached to `risk_cache.json`. Metrics used:
+**Data-driven classification** (default): Uses financial metrics fetched from Yahoo Finance via `yfinance` and cached to `assets/risk_cache.json`. Metrics used:
 - **Beta** — volatility relative to market
 - **Trailing P/E** — price-to-earnings ratio
 - **Market Cap** — company size
@@ -216,12 +233,12 @@ Classification rules (applied in priority order):
 **Refreshing the cache**: Use `--refresh-all` / `-RefreshAll` to fetch fresh data for everything (~2-3 min for 250+ symbols):
 ```bash
 # Python
-python main.py "Portfolio_Positions.csv" --refresh-all
+python scripts/main.py "Portfolio_Positions.csv" --refresh-all
 # PowerShell
-& main.ps1 -CsvPath "Portfolio_Positions.csv" -RefreshAll
+& scripts/main.ps1 -CsvPath "Portfolio_Positions.csv" -RefreshAll
 ```
 
-If the cache doesn't exist on first run, it is fetched automatically. Static fallback lists in both `main.py` and `main.ps1` are used for any symbol not in the cache.
+If the cache doesn't exist on first run, it is fetched automatically. Static fallback lists in both `scripts/main.py` and `scripts/main.ps1` are used for any symbol not in the cache.
 
 **Dependencies**: Python 3 with `yfinance` package (`pip install yfinance`).
 
@@ -231,11 +248,11 @@ If the cache doesn't exist on first run, it is fetched automatically. Static fal
 
 ### 1. Check for Unmapped Symbols
 
-After report generation, scan the CSV for symbols not in `$CategoryMap` in `main.ps1`. Any **fund or ETF** symbol (mutual funds typically 5+ chars ending in X, or known ETF tickers) that falls through to "Individual Stocks" or "Other" should be added to `$CategoryMap` with the correct category and description.
+After report generation, scan the CSV for symbols not in `$CategoryMap` in `scripts/main.ps1`. Any **fund or ETF** symbol (mutual funds typically 5+ chars ending in X, or known ETF tickers) that falls through to "Individual Stocks" or "Other" should be added to `$CategoryMap` with the correct category and description.
 
 **How to check**: Look at the generated report for entries in "Other" category or stocks that are actually funds/ETFs misclassified as Individual Stocks.
 
-**How to fix**: Add entries to the `$CategoryMap` hashtable in `main.ps1`:
+**How to fix**: Add entries to the `$CategoryMap` hashtable in `scripts/main.ps1`:
 ```powershell
 'NEWSYM' = @{ Category = 'US Index Funds'; Detail = 'Fund Name Here' }
 ```
@@ -244,9 +261,9 @@ Categories to choose from: `US Index Funds`, `International Funds`, `Bond Funds`
 
 ### 2. Check for New Account Types
 
-If new account name patterns appear that don't match existing regex rules in `Get-AccountType` function in `main.ps1`, add new patterns. Check the report for any accounts showing type "Other" — these need new patterns.
+If new account name patterns appear that don't match existing regex rules in `Get-AccountType` function in `scripts/main.ps1`, add new patterns. Check the report for any accounts showing type "Other" — these need new patterns.
 
-**How to fix**: Add a new `if` clause to `Get-AccountType` in `main.ps1`:
+**How to fix**: Add a new `if` clause to `Get-AccountType` in `scripts/main.ps1`:
 ```powershell
 if ($n -match '(?i)new_pattern') { return 'Appropriate Type' }
 ```
@@ -255,40 +272,40 @@ Valid account types: `Taxable Investment`, `Tax-Deferred 401(k)`, `Tax-Deferred 
 
 ### 3. Check for New Individual Stocks Missing from Risk Cache
 
-If new stock symbols appear that aren't in `risk_cache.json`, run with `--refresh-all` / `-RefreshAll` to fetch their financial metrics:
+If new stock symbols appear that aren't in `assets/risk_cache.json`, run with `--refresh-all` / `-RefreshAll` to fetch their financial metrics:
 ```bash
 # Python
-python main.py "C:\path\to\file.csv" --refresh-all
+python scripts/main.py "C:\path\to\file.csv" --refresh-all
 # PowerShell
-& "$env:USERPROFILE\.copilot\skills\portfolio-report\main.ps1" `
+& "$env:USERPROFILE\.copilot\skills\portfolio-report\scripts\main.ps1" `
     -CsvPath "C:\path\to\file.csv" -RefreshAll
 ```
 
-Also update the static fallback lists (`$HighRiskSymbols`, `$GrowthSymbols`, `$DividendValueSymbols`) in `main.ps1` if the risk cache update adds significant new classifications.
+Also update the static fallback lists (`$HighRiskSymbols`, `$GrowthSymbols`, `$DividendValueSymbols`) in `scripts/main.ps1` if the risk cache update adds significant new classifications.
 
 ### 4. Check for New Cash/Money Market Symbols
 
 If new cash or money market fund symbols appear (e.g., settlement funds, sweep accounts), add them to:
-- `$CategoryMap` in `main.ps1` with `Category = 'Cash / Money Market'`
-- `CASH_SYMS` array in `template.html` (used by the Account Type pivot to separate cash into its own top-level group)
+- `$CategoryMap` in `scripts/main.ps1` with `Category = 'Cash / Money Market'`
+- `CASH_SYMS` array in `assets/template.html`(used by the Account Type pivot to separate cash into its own top-level group)
 
 ### 5. Check for New Duplicate/Wrapper Accounts
 
-If new wrapper accounts appear (similar to the MICROSOFT 401K PLAN / BROKERAGELINK pattern), add filtering logic in `main.ps1` to exclude them. Look for accounts where the total value exactly matches another account's total.
+If new wrapper accounts appear (similar to the MICROSOFT 401K PLAN / BROKERAGELINK pattern), add filtering logic in `scripts/main.ps1` to exclude them. Look for accounts where the total value exactly matches another account's total.
 
 ### 6. Update Documentation
 
-After making any changes to `main.ps1` or `template.html`, update:
+After making any changes to `scripts/main.ps1` or `assets/template.html`, update:
 - **SKILL.md** — Update the Category Classification table, Account Type patterns table, and Account Type Grouping table to reflect any new mappings
-- **skill.yaml** — Bump the version number (patch for small additions, minor for new features)
+- **SKILL.md frontmatter** — Bump the version in the `metadata` section (patch for small additions, minor for new features)
 
 ### 7. Keep Both Scripts in Sync (CRITICAL)
 
-**`main.py` and `main.ps1` must always produce identical output.** Any change to one MUST be mirrored in the other. They are two implementations of the same logic.
+**`scripts/main.py` and `scripts/main.ps1` must always produce identical output.** Any change to one MUST be mirrored in the other. They are two implementations of the same logic.
 
 When modifying logic in either script, update BOTH:
 
-| Change Type | `main.py` location | `main.ps1` location |
+| Change Type | `scripts/main.py` location | `scripts/main.ps1` location |
 |---|---|---|
 | New fund/category mapping | `CATEGORY_MAP` dict | `$CategoryMap` hashtable |
 | New account type pattern | `get_account_type()` function | `Get-AccountType` function |
@@ -301,9 +318,9 @@ When modifying logic in either script, update BOTH:
 
 ```bash
 # Python
-python main.py Portfolio.csv --output report_py.html
+python scripts/main.py Portfolio.csv --output report_py.html
 # PowerShell
-& main.ps1 -CsvPath Portfolio.csv -OutputPath report_ps1.html
+& scripts/main.ps1 -CsvPath Portfolio.csv -OutputPath report_ps1.html
 # Compare key metrics
 # Both should show same Holdings count, Categories count, Grand Total
 ```
@@ -312,9 +329,8 @@ python main.py Portfolio.csv --output report_py.html
 
 | File | What to check |
 |------|---------------|
-| `main.py` | `CATEGORY_MAP` (new funds), `get_account_type()` (new account patterns), `classify_risk()` (new stocks), duplicate account filters — **must stay in sync with main.ps1** |
-| `main.ps1` | `$CategoryMap` (new funds), `Get-AccountType` (new account patterns), `$HighRiskSymbols`/`$GrowthSymbols`/`$DividendValueSymbols` (new stocks), duplicate account filters — **must stay in sync with main.py** |
-| `template.html` | `CASH_SYMS` array (new cash symbols), `CATEGORY_COLORS` (new category colors), `ACCT_TYPE_COLORS` (new account type colors) |
-| `risk_cache.json` | Run `--refresh-all` / `-RefreshAll` if new stock symbols appear |
-| `SKILL.md` | Update tables and examples to match current data |
-| `skill.yaml` | Bump version after changes |
+| `scripts/main.py` | `CATEGORY_MAP` (new funds), `get_account_type()` (new account patterns), `classify_risk()` (new stocks), duplicate account filters — **must stay in sync with scripts/main.ps1** |
+| `scripts/main.ps1` | `$CategoryMap` (new funds), `Get-AccountType` (new account patterns), `$HighRiskSymbols`/`$GrowthSymbols`/`$DividendValueSymbols` (new stocks), duplicate account filters — **must stay in sync with scripts/main.py** |
+| `assets/template.html` | `CASH_SYMS` array (new cash symbols), `CATEGORY_COLORS` (new category colors), `ACCT_TYPE_COLORS` (new account type colors) |
+| `assets/risk_cache.json` | Run `--refresh-all` / `-RefreshAll` if new stock symbols appear |
+| `SKILL.md` | Update tables, examples, and frontmatter version to match current data |

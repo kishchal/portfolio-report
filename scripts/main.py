@@ -14,6 +14,7 @@ import csv, json, os, re, sys, subprocess, math, argparse, time
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+ASSETS_DIR = os.path.join(os.path.dirname(SCRIPT_DIR), 'assets')
 
 # --- Account-type inference from Account Name ---
 def get_account_type(name):
@@ -62,7 +63,7 @@ HIGH_RISK = {'PLTR','HOOD','RBLX','CVNA','NET','SNOW','MDB','TEAM','DDOG','DOCU'
 
 GROWTH = {'NVDA','GOOGL','GOOG','AVGO','AMD','AMAT','MU','KLAC','MPWR','NOW',
     'CDNS','SNPS','LRCX','DELL','ON','ISRG','CRWD','META','AMZN','NFLX','ADBE','CRM',
-    'INTU','ORCL','FTNT','PANW','FICO','SHOP','UBER','MA','V','BX','SNOW'}
+    'INTU','ORCL','FTNT','PANW','FICO','SHOP','UBER','MA','V','BX'}
 
 DIVIDEND_VALUE = {'XOM','CVX','T','VZ','MO','PM','O','KO','PEP','ED','DUK','SO',
     'AEP','EVRG','NEE','ATO','DTE','SRE','EXC','WMB','HAL','SLB','OVV','FANG','COP','PSX',
@@ -82,14 +83,14 @@ def get_risk_tag(sym, risk_cache):
 
 def parse_currency(s):
     s = s.strip()
-    negative = s.startswith('(') or s.startswith('-')
+    negative = s.startswith('(') or s.startswith('-') or s.startswith('$-') or s.startswith('-$')
     val = float(re.sub(r'[$ ,()\\-]', '', s) or '0')
     return -val if negative else val
 
 
 def js_val(val):
     if isinstance(val, str):
-        escaped = val.replace("\\", "\\\\").replace("'", "\\u0027")
+        escaped = val.replace("\\", "\\\\").replace("'", "\\u0027").replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
         return f"'{escaped}'"
     return str(round(val, 2))
 
@@ -124,7 +125,7 @@ def main():
         output_path = os.path.join(d, base + '.html')
 
     # --- Risk cache ---
-    risk_cache_path = os.path.join(SCRIPT_DIR, 'risk_cache.json')
+    risk_cache_path = os.path.join(ASSETS_DIR, 'risk_cache.json')
     fetch_risk_script = os.path.join(SCRIPT_DIR, 'fetch_risk_data.py')
     risk_cache = {}
 
@@ -139,11 +140,11 @@ def main():
         with open(risk_cache_path) as f:
             cache_json = json.load(f)
         for sym, data in cache_json.get('symbols', {}).items():
-            risk_cache[sym] = data.get('risk', 'Blue Chip / Core')
+            risk_cache[sym] = data.get('risk') or 'Blue Chip / Core'
         print(f"Loaded risk cache: {len(risk_cache)} symbols (fetched: {cache_json.get('_meta', {}).get('fetched', 'N/A')})")
 
     # --- Suggestions cache ---
-    sugg_cache_path = os.path.join(SCRIPT_DIR, 'suggestions_cache.json')
+    sugg_cache_path = os.path.join(ASSETS_DIR, 'suggestions_cache.json')
     sugg_fetch_script = os.path.join(SCRIPT_DIR, 'fetch_suggestions.py')
     sugg_json = 'null'
 
@@ -216,6 +217,8 @@ def main():
             cat, detail = CATEGORY_MAP[sym]
         elif sym.startswith('BROKERAGELINK'):
             cat, detail = 'Cash / Money Market', 'BrokerageLink Cash'
+        elif re.search(r'(?i)certificate.of.deposit|^CD\b|\bCD$|brokered\s*cd', desc):
+            cat, detail = 'Cash / Money Market', desc
         elif sym in STOCK_SYMBOLS or (re.match(r'^[A-Z]{1,5}$', sym) and '*' not in sym):
             cat, detail = 'Individual Stocks', desc
         else:
@@ -287,7 +290,7 @@ def main():
         total_short = total_formatted
 
     # --- Read and fill template ---
-    template_path = os.path.join(SCRIPT_DIR, 'template.html')
+    template_path = os.path.join(ASSETS_DIR, 'template.html')
     if not os.path.isfile(template_path):
         print(f"Error: HTML template not found at: {template_path}", file=sys.stderr)
         sys.exit(1)

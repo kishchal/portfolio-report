@@ -132,7 +132,7 @@ def main():
         print(f'ERROR: CSV not found: {args.csv_path}', file=sys.stderr)
         sys.exit(1)
 
-    cache_path = args.cache or os.path.join(os.path.dirname(__file__), 'risk_cache.json')
+    cache_path = args.cache or os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'risk_cache.json')
 
     print(f'Extracting symbols from: {args.csv_path}')
     symbols = extract_symbols(args.csv_path)

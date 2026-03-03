@@ -90,7 +90,7 @@ def fetch_fund_metrics(symbols):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--cache', default=os.path.join(os.path.dirname(__file__), 'suggestions_cache.json'))
+    parser.add_argument('--cache', default=os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'assets', 'suggestions_cache.json'))
     args = parser.parse_args()
 
     print(f"Fetching metrics for {len(FUND_TICKERS)} funds from Yahoo Finance...")

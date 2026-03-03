@@ -56,8 +56,11 @@ if (-not $OutputPath) {
     $OutputPath = Join-Path $dir "$baseName.html"
 }
 
+# --- Assets directory (sibling to scripts/) ---
+$assetsRoot = Join-Path (Split-Path $PSScriptRoot -Parent) "assets"
+
 # --- Risk cache: fetch or load ---
-$riskCachePath = Join-Path $PSScriptRoot "risk_cache.json"
+$riskCachePath = Join-Path $assetsRoot "risk_cache.json"
 $fetchScript   = Join-Path $PSScriptRoot "fetch_risk_data.py"
 $riskCache     = @{}
 
@@ -77,14 +80,14 @@ if (Test-Path $riskCachePath) {
     $cacheJson = Get-Content $riskCachePath -Raw | ConvertFrom-Json
     if ($cacheJson.symbols) {
         foreach ($prop in $cacheJson.symbols.PSObject.Properties) {
-            $riskCache[$prop.Name] = $prop.Value.risk
+            $riskCache[$prop.Name] = if ($prop.Value.risk) { $prop.Value.risk } else { 'Blue Chip / Core' }
         }
     }
     Write-Host "Loaded risk cache: $($riskCache.Count) symbols (fetched: $($cacheJson._meta.fetched))"
 }
 
 # --- Suggestions cache: fetch or load ---
-$suggCachePath  = Join-Path $PSScriptRoot "suggestions_cache.json"
+$suggCachePath  = Join-Path $assetsRoot "suggestions_cache.json"
 $suggFetchScript = Join-Path $PSScriptRoot "fetch_suggestions.py"
 $suggJson = "null"
 
@@ -165,7 +168,7 @@ $HighRiskSymbols = @('PLTR','HOOD','RBLX','CVNA','NET','SNOW','MDB','TEAM','DDOG
 
 $GrowthSymbols = @('NVDA','GOOGL','GOOG','AVGO','AMD','AMAT','MU','KLAC','MPWR','NOW',
     'CDNS','SNPS','LRCX','DELL','ON','ISRG','CRWD','META','AMZN','NFLX','ADBE','CRM',
-    'INTU','ORCL','FTNT','PANW','FICO','SHOP','UBER','MA','V','BX','SNOW')
+    'INTU','ORCL','FTNT','PANW','FICO','SHOP','UBER','MA','V','BX')
 
 $DividendValueSymbols = @('XOM','CVX','T','VZ','MO','PM','O','KO','PEP','ED','DUK','SO',
     'AEP','EVRG','NEE','ATO','DTE','SRE','EXC','WMB','HAL','SLB','OVV','FANG','COP','PSX',
@@ -184,7 +187,11 @@ function Get-RiskTag([string]$sym) {
 }
 
 # --- Detect CSV format (with or without Account Type column) ---
-$csvData = Import-Csv -Path $CsvPath
+$csvData = Import-Csv -Path $CsvPath -Encoding UTF8
+if (-not $csvData -or $csvData.Count -eq 0) {
+    Write-Error "CSV file is empty or contains no data rows: $CsvPath"
+    exit 1
+}
 $hasAccountType = $csvData[0].PSObject.Properties.Name -contains 'Account Type'
 
 $holdings = @()
@@ -215,8 +222,9 @@ foreach ($row in $csvData) {
     }
 
     # Parse currency value
-    $val = [double]($valStr -replace '[$ ,()]', '')
-    if ($valStr -match '^\(') { $val = -$val }
+    $negative = $valStr -match '^\(' -or $valStr -match '^-' -or $valStr -match '^\$-' -or $valStr -match '^-\$'
+    $val = [double]($valStr -replace '[$ ,()\-]', '')
+    if ($negative) { $val = -$val }
 
     # Use description as symbol placeholder for rows like BROKERAGELINK
     if (-not $sym) { $sym = $desc }
@@ -229,6 +237,10 @@ foreach ($row in $csvData) {
     elseif ($sym -match '^BROKERAGELINK') {
         $cat = 'Cash / Money Market'
         $detail = 'BrokerageLink Cash'
+    }
+    elseif ($desc -match '(?i)certificate.of.deposit|^CD\b|\bCD$|brokered\s*cd') {
+        $cat = 'Cash / Money Market'
+        $detail = $desc
     }
     elseif ($sym -in $StockSymbols -or ($sym -match '^[A-Z]{1,5}$' -and $sym -notmatch '\*')) {
         $cat = 'Individual Stocks'
@@ -264,7 +276,7 @@ if ($holdings.Count -eq 0) {
 $grandTotal = ($holdings | Measure-Object -Property Value -Sum).Sum
 
 # --- Build hierarchical data: Category → Account → Tickers ---
-$categories = $holdings | Group-Object -Property Category | ForEach-Object {
+$categories = @($holdings | Group-Object -Property Category | ForEach-Object {
     $catName = $_.Name
     $catTotal = ($_.Group | Measure-Object -Property Value -Sum).Sum
     $accounts = $_.Group | Group-Object -Property AccountNumber | ForEach-Object {
@@ -286,12 +298,12 @@ $categories = $holdings | Group-Object -Property Category | ForEach-Object {
         total    = $catTotal
         accounts = @($accounts)
     }
-} | Sort-Object { -$_.total }
+} | Sort-Object { -$_.total })
 
 # --- Generate JSON data for HTML ---
 function ConvertTo-JsValue($val) {
     if ($val -is [string]) {
-        $escaped = $val.Replace("\", "\\").Replace("'", "\u0027")
+        $escaped = $val.Replace("\", "\\").Replace("'", "\u0027").Replace("<", "\u003c").Replace(">", "\u003e").Replace("&", "\u0026")
         return "'$escaped'"
     }
     return [math]::Round($val, 2)
@@ -321,25 +333,25 @@ else {
 }
 
 $totalFormatted = '$' + [string]::Format("{0:N2}", $grandTotal)
-$totalShort = if ($grandTotal -ge 1e9) { '$' + [math]::Round($grandTotal / 1e9, 2).ToString() + 'B' }
-              elseif ($grandTotal -ge 1e6) { '$' + [math]::Round($grandTotal / 1e6, 2).ToString() + 'M' }
+$totalShort = if ($grandTotal -ge 1e9) { '$' + [math]::Round($grandTotal / 1e9, 2).ToString("F2") + 'B' }
+              elseif ($grandTotal -ge 1e6) { '$' + [math]::Round($grandTotal / 1e6, 2).ToString("F2") + 'M' }
               else { $totalFormatted }
 
 # --- Read HTML template (always relative to script location) ---
-$templatePath = Join-Path $PSScriptRoot "template.html"
+$templatePath = Join-Path $assetsRoot "template.html"
 if (-not (Test-Path $templatePath)) {
     Write-Error "HTML template not found at: $templatePath"
     exit 1
 }
 
 $html = Get-Content -Path $templatePath -Raw
-$html = $html -replace '\{\{REPORT_DATE\}\}', $reportDate
-$html = $html -replace '\{\{GENERATED_AT\}\}', (Get-Date).ToString("MMM dd, yyyy 'at' hh:mm tt")
-$html = $html -replace '\{\{GRAND_TOTAL\}\}', $totalFormatted
-$html = $html -replace '\{\{GRAND_TOTAL_SHORT\}\}', $totalShort
-$html = $html -replace '\{\{DATA_JSON\}\}', $jsData
-$html = $html -replace '\{\{GRAND_TOTAL_NUM\}\}', [math]::Round($grandTotal, 2)
-$html = $html -replace '\{\{SUGGESTIONS_JSON\}\}', $suggJson
+$html = $html.Replace('{{REPORT_DATE}}', $reportDate)
+$html = $html.Replace('{{GENERATED_AT}}', (Get-Date).ToString("MMM dd, yyyy 'at' hh:mm tt"))
+$html = $html.Replace('{{GRAND_TOTAL}}', $totalFormatted)
+$html = $html.Replace('{{GRAND_TOTAL_SHORT}}', $totalShort)
+$html = $html.Replace('{{DATA_JSON}}', $jsData)
+$html = $html.Replace('{{GRAND_TOTAL_NUM}}', [math]::Round($grandTotal, 2).ToString())
+$html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson)
 
 $html | Out-File -FilePath $OutputPath -Encoding utf8
 Write-Host "Portfolio report generated: $OutputPath"
