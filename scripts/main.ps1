@@ -77,13 +77,17 @@ if ($RefreshRisk -or -not (Test-Path $riskCachePath)) {
 }
 
 if (Test-Path $riskCachePath) {
-    $cacheJson = Get-Content $riskCachePath -Raw | ConvertFrom-Json
-    if ($cacheJson.symbols) {
-        foreach ($prop in $cacheJson.symbols.PSObject.Properties) {
-            $riskCache[$prop.Name] = if ($prop.Value.risk) { $prop.Value.risk } else { 'Blue Chip / Core' }
+    try {
+        $cacheJson = Get-Content $riskCachePath -Raw | ConvertFrom-Json
+        if ($cacheJson.symbols) {
+            foreach ($prop in $cacheJson.symbols.PSObject.Properties) {
+                $riskCache[$prop.Name] = if ($prop.Value.risk) { $prop.Value.risk } else { 'Blue Chip / Core' }
+            }
         }
+        Write-Host "Loaded risk cache: $($riskCache.Count) symbols (fetched: $($cacheJson._meta.fetched))"
+    } catch {
+        Write-Host "Warning: Risk cache is corrupt ($($_.Exception.Message)); falling back to static classification."
     }
-    Write-Host "Loaded risk cache: $($riskCache.Count) symbols (fetched: $($cacheJson._meta.fetched))"
 }
 
 # --- Suggestions cache: fetch or load ---
@@ -106,16 +110,21 @@ if ($RefreshSuggestions -or -not (Test-Path $suggCachePath)) {
         if (Test-Path $suggFetchScript) {
             python $suggFetchScript --cache $suggCachePath
             if ($LASTEXITCODE -ne 0) {
-                Write-Warning "Suggestions data fetch failed; using stale cache."
+                Write-Warning "Suggestions data fetch failed; suggestions tab will show static data only."
             }
         }
     }
 }
 
 if (Test-Path $suggCachePath) {
-    $suggJson = Get-Content $suggCachePath -Raw
-    $suggMeta = $suggJson | ConvertFrom-Json
-    Write-Host "Loaded suggestions cache: $($suggMeta._meta.fund_count) funds (fetched: $($suggMeta._meta.fetched))"
+    try {
+        $suggJson = Get-Content $suggCachePath -Raw
+        $suggMeta = $suggJson | ConvertFrom-Json
+        Write-Host "Loaded suggestions cache: $($suggMeta._meta.fund_count) funds (fetched: $($suggMeta._meta.fetched))"
+    } catch {
+        Write-Host "Warning: Suggestions cache is corrupt ($($_.Exception.Message)); suggestions tab will show static data only."
+        $suggJson = 'null'
+    }
 }
 
 # --- Account-type inference from Account Name ---
@@ -129,7 +138,7 @@ function Get-AccountType([string]$name) {
     if ($n -match '(?i)DCP|deferred\s*comp')                    { return 'Tax-Deferred DCP' }
     if ($n -match '(?i)rollover\s*ira|traditional\s*ira')       { return 'Tax-Deferred IRA' }
     if ($n -match '(?i)self.employed\s*401')                    { return 'Tax-Deferred 401(k)' }
-    if ($n -match '(?i)individual|joint|wros|^inv')             { return 'Taxable Investment' }
+    if ($n -match '(?i)individual|joint|wros')                     { return 'Taxable Investment' }
     return 'Other'
 }
 
@@ -203,7 +212,7 @@ foreach ($row in $csvData) {
     $desc = ($row.Description ?? '').Trim()
     $valStr = ($row.'Current Value' ?? '').Trim()
 
-    if (-not $acctNum -or -not $valStr) { continue }
+    if (-not $acctNum -or -not $valStr -or $valStr -in @('N/A','n/a','--')) { continue }
     # Allow rows without a symbol if they have a Description (e.g. BROKERAGELINK placeholder)
     if (-not $sym -and -not $desc) { continue }
     # Skip non-holding rows (e.g. "Pending Activity")
@@ -228,6 +237,14 @@ foreach ($row in $csvData) {
 
     # Use description as symbol placeholder for rows like BROKERAGELINK
     if (-not $sym) { $sym = $desc }
+
+    # Extract gain/loss and cost basis data
+    $glStr  = ($row.'Total Gain/Loss Dollar'  ?? '').Trim()
+    $glpStr = ($row.'Total Gain/Loss Percent' ?? '').Trim()
+    $cbStr  = ($row.'Cost Basis Total'        ?? '').Trim()
+    $gainLoss    = if ($glStr  -and $glStr  -notin @('--','N/A','n/a')) { $neg2 = $glStr -match '^\(' -or $glStr -match '^-'; $v2 = [double]($glStr -replace '[$ ,()\-+]', ''); if ($neg2) { -$v2 } else { $v2 } } else { $null }
+    $gainLossPct = if ($glpStr -and $glpStr -notin @('--','N/A','n/a')) { [double]($glpStr -replace '[%+]', '') } else { $null }
+    $costBasis   = if ($cbStr  -and $cbStr  -notin @('--','N/A','n/a')) { $neg3 = $cbStr -match '^\('; $v3 = [double]($cbStr -replace '[$ ,()\-]', ''); if ($neg3) { -$v3 } else { $v3 } } else { $null }
 
     # Determine category
     if ($CategoryMap.ContainsKey($sym)) {
@@ -265,6 +282,9 @@ foreach ($row in $csvData) {
         Value         = $val
         Category      = $cat
         Risk          = $risk
+        GainLoss      = $gainLoss
+        GainLossPct   = $gainLossPct
+        CostBasis     = $costBasis
     }
 }
 
@@ -283,7 +303,7 @@ $categories = @($holdings | Group-Object -Property Category | ForEach-Object {
         $acctTotal = ($_.Group | Measure-Object -Property Value -Sum).Sum
         $first = $_.Group[0]
         $tickers = $_.Group | Sort-Object -Property Value -Descending | ForEach-Object {
-            @{ sym = $_.Symbol; name = $_.FundName; val = $_.Value; risk = $_.Risk }
+            @{ sym = $_.Symbol; name = $_.FundName; val = $_.Value; risk = $_.Risk; gl = $_.GainLoss; glPct = $_.GainLossPct; cb = $_.CostBasis }
         }
         @{
             num   = $first.AccountNumber
@@ -302,6 +322,7 @@ $categories = @($holdings | Group-Object -Property Category | ForEach-Object {
 
 # --- Generate JSON data for HTML ---
 function ConvertTo-JsValue($val) {
+    if ($null -eq $val) { return 'null' }
     if ($val -is [string]) {
         $escaped = $val.Replace("\", "\\").Replace("'", "\u0027").Replace("<", "\u003c").Replace(">", "\u003e").Replace("&", "\u0026")
         return "'$escaped'"
@@ -315,7 +336,7 @@ foreach ($c in $categories) {
     foreach ($a in $c.accounts) {
         $jsData += "`n    {num:$(ConvertTo-JsValue $a.num),type:$(ConvertTo-JsValue $a.type),name:$(ConvertTo-JsValue $a.name),val:$([math]::Round($a.val,2)),tickers:["
         foreach ($t in $a.tickers) {
-            $jsData += "`n      {sym:$(ConvertTo-JsValue $t.sym),name:$(ConvertTo-JsValue $t.name),val:$([math]::Round($t.val,2)),risk:$(ConvertTo-JsValue $t.risk)},"
+            $jsData += "`n      {sym:$(ConvertTo-JsValue $t.sym),name:$(ConvertTo-JsValue $t.name),val:$([math]::Round($t.val,2)),risk:$(ConvertTo-JsValue $t.risk),gl:$(ConvertTo-JsValue $t.gl),glPct:$(ConvertTo-JsValue $t.glPct),cb:$(ConvertTo-JsValue $t.cb)},"
         }
         $jsData += "]},"
     }

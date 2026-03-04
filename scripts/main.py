@@ -27,7 +27,7 @@ def get_account_type(name):
     if re.search(r'(?i)DCP|deferred\s*comp', n):                     return 'Tax-Deferred DCP'
     if re.search(r'(?i)rollover\s*ira|traditional\s*ira', n):        return 'Tax-Deferred IRA'
     if re.search(r'(?i)self.employed\s*401', n):                     return 'Tax-Deferred 401(k)'
-    if re.search(r'(?i)individual|joint|wros|^inv', n):              return 'Taxable Investment'
+    if re.search(r'(?i)individual|joint|wros', n):                    return 'Taxable Investment'
     return 'Other'
 
 # --- Category mapping ---
@@ -89,6 +89,8 @@ def parse_currency(s):
 
 
 def js_val(val):
+    if val is None:
+        return 'null'
     if isinstance(val, str):
         escaped = val.replace("\\", "\\\\").replace("'", "\\u0027").replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
         return f"'{escaped}'"
@@ -137,11 +139,14 @@ def main():
                 print("Warning: Risk data fetch failed; falling back to static classification.")
 
     if os.path.isfile(risk_cache_path):
-        with open(risk_cache_path) as f:
-            cache_json = json.load(f)
-        for sym, data in cache_json.get('symbols', {}).items():
-            risk_cache[sym] = data.get('risk') or 'Blue Chip / Core'
-        print(f"Loaded risk cache: {len(risk_cache)} symbols (fetched: {cache_json.get('_meta', {}).get('fetched', 'N/A')})")
+        try:
+            with open(risk_cache_path) as f:
+                cache_json = json.load(f)
+            for sym, data in cache_json.get('symbols', {}).items():
+                risk_cache[sym] = data.get('risk') or 'Blue Chip / Core'
+            print(f"Loaded risk cache: {len(risk_cache)} symbols (fetched: {cache_json.get('_meta', {}).get('fetched', 'N/A')})")
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Warning: Risk cache is corrupt ({e}); falling back to static classification.")
 
     # --- Suggestions cache ---
     sugg_cache_path = os.path.join(ASSETS_DIR, 'suggestions_cache.json')
@@ -164,10 +169,15 @@ def main():
                 print("Warning: Suggestions data fetch failed; suggestions tab will show static data only.")
 
     if os.path.isfile(sugg_cache_path):
-        with open(sugg_cache_path) as f:
-            sugg_json = f.read().strip()
-        sugg_meta = json.loads(sugg_json)
-        print(f"Loaded suggestions cache: {sugg_meta['_meta']['fund_count']} funds (fetched: {sugg_meta['_meta']['fetched']})")
+        try:
+            with open(sugg_cache_path) as f:
+                sugg_json = f.read().strip()
+            sugg_meta = json.loads(sugg_json)
+            meta = sugg_meta.get('_meta', {})
+            print(f"Loaded suggestions cache: {meta.get('fund_count', '?')} funds (fetched: {meta.get('fetched', 'unknown')})")
+        except (json.JSONDecodeError, ValueError) as e:
+            print(f"Warning: Suggestions cache is corrupt ({e}); suggestions tab will show static data only.")
+            sugg_json = 'null'
 
     # --- Read CSV ---
     with open(csv_path, newline='', encoding='utf-8-sig') as f:
@@ -188,7 +198,7 @@ def main():
         desc = (row.get('Description') or '').strip()
         val_str = (row.get('Current Value') or '').strip()
 
-        if not acct_num or not val_str:
+        if not acct_num or not val_str or val_str in ('N/A', 'n/a', '--'):
             continue
         if not sym and not desc:
             continue
@@ -212,6 +222,14 @@ def main():
         if not sym:
             sym = desc
 
+        # Extract gain/loss and cost basis data
+        gl_str = (row.get('Total Gain/Loss Dollar') or '').strip()
+        glp_str = (row.get('Total Gain/Loss Percent') or '').strip()
+        cb_str = (row.get('Cost Basis Total') or '').strip()
+        gain_loss = parse_currency(gl_str) if gl_str and gl_str not in ('--', 'N/A', 'n/a') else None
+        gain_loss_pct = float(glp_str.replace('%', '').replace('+', '')) if glp_str and glp_str not in ('--', 'N/A', 'n/a') else None
+        cost_basis = parse_currency(cb_str) if cb_str and cb_str not in ('--', 'N/A', 'n/a') else None
+
         # Determine category
         if sym in CATEGORY_MAP:
             cat, detail = CATEGORY_MAP[sym]
@@ -231,6 +249,7 @@ def main():
         holdings.append({
             'AccountNumber': acct_num, 'AccountType': acct_type, 'AccountName': acct_name,
             'Symbol': sym, 'FundName': detail, 'Value': val, 'Category': cat, 'Risk': risk,
+            'GainLoss': gain_loss, 'GainLossPct': gain_loss_pct, 'CostBasis': cost_basis,
         })
 
     if not holdings:
@@ -256,7 +275,8 @@ def main():
             acct_total = sum(h['Value'] for h in acct_holdings)
             first = acct_holdings[0]
             tickers = sorted(acct_holdings, key=lambda h: -h['Value'])
-            tickers = [{'sym': h['Symbol'], 'name': h['FundName'], 'val': h['Value'], 'risk': h['Risk']} for h in tickers]
+            tickers = [{'sym': h['Symbol'], 'name': h['FundName'], 'val': h['Value'], 'risk': h['Risk'],
+                        'gl': h['GainLoss'], 'glPct': h['GainLossPct'], 'cb': h['CostBasis']} for h in tickers]
             accounts.append({
                 'num': first['AccountNumber'], 'type': first['AccountType'],
                 'name': first['AccountName'], 'val': acct_total, 'tickers': tickers,
@@ -272,7 +292,7 @@ def main():
         for a in c['accounts']:
             js_data += f"\n    {{num:{js_val(a['num'])},type:{js_val(a['type'])},name:{js_val(a['name'])},val:{round(a['val'],2)},tickers:["
             for t in a['tickers']:
-                js_data += f"\n      {{sym:{js_val(t['sym'])},name:{js_val(t['name'])},val:{round(t['val'],2)},risk:{js_val(t['risk'])}}},"
+                js_data += f"\n      {{sym:{js_val(t['sym'])},name:{js_val(t['name'])},val:{round(t['val'],2)},risk:{js_val(t['risk'])},gl:{js_val(t['gl'])},glPct:{js_val(t['glPct'])},cb:{js_val(t['cb'])}}},"
             js_data += "]},"
         js_data += "]},"
     js_data += "]"

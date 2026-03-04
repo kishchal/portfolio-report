@@ -6,7 +6,7 @@
 <title>Portfolio Report — {{REPORT_DATE}}</title>
 <style>
   :root {
-    --bg: #f8f9fb; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
+    --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
     --text-muted: #64748b; --primary: #1e40af; --primary-light: #dbeafe;
     --accent: #059669; --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
     --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
@@ -15,12 +15,12 @@
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 
-  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 40px 0; }
-  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 30px; }
-  .header h1 { font-size: 1.8em; font-weight: 600; letter-spacing: -0.5px; }
-  .header .subtitle { color: #94a3b8; font-size: 0.95em; margin-top: 4px; }
-  .header .total { font-size: 2em; font-weight: 700; margin-top: 16px; letter-spacing: -0.5px; }
-  .header .total-label { font-size: 0.85em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-top: 18px; }
+  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 20px 0; }
+  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .header h1 { font-size: 1.5em; font-weight: 600; letter-spacing: -0.5px; }
+  .header .subtitle { color: #94a3b8; font-size: 0.85em; margin-top: 2px; }
+  .header .total { font-size: 1.8em; font-weight: 700; letter-spacing: -0.5px; }
+  .header .total-label { font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
 
   .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
 
@@ -37,7 +37,7 @@
 
   .section-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
 
-  .pivot-tabs { display: inline-flex; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px; }
+  .pivot-tabs { display: inline-flex; flex-wrap: wrap; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px; }
   .pivot-tab { padding: 7px 18px; border-radius: 6px; font-size: 0.88em; font-weight: 600; cursor: pointer;
     border: none; background: transparent; color: var(--text-muted); transition: all 0.2s; }
   .pivot-tab:hover { color: var(--text); }
@@ -171,7 +171,7 @@
   /* Account selector multi-select dropdown */
   .acct-selector { position: relative; margin-bottom: 14px; }
   .acct-selector-btn { display: flex; align-items: center; gap: 8px; padding: 8px 14px; border: 1px solid var(--border);
-    border-radius: 6px; background: #f8fafc; cursor: pointer; font-size: 0.85em; color: var(--text);
+    border-radius: 6px; background: var(--bg-secondary); cursor: pointer; font-size: 0.85em; color: var(--text);
     width: 100%; justify-content: space-between; transition: border-color 0.2s; }
   .acct-selector-btn:hover { border-color: var(--primary); }
   .acct-selector-btn .acct-sel-arrow { font-size: 0.7em; transition: transform 0.2s; }
@@ -298,15 +298,13 @@
   /* Print styles */
   @media print {
     body { background: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .wd-inputs, .wd-btn, .acct-selector, .export-pdf-btn, .spend-phase-add, .spend-phase-del, .pivot-tabs, .header { display: none !important; }
-    .wd-panel { border: none; box-shadow: none; padding: 0; }
-  }
     .header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 12px 0 !important; }
     .header h1 { font-size: 1.3em !important; }
     .header .subtitle, .header .total-label { font-size: 0.75em !important; }
     .header .total { font-size: 1.4em !important; }
     .pivot-tabs, #allocOverview, .export-pdf-btn, .wd-btn, .wd-panel input, .wd-panel select,
-    .wd-panel button, #wdSpouseToggle, .mc-hist-wrap, .acct-selector { display: none !important; }
+    .wd-panel button, #wdSpouseToggle, .mc-hist-wrap, .acct-selector, .wd-inputs,
+    .spend-phase-add, .spend-phase-del { display: none !important; }
     .container { padding: 0 12px !important; max-width: 100% !important; }
     #drilldown { break-inside: auto; }
     .sugg-section, .wd-summary-cards, .wd-notes, .roth-opt-table { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px !important; }
@@ -314,7 +312,7 @@
     .sugg-h2 { font-size: 1em !important; }
     table { font-size: 0.72em !important; }
     th, td { padding: 3px 6px !important; }
-    .wd-panel { border: 1px solid #e2e8f0 !important; padding: 10px !important; }
+    .wd-panel { border: 1px solid #e2e8f0 !important; padding: 10px !important; box-shadow: none; }
     .wd-panel h3 { font-size: 1em !important; margin-bottom: 4px !important; }
     .wd-panel .wd-desc { display: none !important; }
     .wd-panel .wd-inputs { display: none !important; }
@@ -326,18 +324,22 @@
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
     .wd-summary-cards { gap: 8px !important; }
     .wd-summary-cards > div { padding: 8px !important; font-size: 0.82em !important; }
-    @page { size: landscape; margin: 0.4in; }
   }
+  @page { size: landscape; margin: 0.4in; }
 </style>
 </head>
 <body>
 
 <div class="header">
   <div class="header-inner">
-    <h1>Portfolio Allocation Report</h1>
-    <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
-    <div class="total-label">Total Portfolio Value</div>
-    <div class="total">{{GRAND_TOTAL}}</div>
+    <div>
+      <h1>Portfolio Allocation Report</h1>
+      <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
+    </div>
+    <div>
+      <div class="total-label">Total Portfolio Value</div>
+      <div class="total">{{GRAND_TOTAL}}</div>
+    </div>
   </div>
 </div>
 
@@ -350,6 +352,8 @@
     <button class="pivot-tab" data-pivot="category">By Investment Category</button>
     <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
     <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
+    <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
+    <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
   </div>
 </div>
 
@@ -406,8 +410,10 @@ const RISK_COLORS = {
 const RISK_ORDER = ['Blue Chip / Core','Growth','Dividend / Value','High Risk / Speculative'];
 
 function fmt(v){ return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
+function fmt2(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function pct(v){ return (v/GRAND*100).toFixed(1)+'%'; }
-function ylink(sym){ const s=sym.replace(/\*+$/,''); return /^[A-Z]{1,6}$/.test(s)?`<a href="https://finance.yahoo.com/quote/${s}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none" title="View ${s} on Yahoo Finance">${sym}</a>`:sym; }
+function ylink(sym){ const s=sym.replace(/\*+$/,''); return /^[A-Z]{1,6}$/.test(s)?`<a href="https://finance.yahoo.com/quote/${s}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none" title="View ${s} on Yahoo Finance">${esc(sym)}</a>`:esc(sym); }
 
 /* ---- Build Account-Type pivot from the category-based DATA ---- */
 const TAX_DEFERRED_TYPES = ['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP'];
@@ -479,8 +485,8 @@ function renderAllocBar(items, colorFn){
   let bh='',lh='';
   items.forEach(d=>{
     const p=d.total/GRAND*100, c=colorFn(d);
-    bh+=`<div class="seg" style="width:${p}%;background:${c}"><span class="tip">${d.label}: ${fmt(d.total)} (${p.toFixed(1)}%)</span></div>`;
-    lh+=`<div class="legend-item"><div class="legend-dot" style="background:${c}"></div>${d.label} (${p.toFixed(1)}%)</div>`;
+    bh+=`<div class="seg" style="width:${p}%;background:${c}"><span class="tip">${esc(d.label)}: ${fmt(d.total)} (${p.toFixed(1)}%)</span></div>`;
+    lh+=`<div class="legend-item"><div class="legend-dot" style="background:${c}"></div>${esc(d.label)} (${p.toFixed(1)}%)</div>`;
   });
   document.getElementById('allocBar').innerHTML=bh;
   document.getElementById('legend').innerHTML=lh;
@@ -490,7 +496,7 @@ function buildTickerHtml(tickers){
   const hasRisk = tickers.some(t=>t.risk);
   if(!hasRisk){
     return tickers.map(t=>
-      `<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${t.name}</span><span class="ticker-val">${fmt(t.val)}</span></div>`
+      `<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${esc(t.name)}</span><span class="ticker-val">${fmt(t.val)}</span></div>`
     ).join('');
   }
   const acctTotal=tickers.reduce((s,t)=>s+t.val,0);
@@ -508,7 +514,7 @@ function buildTickerHtml(tickers){
     const p=(subtotal/acctTotal*100).toFixed(1);
     html+=`<div class="risk-group-header"><div class="risk-dot" style="background:${rc}"></div><span class="risk-label" style="color:${rc}">${r}</span><span class="risk-summary">${items.length} holdings &middot; ${fmt(subtotal)} &middot; ${p}%</span></div>`;
     items.forEach(t=>{
-      html+=`<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${t.name}</span><span class="ticker-val">${fmt(t.val)}</span></div>`;
+      html+=`<div class="ticker-row"><span class="ticker-sym">${ylink(t.sym)}</span><span class="ticker-name">${esc(t.name)}</span><span class="ticker-val">${fmt(t.val)}</span></div>`;
     });
   };
   RISK_ORDER.forEach(r=>renderGroup(r, RISK_COLORS[r]||'#94a3b8'));
@@ -530,8 +536,8 @@ function renderCards(groups, colorFn, badgeFn, innerColorFn){
         <div class="acct-row" onclick="toggleAcct(this,event)" data-id="g${gi}a${ai}">
           <div class="acct-icon" style="background:${ac}">${(a.type||'O').charAt(0)}</div>
           <div class="acct-info">
-            <div class="acct-name">${a.name} ${badgeFn(a)}</div>
-            <div class="acct-num">${a.num?'#'+a.num:''}</div>
+            <div class="acct-name">${esc(a.name)} ${badgeFn(a)}</div>
+            <div class="acct-num">${a.num?'#'+esc(a.num):''}</div>
           </div>
           <div class="acct-value"><div class="amount">${fmt(a.val)}</div><div class="pct">${pct(a.val)} of total</div></div>
           <div class="acct-chevron">&#9654;</div>
@@ -543,8 +549,8 @@ function renderCards(groups, colorFn, badgeFn, innerColorFn){
         <div class="cat-header" onclick="toggleCat(this)">
           <div class="cat-color" style="background:${c}"></div>
           <div class="cat-info">
-            <div class="cat-name">${g.label}</div>
-            <div class="cat-meta">${g.meta}</div>
+            <div class="cat-name">${esc(g.label)}</div>
+            <div class="cat-meta">${esc(g.meta)}</div>
           </div>
           <div class="cat-value">
             <div class="amount">${fmt(g.total)}</div>
@@ -706,7 +712,8 @@ function exportTabToPDF(tabName){
     const acctCbs=document.querySelectorAll('.acct-sel-cb');
     if(acctCbs.length>0){
       let checkedCount=0;acctCbs.forEach(cb=>{if(cb.checked)checkedCount++;});
-      if(checkedCount<acctCbs.length) paramHtml+=` <span><b>Accounts:</b> ${checkedCount} of ${acctCbs.length}</span>`;
+      const acctLabel=checkedCount<acctCbs.length?`${checkedCount} of ${acctCbs.length} selected`:`All ${acctCbs.length}`;
+      paramHtml+=` <span><b>Accounts:</b> ${acctLabel}</span>`;
     }
     pp.innerHTML=paramHtml;
   }
@@ -986,7 +993,7 @@ const EXTRA_STD_DED_MFJ=1600; /* per person, MFJ */
 const EXTRA_STD_DED_SINGLE=2000;
 /* OBBBA §101 temporary senior deduction 2025-2028: $4,000 single / $6,000 per person MFJ */
 const OBBBA_SENIOR_DED_MFJ=6000; /* per person age 65+, phases out $150K+ MAGI */
-const OBBBA_SENIOR_DED_SINGLE=4000; /* phases out $75K+ MAGI */
+const OBBBA_SENIOR_DED_SINGLE=6000; /* per person, same as MFJ per OBBBA §101; phases out $75K+ MAGI */
 function getStdDeduction(filing,age,spouseAge,hasSpouse){
   let base=filing==='mfj'?STD_DEDUCTION_MFJ:STD_DEDUCTION_SINGLE;
   const extra=filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE;
@@ -1142,7 +1149,9 @@ function runMonteCarlo(params){
       const agiMC=ordIncMC+wT;
       const ssTaxMC=ssIncome>0?calcSSTaxableAmount(ssIncome,agiMC,filing):0;
       const taxableIncMC=Math.max(0,ordIncMC+ssTaxMC-stdDedMC);
-      const mcTaxBase=calcTax(taxableIncMC,brackets)+calcLTCG(wT,taxableIncMC,filing)+((age<65&&hsaNonMed>0)?hsaNonMed*0.20:0);
+      const mcTotalOrd=ordIncMC+ssTaxMC;
+      const mcLtcgAdj=Math.min(wT,Math.max(0,mcTotalOrd+wT-stdDedMC));
+      const mcTaxBase=calcTax(taxableIncMC,brackets)+calcLTCG(mcLtcgAdj,taxableIncMC,filing)+((age<65&&hsaNonMed>0)?hsaNonMed*0.20:0);
       const mcNumMedicare=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
       const mcIrmaaMagi=yr>=2&&magiHistory[yr-2]!=null?magiHistory[yr-2]:(agiMC+ssTaxMC);
       const mcIrmaa=mcNumMedicare>0?calcIRMAA(mcIrmaaMagi,filing,mcNumMedicare):0;
@@ -1201,7 +1210,7 @@ function getAllRetirementAccounts(){
     });
   });
   const arr=Array.from(seen.values());
-  const typeOrder=['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP','Roth','HSA','Taxable Investment'];
+  const typeOrder=['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP','Tax-Deferred Savings','Roth','HSA','Taxable Investment'];
   arr.sort((a,b)=>{
     const ia=typeOrder.indexOf(a.type),ib=typeOrder.indexOf(b.type);
     const oa=ia===-1?99:ia,ob=ib===-1?99:ib;
@@ -1394,14 +1403,14 @@ function renderWithdrawals(){
 
   /* Account selector dropdown */
   const allAccts=getAllRetirementAccounts();
-  html+=`<div class="acct-selector"><div class="acct-selector-btn" id="acctSelBtn" onclick="toggleAcctSelector()"><span id="acctSelSummary">\u{1F4CB} ${allAccts.length} of ${allAccts.length} accounts selected</span><span class="acct-sel-arrow">\u25BC</span></div>`;
+  html+=`<div class="acct-selector"><button type="button" class="acct-selector-btn" id="acctSelBtn" onclick="toggleAcctSelector()" aria-haspopup="listbox" aria-expanded="false"><span id="acctSelSummary">\u{1F4CB} ${allAccts.length} of ${allAccts.length} accounts selected</span><span class="acct-sel-arrow">\u25BC</span></button>`;
   html+=`<div class="acct-selector-dropdown" id="acctSelDrop">`;
   html+=`<label class="acct-sel-toggle"><input type="checkbox" id="acctSelAll" checked onchange="toggleAllAccounts()"> Select All / Deselect All</label>`;
   allAccts.forEach(a=>{
     const color=ACCT_TYPE_COLORS[a.type]||'#64748b';
     const shortType=a.type.replace('Tax-Deferred ','').replace('Taxable ','');
-    const masked=a.num.length>4?'••'+a.num.slice(-4):a.num;
-    html+=`<label class="acct-selector-item"><input type="checkbox" class="acct-sel-cb" value="${a.num}" checked onchange="onAcctSelChange()"><span class="acct-sel-badge" style="background:${color}">${shortType}</span><span style="font-size:0.82em;color:var(--text-muted);font-family:monospace;white-space:nowrap">${masked}</span><span class="acct-sel-name" title="${a.name}">${a.name}</span><span class="acct-sel-val">${fmt(a.val)}</span></label>`;
+    const masked=a.num.length>4?'\u2022\u2022'+a.num.slice(-4):a.num;
+    html+=`<label class="acct-selector-item"><input type="checkbox" class="acct-sel-cb" value="${esc(a.num)}" checked onchange="onAcctSelChange()"><span class="acct-sel-badge" style="background:${color}">${esc(shortType)}</span><span style="font-size:0.82em;color:var(--text-muted);font-family:monospace;white-space:nowrap">${esc(masked)}</span><span class="acct-sel-name" title="${esc(a.name)}">${esc(a.name)}</span><span class="acct-sel-val">${fmt(a.val)}</span></label>`;
   });
   const totalVal=allAccts.reduce((s,a)=>s+a.val,0);
   html+=`<div class="acct-sel-footer" id="acctSelFooter">Selected: ${fmt(totalVal)}</div>`;
@@ -1483,21 +1492,30 @@ function renderWithdrawals(){
 
 /* ---- Account Selector helpers ---- */
 let _acctSelHandler=null;
+let _acctSelEscHandler=null;
+function _closeAcctSel(){
+  const btn=document.getElementById('acctSelBtn'),drop=document.getElementById('acctSelDrop');
+  if(drop) drop.classList.remove('open');
+  if(btn){btn.classList.remove('open');btn.setAttribute('aria-expanded','false');}
+  if(_acctSelHandler){document.removeEventListener('click',_acctSelHandler,true);_acctSelHandler=null;}
+  if(_acctSelEscHandler){document.removeEventListener('keydown',_acctSelEscHandler);_acctSelEscHandler=null;}
+}
 function toggleAcctSelector(){
   const btn=document.getElementById('acctSelBtn');
   const drop=document.getElementById('acctSelDrop');
   if(_acctSelHandler){document.removeEventListener('click',_acctSelHandler,true);_acctSelHandler=null;}
+  if(_acctSelEscHandler){document.removeEventListener('keydown',_acctSelEscHandler);_acctSelEscHandler=null;}
   const isOpen=drop.classList.contains('open');
   drop.classList.toggle('open');btn.classList.toggle('open');
+  btn.setAttribute('aria-expanded',!isOpen);
   if(!isOpen){
     setTimeout(()=>{
       _acctSelHandler=e=>{
-        if(!drop.contains(e.target)&&!btn.contains(e.target)){
-          drop.classList.remove('open');btn.classList.remove('open');
-          document.removeEventListener('click',_acctSelHandler,true);_acctSelHandler=null;
-        }
+        if(!drop.contains(e.target)&&!btn.contains(e.target)) _closeAcctSel();
       };
+      _acctSelEscHandler=e=>{if(e.key==='Escape'){_closeAcctSel();btn.focus();}};
       document.addEventListener('click',_acctSelHandler,true);
+      document.addEventListener('keydown',_acctSelEscHandler);
     },0);
   }
 }
@@ -1794,10 +1812,10 @@ function computeWithdrawalPlan(){
     const totalOrdinaryIncome=ordinaryIncome+ssTaxableAmt;
     const taxableIncome=Math.max(0,totalOrdinaryIncome-stdDeduction);
     const incomeTax=calcTax(taxableIncome,brackets);
-    const capitalGainsTax=calcLTCG(wTaxable,taxableIncome,filing); /* tiered 0%/15%/20% LTCG stacked on ordinary */
+    const capitalGainsTax=calcLTCG(Math.min(wTaxable,Math.max(0,totalOrdinaryIncome+wTaxable-stdDeduction)),taxableIncome,filing); /* LTCG reduced by unused deduction per IRS QD&CG worksheet */
     const totalTaxPreIRMAA=incomeTax+capitalGainsTax+hsaPenalty;
     /* IRMAA: Medicare surcharge based on MAGI (2-year lookback) */
-    const magiForIRMAA=agiForSS+ssTaxableAmt; /* MAGI ≈ AGI + taxable SS */
+    const magiForIRMAA=agiForSS+ssTaxableAmt; /* MAGI ≈ total AGI (ordinary + LTCG + taxable SS) */
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magiForIRMAA; /* 2-year lookback */
     const numMedicare=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
     const irmaa=numMedicare>0?calcIRMAA(irmaaMagi,filing,numMedicare):0;
@@ -2016,7 +2034,7 @@ function computeWithdrawalPlan(){
   html+=`</div></div></div>`;
 
   /* ---- Monte Carlo Simulation ---- */
-  const mcParams={nSims:500,yearsInRetirement,yearsToRetire,retAge,retPct,inflPct,vol:volPct,filing,
+  const mcParams={nSims:1000,yearsInRetirement,yearsToRetire,retAge,retPct,inflPct,vol:volPct,filing,
     bTaxableInit,bDeferredInit,bRothInit,bHSAInit,totalAtRetire,
     ssAnnualFRA,ssStartAge,spSSAnnualFRA:hasSpouse?spSSAnnualFRA:0,
     spSSStartAge:hasSpouse?spSSStartAge:0,hasSpouse,
@@ -2157,7 +2175,7 @@ function computeWithdrawalPlan(){
   html+=`<div class="wd-note wd-note-info"><h3>\u{1F4CA} How to Read These Results</h3><ul>`;
   html+=`<li><strong>Success rate of ${mc.successRate.toFixed(0)}%</strong> means your portfolio lasted through age ${planEndAge} in ${mc.successRate.toFixed(0)} out of every 100 simulated market scenarios.</li>`;
   html+=`<li><strong>The fan chart</strong> shows the range of portfolio balances. The darker inner band (25th–75th percentile) is where your balance lands in half the scenarios. The lighter outer band covers 80% of scenarios.</li>`;
-  html+=`<li><strong>The dashed orange line</strong> is the deterministic projection (fixed ${retPct*100}% return) — it's typically near the median but doesn't capture the uncertainty.</li>`;
+  html+=`<li><strong>The dashed orange line</strong> is the deterministic projection (fixed ${retPct*100}% annual return every year). It assumes no market variability and may diverge from the median (P50) when sequence-of-returns risk is significant.</li>`;
   html+=`<li><strong>The ending balance histogram</strong> shows how much money you'd have left at age ${planEndAge} across all ${mc.nSims} simulations. Each bar represents a range of ending balances — taller bars mean more simulations landed there. <span style="color:#ef4444">Red bars</span> indicate simulations where you ran out of money. Unlike the year-by-year table (which assumes one fixed return), this reveals <em>sequence-of-returns risk</em> — even with the same average return, bad markets early in retirement can deplete your portfolio far sooner than the deterministic projection suggests.</li>`;
   if(mc.successRate<75) html+=`<li style="color:#dc2626"><strong>\u26A0\uFE0F Consider:</strong> A success rate below 75% suggests risk of running out of money. Consider: lower withdrawal rate, delaying retirement, increasing savings, or adding Social Security income.</li>`;
   else if(mc.successRate<90) html+=`<li><strong>\u{1F4A1} Tip:</strong> A success rate of 75–90% is reasonable but has room for improvement. Consider slightly lower spending, adding SS income, or a more conservative withdrawal rate.</li>`;
@@ -2283,7 +2301,7 @@ function computeWithdrawalPlan(){
   html+=`<li><strong>HSA pre-65 penalty:</strong> Non-medical HSA withdrawals before age 65 incur 20% penalty + ordinary income tax</li>`;
   html+=`<li><strong>Excess RMD:</strong> When RMD exceeds spending needs, surplus is reinvested in taxable brokerage account</li>`;
   html+=`<li><strong>No additional contributions</strong> assumed after current date</li>`;
-  html+=`<li><strong>Medicare IRMAA:</strong> 2025 surcharge brackets applied per Medicare-eligible person (age 65+). Uses 2-year MAGI lookback. Brackets are not inflation-adjusted in projection.</li>`;
+  html+=`<li><strong>Medicare IRMAA:</strong> 2025 surcharge brackets applied per Medicare-eligible person (age 65+). Uses 2-year MAGI lookback (first 2 retirement years use projected current-year MAGI as fallback). Brackets are not inflation-adjusted in projection.</li>`;
   if(hasSS){
     let ssAssump=`<li><strong>Social Security:</strong> `;
     if(ssMonthly>0) ssAssump+=`You: ${fmtD(Math.round(ssMonthly))}/mo @ age ${ssStartAge} (${(SS_AGE_FACTOR[ssStartAge]*100).toFixed(0)}% FRA). `;
@@ -2297,7 +2315,7 @@ function computeWithdrawalPlan(){
   if(rothConvStrategy!=='none'){
     const customLimitLabel=rothConvStrategy==='custom'?document.getElementById('wdCustomPct').value+'% ('+fmtD(convBracketLimit)+')':'';
     const bracketNames={conservative:'12% ('+fmtD(CONV_LIMITS.conservative)+')',moderate:'22% ('+fmtD(CONV_LIMITS.moderate)+')',aggressive:'24% ('+fmtD(CONV_LIMITS.aggressive)+')',custom:customLimitLabel};
-    html+=`<li><strong>Roth conversions:</strong> Filling to top of ${bracketNames[rothConvStrategy]} bracket ages ${convStartAge}–${convEndAge}. Conversion tax included in Est. Tax column.</li>`;
+    html+=`<li><strong>Roth conversions:</strong> Filling to top of ${bracketNames[rothConvStrategy]} bracket ages ${convStartAge}–${convEndAge}. Conversion tax included in Est. Tax column. Bracket-room is single-pass (SS tax torpedo interaction not iterated).</li>`;
   }
   html+=`<li>Cumulative estimated taxes over retirement: <strong>${fmtK(cumTax)}</strong></li>`;
   html+=`</ul></div>`;
@@ -2307,6 +2325,7 @@ function computeWithdrawalPlan(){
   html+=`<li>This is an <strong>educational projection tool</strong>, not personalized financial advice.</li>`;
   html+=`<li>Actual returns, inflation, tax rates, and spending needs will vary significantly.</li>`;
   html+=`<li>Does not account for: pensions, annuities, state/local taxes, estate taxes, or life changes.${hasSS?'':' Social Security not modeled (enter amount above to include).'}</li>`;
+  html+=`<li><strong>Social Security simplifications:</strong> Spousal benefits (up to 50% of higher earner's FRA benefit), survivor benefits, and filing status changes (MFJ → Single) after spouse death are not modeled. SS COLA uses the entered inflation rate as a proxy.</li>`;
   html+=`<li>RMD calculations use the IRS Uniform Lifetime Table (2025). Rules may change.</li>`;
   html+=`<li><strong>Consult a qualified financial advisor and tax professional</strong> for personalized retirement planning.</li>`;
   html+=`</ul></div>`;
@@ -2440,7 +2459,9 @@ function renderWdTable(){
     const ssTaxAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,agiForSS,filing):0;
     const taxableInc=Math.max(0,ordInc+ssTaxAmt-stdDeduction);
     const incTax=calcTax(taxableInc,brackets);
-    const capTax=calcLTCG(wTaxable,taxableInc,filing);
+    const recTotalOrd=ordInc+ssTaxAmt;
+    const recLtcgAdj=Math.min(wTaxable,Math.max(0,recTotalOrd+wTaxable-stdDeduction));
+    const capTax=calcLTCG(recLtcgAdj,taxableInc,filing);
     const totalTaxPreIR=incTax+capTax+hsaPenalty;
     const recMagi=agiForSS+ssTaxAmt;
     const recIrmaaMagi=i>=2&&rRows[i-2]?rRows[i-2]._magi:recMagi;
@@ -2562,12 +2583,446 @@ function wdOverride(el){
   }catch(e){console.error('wdOverride error:',e);}
 }
 
+/* ==================================================================
+   TAX-LOSS HARVESTING TAB
+   ================================================================== */
+const TLH_TAXABLE_TYPES = ['Taxable Investment','Custodial (UTMA)'];
+const TLH_REPLACEMENT_MAP = {
+  // US broad market / S&P 500
+  'FXAIX':['VOO','VTI','SCHX'],'VOO':['FXAIX','IVV','SCHX'],'VTI':['FSKAX','ITOT','SCHB'],
+  'IVV':['VOO','FXAIX','SCHX'],'FSKAX':['VTI','ITOT','SCHB'],'SCHX':['VOO','IVV','FXAIX'],
+  // International
+  'FTIHX':['VXUS','IXUS','SCHF'],'VXUS':['FTIHX','IXUS','SCHF'],'FZILX':['VXUS','IXUS','SCHF'],
+  // Bonds
+  'FXNAX':['BND','AGG','SCHZ'],'BND':['FXNAX','AGG','SCHZ'],'AGG':['BND','FXNAX','SCHZ'],
+  // Growth ETFs
+  'TQQQ':['QLD','SPXL'],'VOOG':['VUG','IWF','SCHG'],'VUG':['VOOG','IWF','SCHG'],
+  // Dividend
+  'SCHD':['VYM','DVY','HDV'],'VYM':['SCHD','DVY','HDV'],
+};
+
+function renderTaxLoss(){
+  const el=document.getElementById('drilldown');
+  const insEl=document.getElementById('insightsContainer');
+  document.getElementById('allocOverview').style.display='none';
+  if(insEl) insEl.parentElement.style.display='none';
+
+  // Gather all positions with gain/loss data across all accounts
+  const positions=[];
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      const isTaxable=TLH_TAXABLE_TYPES.includes(a.type);
+      a.tickers.forEach(t=>{
+        if(t.gl!==null && t.gl!==undefined){
+          positions.push({sym:t.sym,name:t.name,val:t.val,gl:t.gl,glPct:t.glPct,cb:t.cb,
+            acctNum:a.num,acctName:a.name,acctType:a.type,isTaxable:isTaxable,cat:d.cat});
+        }
+      });
+    });
+  });
+
+  // Separate taxable losses and gains
+  const taxableLosses=positions.filter(p=>p.isTaxable && p.gl<0).sort((a,b)=>a.gl-b.gl);
+  const taxableGains=positions.filter(p=>p.isTaxable && p.gl>0).sort((a,b)=>b.gl-a.gl);
+  const allLosses=positions.filter(p=>p.gl<0);
+  const totalTaxableLoss=taxableLosses.reduce((s,p)=>s+p.gl,0);
+  const totalTaxableGain=taxableGains.reduce((s,p)=>s+p.gl,0);
+  const netTaxable=totalTaxableGain+totalTaxableLoss;
+
+  // Cross-account wash sale check: same symbol in multiple accounts
+  const symAccts={};
+  positions.forEach(p=>{
+    if(!symAccts[p.sym]) symAccts[p.sym]=new Set();
+    symAccts[p.sym].add(p.acctNum);
+  });
+  const washRiskSyms=new Set();
+  taxableLosses.forEach(p=>{if(symAccts[p.sym]&&symAccts[p.sym].size>1) washRiskSyms.add(p.sym);});
+
+  // Tax rate assumptions
+  const LTCG_RATE=0.15, ORD_RATE=0.22, ORD_OFFSET=3000;
+
+  // Calculate potential savings
+  const harvestable=Math.abs(totalTaxableLoss);
+  const ordSavings=Math.min(harvestable,ORD_OFFSET)*ORD_RATE;
+  const ltcgOffset=Math.max(0,Math.min(harvestable-ORD_OFFSET,totalTaxableGain));
+  const ltcgSavings=ltcgOffset*LTCG_RATE;
+  const totalSavings=ordSavings+ltcgSavings;
+  const carryover=Math.max(0,harvestable-ORD_OFFSET-Math.max(0,totalTaxableGain));
+
+  let html=`<div class="wd-panel" style="padding:24px">`;
+  html+=`<h2 style="margin-bottom:4px">\u{1F4C9} Tax-Loss Harvesting Analysis</h2>`;
+  html+=`<p style="color:#64748b;margin-bottom:20px">Identify unrealized losses in taxable accounts that can be harvested to reduce your tax bill. Only <strong>taxable accounts</strong> benefit from tax-loss harvesting — losses in tax-advantaged accounts (IRA, 401k, Roth) have no tax impact.</p>`;
+
+  // Summary cards
+  html+=`<div class="wd-summary-cards" style="margin-bottom:24px">`;
+  html+=`<div style="border-left:4px solid #dc2626"><div style="color:#64748b;font-size:0.8em">Harvestable Losses</div><div style="font-size:1.5em;font-weight:700;color:#dc2626">${fmt2(Math.abs(totalTaxableLoss))}</div><div style="color:#64748b;font-size:0.8em">${taxableLosses.length} positions in taxable accounts</div></div>`;
+  html+=`<div style="border-left:4px solid #16a34a"><div style="color:#64748b;font-size:0.8em">Unrealized Gains (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:#16a34a">${fmt2(totalTaxableGain)}</div><div style="color:#64748b;font-size:0.8em">${taxableGains.length} positions</div></div>`;
+  html+=`<div style="border-left:4px solid ${netTaxable>=0?'#16a34a':'#dc2626'}"><div style="color:#64748b;font-size:0.8em">Net Gain/Loss (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:${netTaxable>=0?'#16a34a':'#dc2626'}">${netTaxable>=0?'+':''}${fmt2(netTaxable)}</div></div>`;
+  html+=`<div style="border-left:4px solid #2563eb"><div style="color:#64748b;font-size:0.8em">Est. Tax Savings</div><div style="font-size:1.5em;font-weight:700;color:#2563eb">${fmt2(totalSavings)}</div><div style="color:#64748b;font-size:0.8em">at ${(ORD_RATE*100)}% ord / ${(LTCG_RATE*100)}% LTCG</div></div>`;
+  html+=`</div>`;
+
+  // Tax savings breakdown
+  html+=`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:24px">`;
+  html+=`<div style="font-weight:600;margin-bottom:8px">\u{1F4B0} Tax Savings Breakdown</div>`;
+  html+=`<table style="width:100%;border-collapse:collapse;font-size:0.9em">`;
+  html+=`<tr><td style="padding:4px 8px">$3,000 ordinary income offset × ${(ORD_RATE*100)}%</td><td style="text-align:right;font-weight:600">${fmt2(ordSavings)}</td></tr>`;
+  if(ltcgOffset>0) html+=`<tr><td style="padding:4px 8px">Capital gains offset: ${fmt2(ltcgOffset)} × ${(LTCG_RATE*100)}%</td><td style="text-align:right;font-weight:600">${fmt2(ltcgSavings)}</td></tr>`;
+  html+=`<tr style="border-top:1px solid #e2e8f0;font-weight:700"><td style="padding:6px 8px">Total estimated tax savings this year</td><td style="text-align:right;color:#2563eb">${fmt2(totalSavings)}</td></tr>`;
+  if(carryover>0) html+=`<tr><td style="padding:4px 8px;color:#64748b">Remaining losses carry forward to future years</td><td style="text-align:right;color:#64748b">${fmt2(carryover)}</td></tr>`;
+  html+=`</table></div>`;
+
+  // Harvestable positions table
+  if(taxableLosses.length>0){
+    html+=`<div style="margin-bottom:24px">`;
+    html+=`<h3 style="margin-bottom:12px">\u{1F534} Harvestable Loss Positions (Taxable Accounts Only)</h3>`;
+    html+=`<div style="overflow-x:auto"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
+    html+=`<th>Symbol</th><th>Description</th><th>Account</th><th style="text-align:right">Current Value</th><th style="text-align:right">Cost Basis</th><th style="text-align:right">Unrealized Loss</th><th style="text-align:right">Loss %</th><th>Replacement Fund</th><th>Wash Sale Risk</th>`;
+    html+=`</tr></thead><tbody>`;
+    taxableLosses.forEach(p=>{
+      const isWash=washRiskSyms.has(p.sym);
+      const replacements=TLH_REPLACEMENT_MAP[p.sym];
+      const replHtml=replacements?replacements.map(r=>`<a href="https://finance.yahoo.com/quote/${r}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;font-size:0.85em">${r}</a>`).join(', '):`<span style="color:#94a3b8">—</span>`;
+      html+=`<tr>`;
+      html+=`<td style="font-weight:600">${ylink(p.sym)}</td>`;
+      html+=`<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</td>`;
+      html+=`<td style="font-size:0.8em;color:#64748b">${esc(p.acctName)}<br>...${esc(p.acctNum.slice(-4))}</td>`;
+      html+=`<td style="text-align:right">${fmt2(p.val)}</td>`;
+      html+=`<td style="text-align:right">${p.cb!==null?fmt2(p.cb):'—'}</td>`;
+      html+=`<td style="text-align:right;color:#dc2626;font-weight:600">${fmt2(p.gl)}</td>`;
+      html+=`<td style="text-align:right;color:#dc2626">${p.glPct!==null?p.glPct.toFixed(1)+'%':'—'}</td>`;
+      html+=`<td>${replHtml}</td>`;
+      html+=`<td>${isWash?'<span style="color:#f59e0b;font-weight:600" title="This symbol is held in multiple accounts. Selling in one and buying in another within 30 days triggers wash sale rules.">⚠️ Yes</span>':'<span style="color:#16a34a">✓ No</span>'}</td>`;
+      html+=`</tr>`;
+    });
+    html+=`</tbody></table></div></div>`;
+  } else {
+    html+=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px">`;
+    html+=`<div style="font-size:1.2em;margin-bottom:4px">\u{2705} No harvestable losses</div>`;
+    html+=`<p style="color:#64748b">All positions in your taxable accounts are currently at a gain. No tax-loss harvesting opportunities at this time.</p>`;
+    html+=`</div>`;
+  }
+
+  // Top gains table (for awareness)
+  if(taxableGains.length>0){
+    const topGains=taxableGains.slice(0,15);
+    html+=`<details style="margin-bottom:24px"><summary style="cursor:pointer;font-weight:600;font-size:1.05em;padding:8px 0">\u{1F7E2} Top ${topGains.length} Unrealized Gains (Taxable) — <span style="color:#16a34a">${fmt2(totalTaxableGain)}</span></summary>`;
+    html+=`<div style="overflow-x:auto;margin-top:8px"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
+    html+=`<th>Symbol</th><th>Description</th><th>Account</th><th style="text-align:right">Current Value</th><th style="text-align:right">Cost Basis</th><th style="text-align:right">Unrealized Gain</th><th style="text-align:right">Gain %</th>`;
+    html+=`</tr></thead><tbody>`;
+    topGains.forEach(p=>{
+      html+=`<tr><td style="font-weight:600">${ylink(p.sym)}</td>`;
+      html+=`<td style="max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.name)}</td>`;
+      html+=`<td style="font-size:0.8em;color:#64748b">${esc(p.acctName)}<br>...${esc(p.acctNum.slice(-4))}</td>`;
+      html+=`<td style="text-align:right">${fmt2(p.val)}</td>`;
+      html+=`<td style="text-align:right">${p.cb!==null?fmt2(p.cb):'—'}</td>`;
+      html+=`<td style="text-align:right;color:#16a34a;font-weight:600">+${fmt2(p.gl)}</td>`;
+      html+=`<td style="text-align:right;color:#16a34a">${p.glPct!==null?'+'+p.glPct.toFixed(1)+'%':'—'}</td>`;
+      html+=`</tr>`;
+    });
+    html+=`</tbody></table></div></details>`;
+  }
+
+  // Non-taxable losses info
+  const nonTaxLosses=allLosses.filter(p=>!p.isTaxable);
+  if(nonTaxLosses.length>0){
+    const ntTotal=nonTaxLosses.reduce((s,p)=>s+p.gl,0);
+    html+=`<details style="margin-bottom:24px"><summary style="cursor:pointer;font-weight:600;font-size:1.05em;padding:8px 0">\u{1F4CB} Losses in Tax-Advantaged Accounts — <span style="color:#94a3b8">${fmt2(Math.abs(ntTotal))} (not harvestable)</span></summary>`;
+    html+=`<p style="color:#64748b;margin:8px 0">Losses in IRAs, 401(k)s, and Roth accounts cannot be harvested for tax purposes. They are shown here for awareness only.</p>`;
+    html+=`<div style="overflow-x:auto;margin-top:8px"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
+    html+=`<th>Symbol</th><th>Account</th><th>Type</th><th style="text-align:right">Value</th><th style="text-align:right">Loss</th><th style="text-align:right">Loss %</th>`;
+    html+=`</tr></thead><tbody>`;
+    nonTaxLosses.sort((a,b)=>a.gl-b.gl).slice(0,20).forEach(p=>{
+      html+=`<tr><td>${ylink(p.sym)}</td><td style="font-size:0.8em">${esc(p.acctName)}</td><td style="font-size:0.8em">${esc(p.acctType)}</td>`;
+      html+=`<td style="text-align:right">${fmt2(p.val)}</td><td style="text-align:right;color:#dc2626">${fmt2(p.gl)}</td>`;
+      html+=`<td style="text-align:right;color:#dc2626">${p.glPct!==null?p.glPct.toFixed(1)+'%':'—'}</td></tr>`;
+    });
+    html+=`</tbody></table></div></details>`;
+  }
+
+  // Wash sale rules + strategy notes
+  html+=`<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:16px;margin-bottom:24px">`;
+  html+=`<div style="font-weight:600;margin-bottom:8px">\u{26A0}\u{FE0F} Wash Sale Rules & Important Notes</div>`;
+  html+=`<ul style="margin:0;padding-left:20px;font-size:0.9em;color:#92400e">`;
+  html+=`<li><strong>30-Day Rule:</strong> You cannot buy a "substantially identical" security within 30 days before or after selling at a loss. This applies across ALL accounts (taxable, IRA, Roth, spouse's accounts).</li>`;
+  html+=`<li><strong>Replacement Funds:</strong> Swap to a similar but non-identical fund (e.g., FXAIX → VOO — both track S&P 500 but are from different fund families, generally considered non-identical by most tax practitioners).</li>`;
+  html+=`<li><strong>$3,000 Ordinary Offset:</strong> Net capital losses can offset up to $3,000 of ordinary income per year. Excess losses carry forward indefinitely.</li>`;
+  html+=`<li><strong>Year-End Planning:</strong> Harvesting is most valuable near year-end when you can estimate total gains/losses. But opportunities can arise any time after market declines.</li>`;
+  html+=`<li><strong>Cost Basis Reset:</strong> Harvesting resets your cost basis to the current (lower) price. Future gains on the replacement will be larger — you're deferring taxes, not eliminating them.</li>`;
+  html+=`</ul></div>`;
+
+  // Disclaimer
+  html+=`<div style="background:#f1f5f9;border-radius:8px;padding:16px;font-size:0.85em;color:#64748b">`;
+  html+=`<strong>Disclaimer:</strong> This analysis is for educational purposes only and does not constitute tax advice. Tax-loss harvesting involves complex IRS rules including wash sale regulations, constructive sale rules, and state-specific considerations. Consult a qualified tax professional before executing any tax-loss harvesting strategy. Cost basis data is from your brokerage export and should be verified.`;
+  html+=`</div>`;
+
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+/* ==================================================================
+   SCENARIO COMPARATOR TAB
+   ================================================================== */
+function renderScenarios(){
+  const el=document.getElementById('drilldown');
+  const insEl=document.getElementById('insightsContainer');
+  document.getElementById('allocOverview').style.display='none';
+  if(insEl) insEl.parentElement.style.display='none';
+
+  // Load current withdrawal settings as defaults
+  const raw=localStorage.getItem('portfolioWdSettings');
+  const saved=raw?JSON.parse(raw):{};
+  const def={
+    age:    parseInt(saved.wdAge)||55,
+    retire: parseInt(saved.wdRetire)||65,
+    life:   parseInt(saved.wdLife)||95,
+    ret:    parseFloat(saved.wdReturn)||7,
+    infl:   parseFloat(saved.wdInflation)||3,
+    vol:    parseFloat(saved.wdVol)||12,
+    filing: saved.wdFiling||'mfj',
+    ss:     parseInt(saved.wdSSIncome)||0,
+    ssAge:  parseInt(saved.wdSSAge)||67,
+    conv:   saved.wdRothConv||'none',
+    spend:  5000,
+  };
+  // Try to get current spending from saved phases
+  if(saved._spendPhases && saved._spendPhases.length>0){
+    const first=saved._spendPhases[0];
+    if(first.amount) def.spend=parseInt(first.amount);
+  }
+
+  let html=`<div class="wd-panel" style="padding:24px">`;
+  html+=`<h2 style="margin-bottom:4px">\u{1F50D} What-If Scenario Comparator</h2>`;
+  html+=`<p style="color:#64748b;margin-bottom:20px">Compare up to 3 retirement scenarios side-by-side. Each scenario uses your current portfolio and account selection. Adjust the key variables below to see how different choices affect your retirement outcome.</p>`;
+
+  // Input grid — 3 columns
+  const scenarios=['A','B','C'];
+  const colors=['#2563eb','#7c3aed','#ea580c'];
+  const presets=[
+    {label:'Base Case', retire:def.retire, spend:def.spend, ssAge:def.ssAge, ret:def.ret, infl:def.infl, conv:def.conv},
+    {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate'},
+    {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv},
+  ];
+
+  html+=`<div style="display:grid;grid-template-columns:180px repeat(3,1fr);gap:0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:24px;font-size:0.9em" id="scenGrid">`;
+  // Header row
+  html+=`<div style="background:#f8fafc;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0">Parameter</div>`;
+  scenarios.forEach((s,i)=>html+=`<div style="background:${colors[i]};color:white;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0;text-align:center">Scenario ${s}<br><input id="scName${i}" value="${presets[i].label}" style="width:100%;margin-top:4px;text-align:center;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:white;padding:2px 4px;font-size:0.85em"></div>`);
+
+  const fields=[
+    {key:'retire', label:'Retirement Age',   type:'number', min:50, max:80},
+    {key:'spend',  label:'Monthly Spend ($)', type:'number', min:1000, max:50000, step:500},
+    {key:'ssAge',  label:'SS Claiming Age',   type:'number', min:62, max:70},
+    {key:'ret',    label:'Annual Return (%)', type:'number', min:1, max:15, step:0.5},
+    {key:'infl',   label:'Inflation (%)',     type:'number', min:1, max:8, step:0.5},
+    {key:'conv',   label:'Roth Strategy',     type:'select', options:[['none','None'],['conservative','Conservative 12%'],['moderate','Moderate 22%'],['aggressive','Aggressive 24%']]},
+  ];
+
+  fields.forEach(f=>{
+    html+=`<div style="background:#f8fafc;padding:10px;border-bottom:1px solid #e2e8f0;font-weight:500">${f.label}</div>`;
+    scenarios.forEach((s,i)=>{
+      const val=presets[i][f.key];
+      if(f.type==='select'){
+        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><select id="sc${f.key}${i}" style="width:90%;padding:4px;border:1px solid #cbd5e1;border-radius:4px">`;
+        f.options.forEach(([v,l])=>html+=`<option value="${v}"${val===v?' selected':''}>${l}</option>`);
+        html+=`</select></div>`;
+      } else {
+        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><input type="number" id="sc${f.key}${i}" value="${val}" min="${f.min||''}" max="${f.max||''}" step="${f.step||1}" style="width:80px;text-align:center;padding:4px;border:1px solid #cbd5e1;border-radius:4px"></div>`;
+      }
+    });
+  });
+  html+=`</div>`;
+
+  html+=`<div style="text-align:center;margin-bottom:24px"><button onclick="runScenarioComparison()" class="wd-btn" style="padding:12px 32px;font-size:1.05em">\u{1F680} Compare Scenarios</button></div>`;
+  html+=`<div id="scenResults"></div>`;
+
+  html+=`</div>`;
+  el.innerHTML=html;
+}
+
+function runScenarioComparison(){
+  const resultsEl=document.getElementById('scenResults');
+  if(!resultsEl) return;
+  resultsEl.innerHTML='<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:2em">⏳</div>Running 3 scenarios...</div>';
+
+  setTimeout(()=>{
+    const raw=localStorage.getItem('portfolioWdSettings');
+    const saved=raw?JSON.parse(raw):{};
+    const selectedNums=typeof getSelectedAccountNums==='function'?getSelectedAccountNums():null;
+    const buckets=typeof getAccountBuckets==='function'?getAccountBuckets(selectedNums):null;
+    if(!buckets){resultsEl.innerHTML='<p style="color:#dc2626">Error: Switch to Withdrawals tab first to initialize account data.</p>';return;}
+
+    const results=[];
+    const colors=['#2563eb','#7c3aed','#ea580c'];
+
+    for(let i=0;i<3;i++){
+      const retire=parseInt(document.getElementById('scretire'+i)?.value)||65;
+      const spend=parseInt(document.getElementById('scspend'+i)?.value)||5000;
+      const ssAge=parseInt(document.getElementById('scssAge'+i)?.value)||67;
+      const ret=parseFloat(document.getElementById('scret'+i)?.value)||7;
+      const infl=parseFloat(document.getElementById('scinfl'+i)?.value)||3;
+      const conv=document.getElementById('scconv'+i)?.value||'none';
+      const name=document.getElementById('scName'+i)?.value||'Scenario '+'ABC'[i];
+
+      const age=parseInt(saved.wdAge)||55;
+      const life=parseInt(saved.wdLife)||95;
+      const ss=parseInt(saved.wdSSIncome)||0;
+      const filing=saved.wdFiling||'mfj';
+      const vol=parseFloat(saved.wdVol)||12;
+      const hasSpouse=saved.wdSpouseToggle==='true'||saved.wdSpouseToggle===true;
+      const spAge=parseInt(saved.wdSpAge)||age;
+      const spRetire=parseInt(saved.wdSpRetire)||retire;
+      const spLife=parseInt(saved.wdSpLife)||life;
+      const spSS=parseInt(saved.wdSpSSIncome)||0;
+      const spSSAge=parseInt(saved.wdSpSSAge)||67;
+
+      // Build spending phases with the scenario's spend amount
+      const phases=[{age:retire,amount:spend}];
+
+      try{
+        const plan=computeWithdrawalPlan({
+          currentAge:age, retireAge:retire, lifeExpectancy:life,
+          returnPct:ret/100, inflationPct:infl/100, volPct:vol/100,
+          filing:filing, ssMonthly:ss, ssStartAge:ssAge,
+          rothConvStrategy:conv, customConvPct:parseFloat(saved.wdCustomPct)||15,
+          convStartAge:parseInt(saved.wdConvStartAge)||retire,
+          convEndAge:parseInt(saved.wdConvEndAge)||72,
+          buckets:buckets,
+          hasSpouse:hasSpouse, spouseAge:spAge, spouseRetireAge:spRetire,
+          spouseLifeExpectancy:spLife, spouseSSMonthly:spSS, spouseSSStartAge:spSSAge,
+          spendPhases:phases,
+        });
+
+        // Run MC
+        const mc=runMonteCarlo({
+          currentAge:age, retireAge:retire, lifeExpectancy:life,
+          returnPct:ret/100, inflationPct:infl/100, volPct:vol/100,
+          filing:filing, ssMonthly:ss, ssStartAge:ssAge,
+          rothConvStrategy:conv, customConvPct:parseFloat(saved.wdCustomPct)||15,
+          convStartAge:parseInt(saved.wdConvStartAge)||retire,
+          convEndAge:parseInt(saved.wdConvEndAge)||72,
+          buckets:buckets,
+          hasSpouse:hasSpouse, spouseAge:spAge, spouseRetireAge:spRetire,
+          spouseLifeExpectancy:spLife, spouseSSMonthly:spSS, spouseSSStartAge:spSSAge,
+          spendPhases:phases,
+        });
+
+        const rows=plan.rows.filter(r=>r.age>=retire);
+        const totalAfterTax=rows.reduce((s,r)=>s+(r.afterTax||0),0);
+        const totalTax=rows.reduce((s,r)=>s+(r.tax||0),0);
+        const depleteAge=rows.find(r=>(r.bTaxable+r.bDeferred+r.bRoth+r.bHSA)<=0);
+        const lastRow=rows[rows.length-1];
+        const endBal=lastRow?(lastRow.bTaxable+lastRow.bDeferred+lastRow.bRoth+lastRow.bHSA):0;
+        const yr1=rows[0];
+        const effRate=yr1&&yr1.totalIncome>0?(yr1.tax/yr1.totalIncome*100):0;
+
+        results.push({
+          name:name, color:colors[i], retire:retire, spend:spend, ssAge:ssAge,
+          ret:ret, infl:infl, conv:conv,
+          depleteAge:depleteAge?depleteAge.age:life+'+',
+          endBal:endBal, totalAfterTax:totalAfterTax, totalTax:totalTax,
+          effRate:effRate, mcSuccess:mc.successRate,
+          yr1Income:yr1?(yr1.afterTax):0,
+          rows:rows, plan:plan,
+        });
+      }catch(e){
+        results.push({name:name,color:colors[i],error:e.message});
+      }
+    }
+
+    // Build comparison output
+    let out=``;
+
+    // Comparison table
+    out+=`<h3 style="margin-bottom:12px">\u{1F4CA} Side-by-Side Comparison</h3>`;
+    out+=`<div style="overflow-x:auto"><table class="wd-tbl" style="font-size:0.9em"><thead><tr><th style="min-width:200px">Metric</th>`;
+    results.forEach(r=>out+=`<th style="text-align:center;background:${r.color};color:white">${esc(r.name)}</th>`);
+    out+=`</tr></thead><tbody>`;
+
+    const metrics=[
+      {label:'Retirement Age',          fn:r=>r.error?'—':r.retire},
+      {label:'Monthly Spending',        fn:r=>r.error?'—':'$'+r.spend.toLocaleString()},
+      {label:'SS Claiming Age',         fn:r=>r.error?'—':r.ssAge},
+      {label:'Annual Return',           fn:r=>r.error?'—':r.ret+'%'},
+      {label:'Inflation',               fn:r=>r.error?'—':r.infl+'%'},
+      {label:'Roth Strategy',           fn:r=>r.error?'—':r.conv},
+      {label:'Portfolio Lasts Until',   fn:r=>r.error?'Error':'Age '+r.depleteAge, best:'max'},
+      {label:'Monte Carlo Success',     fn:r=>r.error?'—':r.mcSuccess.toFixed(0)+'%', best:'max'},
+      {label:'Year 1 After-Tax Income', fn:r=>r.error?'—':fmt2(r.yr1Income), best:'max'},
+      {label:'Lifetime After-Tax Income',fn:r=>r.error?'—':fmt2(r.totalAfterTax), best:'max'},
+      {label:'Lifetime Taxes Paid',     fn:r=>r.error?'—':fmt2(r.totalTax), best:'min'},
+      {label:'Effective Tax Rate (Yr 1)',fn:r=>r.error?'—':r.effRate.toFixed(1)+'%', best:'min'},
+      {label:'Ending Balance',          fn:r=>r.error?'—':fmt2(r.endBal), best:'max'},
+    ];
+
+    metrics.forEach(m=>{
+      out+=`<tr><td style="font-weight:500">${m.label}</td>`;
+      // Find best value for highlighting
+      let vals=results.map(r=>m.fn(r));
+      results.forEach((r,i)=>{
+        const v=m.fn(r);
+        const style=r.error?'color:#dc2626':'';
+        out+=`<td style="text-align:center;${style}">${v}</td>`;
+      });
+      out+=`</tr>`;
+    });
+    out+=`</tbody></table></div>`;
+
+    // Overlaid balance chart
+    const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
+    if(validResults.length>0){
+      const maxAge=Math.max(...validResults.map(r=>r.rows[r.rows.length-1].age));
+      const minAge=Math.min(...validResults.map(r=>r.rows[0].age));
+      const maxBal=Math.max(...validResults.flatMap(r=>r.rows.map(row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA)));
+      const W=800,H=300,PAD={t:30,r:40,b:40,l:80};
+      const pw=W-PAD.l-PAD.r, ph=H-PAD.t-PAD.b;
+      const xScale=a=>(a-minAge)/(maxAge-minAge)*pw+PAD.l;
+      const yScale=v=>PAD.t+ph-(v/maxBal*ph);
+
+      out+=`<h3 style="margin:24px 0 12px">\u{1F4C8} Portfolio Balance Projection</h3>`;
+      out+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:800px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px">`;
+      // Grid
+      for(let g=0;g<=4;g++){
+        const y=PAD.t+ph*g/4;
+        const val=maxBal*(1-g/4);
+        out+=`<line x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}" stroke="#e2e8f0" stroke-dasharray="4"/>`;
+        out+=`<text x="${PAD.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${val>=1e6?(val/1e6).toFixed(1)+'M':val>=1e3?(val/1e3).toFixed(0)+'K':'0'}</text>`;
+      }
+      // X axis labels
+      for(let a=minAge;a<=maxAge;a+=5){
+        out+=`<text x="${xScale(a)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${a}</text>`;
+      }
+      // Lines
+      validResults.forEach(r=>{
+        const points=r.rows.map(row=>`${xScale(row.age).toFixed(1)},${yScale(row.bTaxable+row.bDeferred+row.bRoth+row.bHSA).toFixed(1)}`).join(' ');
+        out+=`<polyline points="${points}" fill="none" stroke="${r.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+      });
+      // Legend
+      validResults.forEach((r,i)=>{
+        const lx=PAD.l+10+i*160;
+        out+=`<rect x="${lx}" y="8" width="12" height="12" rx="2" fill="${r.color}"/>`;
+        out+=`<text x="${lx+16}" y="18" font-size="11" fill="#334155">${esc(r.name)}</text>`;
+      });
+      out+=`</svg>`;
+    }
+
+    // Strategy notes
+    out+=`<div style="background:#f1f5f9;border-radius:8px;padding:16px;margin-top:24px;font-size:0.85em;color:#64748b">`;
+    out+=`<strong>Notes:</strong> All scenarios use the same portfolio balance and account selection from the Withdrawals tab. `;
+    out+=`Monte Carlo runs 1,000 simulations per scenario. Tax calculations use 2025 federal brackets. `;
+    out+=`Roth conversion strategies apply during the conversion window set in Withdrawals. `;
+    out+=`Spending amounts are in today's dollars and inflation-adjusted forward.`;
+    out+=`</div>`;
+
+    resultsEl.innerHTML=out;
+  },50);
+}
+
 /* ---- Tab switching with state caching ---- */
 const _tabCache={};
 const _renderedTabs=new Set();
 function _saveTab(key){
   /* Don't cache tabs with interactive elements — they break when restored via innerHTML */
-  if(key==='withdrawals'||key==='suggestions'||!_renderedTabs.has(key)) return;
+  if(key==='withdrawals'||key==='suggestions'||key==='taxloss'||key==='scenarios'||!_renderedTabs.has(key)) return;
   _tabCache[key]={
     drill:document.getElementById('drilldown').innerHTML,
     alloc:document.getElementById('allocOverview').style.display,
@@ -2609,6 +3064,8 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
       else if(newTab==='acctName') renderAcctNamePivot();
       else if(newTab==='suggestions') renderSuggestions();
       else if(newTab==='withdrawals') renderWithdrawals();
+      else if(newTab==='taxloss') renderTaxLoss();
+      else if(newTab==='scenarios') renderScenarios();
       else renderCategoryPivot();
     }
     _renderedTabs.add(newTab);
@@ -2670,10 +3127,10 @@ function computeInsights(pivot){
   const concItems = [];
   const top5 = sorted.slice(0,5), top5total = top5.reduce((s,x)=>s+x[1],0);
   const top10 = sorted.slice(0,10), top10total = top10.reduce((s,x)=>s+x[1],0);
-  if(top5total/GRAND > 0.3) concItems.push(`Top 5 holdings represent <strong>${p(top5total)}%</strong> of portfolio (${top5.map(x=>x[0]).join(', ')}) — significant concentration risk.`);
+  if(top5total/GRAND > 0.3) concItems.push(`Top 5 holdings represent <strong>${p(top5total)}%</strong> of portfolio (${top5.map(x=>esc(x[0])).join(', ')}) — significant concentration risk.`);
   if(top10total/GRAND > 0.5) concItems.push(`Top 10 holdings represent <strong>${p(top10total)}%</strong> of portfolio.`);
   sorted.filter(x => x[1]/GRAND > 0.10).forEach(([sym,val]) => {
-    concItems.push(`<strong>${sym}</strong> alone is ${p(val)}% of total portfolio (${fmt2(val)}) — consider if this aligns with your risk tolerance.`);
+    concItems.push(`<strong>${esc(sym)}</strong> alone is ${p(val)}% of total portfolio (${fmt2(val)}) — consider if this aligns with your risk tolerance.`);
   });
   if(concItems.length) insights.push({title:'Concentration Risk', icon:'⚠️', sev:'high', items:concItems});
 
@@ -2686,7 +3143,7 @@ function computeInsights(pivot){
     const typeTotals = {};
     ACCT_DATA.forEach(g => { typeTotals[g.type] = g.total; });
     const taxablePct = (typeTotals['Taxable Investment']||0)/GRAND*100;
-    const taxDefPct = TAX_DEFERRED_TYPES.reduce((s,t)=>s+(typeTotals[t]||0),0)/GRAND*100;
+    const taxDefPct = (TAX_DEFERRED_TYPES.reduce((s,t)=>s+(typeTotals[t]||0),0)+(typeTotals['Tax-Deferred Savings']||0))/GRAND*100;
     const rothPct = (typeTotals['Roth']||0)/GRAND*100;
     const hsaPct = (typeTotals['HSA']||0)/GRAND*100;
 
