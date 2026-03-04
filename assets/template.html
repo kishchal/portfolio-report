@@ -351,8 +351,8 @@
     <button class="pivot-tab" data-pivot="acctType">By Account Type</button>
     <button class="pivot-tab" data-pivot="category">By Investment Category</button>
     <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
-    <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
     <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
+    <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
     <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
   </div>
 </div>
@@ -412,7 +412,7 @@ const RISK_ORDER = ['Blue Chip / Core','Growth','Dividend / Value','High Risk / 
 function fmt(v){ return '$'+v.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}); }
 function fmt2(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-function pct(v){ return (v/GRAND*100).toFixed(1)+'%'; }
+function pct(v){ return GRAND>0?(v/GRAND*100).toFixed(1)+'%':'0.0%'; }
 function ylink(sym){ const s=sym.replace(/\*+$/,''); return /^[A-Z]{1,6}$/.test(s)?`<a href="https://finance.yahoo.com/quote/${s}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none" title="View ${s} on Yahoo Finance">${esc(sym)}</a>`:esc(sym); }
 
 /* ---- Build Account-Type pivot from the category-based DATA ---- */
@@ -991,7 +991,7 @@ const STD_DEDUCTION_SINGLE=15750;
 /* Additional standard deduction for age 65+ (IRS permanent provision) */
 const EXTRA_STD_DED_MFJ=1600; /* per person, MFJ */
 const EXTRA_STD_DED_SINGLE=2000;
-/* OBBBA §101 temporary senior deduction 2025-2028: $4,000 single / $6,000 per person MFJ */
+/* OBBBA §101 temporary senior deduction 2025-2028: $6,000 per person regardless of filing status */
 const OBBBA_SENIOR_DED_MFJ=6000; /* per person age 65+, phases out $150K+ MAGI */
 const OBBBA_SENIOR_DED_SINGLE=6000; /* per person, same as MFJ per OBBBA §101; phases out $75K+ MAGI */
 function getStdDeduction(filing,age,spouseAge,hasSpouse){
@@ -1273,6 +1273,18 @@ function saveSettings(){
     if(acctCbs.length>0){
       const sel=[];acctCbs.forEach(cb=>{if(cb.checked) sel.push(cb.value);});
       s._selectedAccounts=sel;
+    }
+    /* Save scenario fields if on Scenarios tab */
+    const scNameEl=document.getElementById('scName0');
+    if(scNameEl){
+      const scKeys=['retire','spend','ssAge','ret','infl','conv','Name'];
+      const scData=[];
+      for(let i=0;i<3;i++){
+        const sc={};
+        scKeys.forEach(k=>{const el=document.getElementById('sc'+k+i);if(el) sc[k]=el.value;});
+        scData.push(sc);
+      }
+      s._scenarios=scData;
     }
     localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
   }catch(e){}
@@ -2334,7 +2346,7 @@ function computeWithdrawalPlan(){
   /* Render the initial table after DOM is ready */
   renderWdTable();
   saveSettings();
-  } catch(e) { document.getElementById('wd-results').innerHTML=`<div style="color:red;padding:20px;font-family:monospace"><b>Error:</b> ${e.message}<br><pre>${e.stack}</pre></div>`; }
+  } catch(e) { document.getElementById('wd-results').innerHTML=`<div style="color:red;padding:20px;font-family:monospace"><b>Error:</b> ${esc(e.message||'')}<br><pre>${esc(e.stack||'')}</pre></div>`; }
 }
 
 /* ---- Editable Withdrawal Table with Recalculation ---- */
@@ -2552,7 +2564,7 @@ function renderWdTable(){
 
   const container=document.getElementById('wd-tbl-container');
   if(container) container.innerHTML=t;
-  }catch(e){console.error('renderWdTable error:',e);const c=document.getElementById('wd-tbl-container');if(c) c.innerHTML='<div style=\"color:red;padding:10px\">Recalc Error: '+e.message+'<br>'+e.stack+'</div>';}
+  }catch(e){console.error('renderWdTable error:',e);const c=document.getElementById('wd-tbl-container');if(c) c.innerHTML='<div style="color:red;padding:10px">Recalc Error: '+esc(e.message||'')+'<br>'+esc(e.stack||'')+'</div>';}
 }
 
 let _wdDebounce=null;
@@ -2641,13 +2653,15 @@ function renderTaxLoss(){
   // Tax rate assumptions
   const LTCG_RATE=0.15, ORD_RATE=0.22, ORD_OFFSET=3000;
 
-  // Calculate potential savings
+  // Calculate potential savings (IRS: losses offset gains first, then up to $3K ordinary)
   const harvestable=Math.abs(totalTaxableLoss);
-  const ordSavings=Math.min(harvestable,ORD_OFFSET)*ORD_RATE;
-  const ltcgOffset=Math.max(0,Math.min(harvestable-ORD_OFFSET,totalTaxableGain));
+  const ltcgOffset=Math.min(harvestable,totalTaxableGain);
   const ltcgSavings=ltcgOffset*LTCG_RATE;
+  const netLossAfterGains=Math.max(0,harvestable-ltcgOffset);
+  const ordOffset=Math.min(netLossAfterGains,ORD_OFFSET);
+  const ordSavings=ordOffset*ORD_RATE;
   const totalSavings=ordSavings+ltcgSavings;
-  const carryover=Math.max(0,harvestable-ORD_OFFSET-Math.max(0,totalTaxableGain));
+  const carryover=Math.max(0,netLossAfterGains-ORD_OFFSET);
 
   let html=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F4C9} Tax-Loss Harvesting Analysis</h2>`;
@@ -2665,8 +2679,9 @@ function renderTaxLoss(){
   html+=`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:16px;margin-bottom:24px">`;
   html+=`<div style="font-weight:600;margin-bottom:8px">\u{1F4B0} Tax Savings Breakdown</div>`;
   html+=`<table style="width:100%;border-collapse:collapse;font-size:0.9em">`;
-  html+=`<tr><td style="padding:4px 8px">$3,000 ordinary income offset × ${(ORD_RATE*100)}%</td><td style="text-align:right;font-weight:600">${fmt2(ordSavings)}</td></tr>`;
   if(ltcgOffset>0) html+=`<tr><td style="padding:4px 8px">Capital gains offset: ${fmt2(ltcgOffset)} × ${(LTCG_RATE*100)}%</td><td style="text-align:right;font-weight:600">${fmt2(ltcgSavings)}</td></tr>`;
+  if(ordOffset>0) html+=`<tr><td style="padding:4px 8px">Ordinary income offset: ${fmt2(ordOffset)} × ${(ORD_RATE*100)}% (up to $3,000/yr)</td><td style="text-align:right;font-weight:600">${fmt2(ordSavings)}</td></tr>`;
+  if(ltcgOffset===0&&ordOffset===0) html+=`<tr><td style="padding:4px 8px;color:#64748b">No harvestable losses in taxable accounts</td><td style="text-align:right">$0</td></tr>`;
   html+=`<tr style="border-top:1px solid #e2e8f0;font-weight:700"><td style="padding:6px 8px">Total estimated tax savings this year</td><td style="text-align:right;color:#2563eb">${fmt2(totalSavings)}</td></tr>`;
   if(carryover>0) html+=`<tr><td style="padding:4px 8px;color:#64748b">Remaining losses carry forward to future years</td><td style="text-align:right;color:#64748b">${fmt2(carryover)}</td></tr>`;
   html+=`</table></div>`;
@@ -2676,7 +2691,7 @@ function renderTaxLoss(){
     html+=`<div style="margin-bottom:24px">`;
     html+=`<h3 style="margin-bottom:12px">\u{1F534} Harvestable Loss Positions (Taxable Accounts Only)</h3>`;
     html+=`<div style="overflow-x:auto"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
-    html+=`<th>Symbol</th><th>Description</th><th>Account</th><th style="text-align:right">Current Value</th><th style="text-align:right">Cost Basis</th><th style="text-align:right">Unrealized Loss</th><th style="text-align:right">Loss %</th><th>Replacement Fund</th><th>Wash Sale Risk</th>`;
+    html+=`<th title="Stock or fund ticker symbol">Symbol</th><th title="Full name of the security">Description</th><th title="The brokerage account holding this position">Account</th><th style="text-align:right" title="Current market value of the position">Current Value</th><th style="text-align:right" title="Original purchase price (what you paid). This is your tax basis for calculating gains/losses.">Cost Basis</th><th style="text-align:right" title="Current Value minus Cost Basis. Negative means the position is at a loss and potentially harvestable.">Unrealized Loss</th><th style="text-align:right" title="Loss as a percentage of cost basis. Larger negative % = deeper loss.">Loss %</th><th title="Suggested replacement funds that provide similar market exposure without triggering the IRS wash sale rule. These are from different fund families tracking similar indices.">Replacement Fund</th><th title="If this symbol is held in multiple accounts, selling in one and buying in another within 30 days triggers the IRS wash sale rule, disallowing the loss deduction.">Wash Sale Risk</th>`;
     html+=`</tr></thead><tbody>`;
     taxableLosses.forEach(p=>{
       const isWash=washRiskSyms.has(p.sym);
@@ -2707,7 +2722,7 @@ function renderTaxLoss(){
     const topGains=taxableGains.slice(0,15);
     html+=`<details style="margin-bottom:24px"><summary style="cursor:pointer;font-weight:600;font-size:1.05em;padding:8px 0">\u{1F7E2} Top ${topGains.length} Unrealized Gains (Taxable) — <span style="color:#16a34a">${fmt2(totalTaxableGain)}</span></summary>`;
     html+=`<div style="overflow-x:auto;margin-top:8px"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
-    html+=`<th>Symbol</th><th>Description</th><th>Account</th><th style="text-align:right">Current Value</th><th style="text-align:right">Cost Basis</th><th style="text-align:right">Unrealized Gain</th><th style="text-align:right">Gain %</th>`;
+    html+=`<th title="Stock or fund ticker symbol">Symbol</th><th title="Full name of the security">Description</th><th title="The brokerage account holding this position">Account</th><th style="text-align:right" title="Current market value of the position">Current Value</th><th style="text-align:right" title="Original purchase price (your tax basis)">Cost Basis</th><th style="text-align:right" title="Current Value minus Cost Basis. Positive means the position is at a gain — selling triggers capital gains tax.">Unrealized Gain</th><th style="text-align:right" title="Gain as a percentage of cost basis">Gain %</th>`;
     html+=`</tr></thead><tbody>`;
     topGains.forEach(p=>{
       html+=`<tr><td style="font-weight:600">${ylink(p.sym)}</td>`;
@@ -2729,7 +2744,7 @@ function renderTaxLoss(){
     html+=`<details style="margin-bottom:24px"><summary style="cursor:pointer;font-weight:600;font-size:1.05em;padding:8px 0">\u{1F4CB} Losses in Tax-Advantaged Accounts — <span style="color:#94a3b8">${fmt2(Math.abs(ntTotal))} (not harvestable)</span></summary>`;
     html+=`<p style="color:#64748b;margin:8px 0">Losses in IRAs, 401(k)s, and Roth accounts cannot be harvested for tax purposes. They are shown here for awareness only.</p>`;
     html+=`<div style="overflow-x:auto;margin-top:8px"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
-    html+=`<th>Symbol</th><th>Account</th><th>Type</th><th style="text-align:right">Value</th><th style="text-align:right">Loss</th><th style="text-align:right">Loss %</th>`;
+    html+=`<th title="Stock or fund ticker symbol">Symbol</th><th title="The brokerage account holding this position">Account</th><th title="Account type (IRA, 401k, Roth, etc.) — losses in these accounts cannot be harvested">Type</th><th style="text-align:right" title="Current market value">Value</th><th style="text-align:right" title="Unrealized loss amount (not harvestable in tax-advantaged accounts)">Loss</th><th style="text-align:right" title="Loss as a percentage of cost basis">Loss %</th>`;
     html+=`</tr></thead><tbody>`;
     nonTaxLosses.sort((a,b)=>a.gl-b.gl).slice(0,20).forEach(p=>{
       html+=`<tr><td>${ylink(p.sym)}</td><td style="font-size:0.8em">${esc(p.acctName)}</td><td style="font-size:0.8em">${esc(p.acctType)}</td>`;
@@ -2769,8 +2784,8 @@ function renderScenarios(){
   if(insEl) insEl.parentElement.style.display='none';
 
   // Load current withdrawal settings as defaults
-  const raw=localStorage.getItem('portfolioWdSettings');
-  const saved=raw?JSON.parse(raw):{};
+  const raw=localStorage.getItem(SETTINGS_KEY);
+  let saved={};try{saved=raw?JSON.parse(raw):{};}catch(e){saved={};}
   const def={
     age:    parseInt(saved.wdAge)||55,
     retire: parseInt(saved.wdRetire)||65,
@@ -2784,7 +2799,6 @@ function renderScenarios(){
     conv:   saved.wdRothConv||'none',
     spend:  5000,
   };
-  // Try to get current spending from saved phases
   if(saved._spendPhases && saved._spendPhases.length>0){
     const first=saved._spendPhases[0];
     if(first.amount) def.spend=parseInt(first.amount);
@@ -2802,11 +2816,25 @@ function renderScenarios(){
     {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate'},
     {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv},
   ];
+  /* Restore saved scenario values if available */
+  if(saved._scenarios&&Array.isArray(saved._scenarios)){
+    saved._scenarios.forEach((sc,i)=>{
+      if(i<3&&sc){
+        if(sc.Name) presets[i].label=sc.Name;
+        if(sc.retire) presets[i].retire=parseFloat(sc.retire);
+        if(sc.spend) presets[i].spend=parseFloat(sc.spend);
+        if(sc.ssAge) presets[i].ssAge=parseFloat(sc.ssAge);
+        if(sc.ret) presets[i].ret=parseFloat(sc.ret);
+        if(sc.infl) presets[i].infl=parseFloat(sc.infl);
+        if(sc.conv) presets[i].conv=sc.conv;
+      }
+    });
+  }
 
   html+=`<div style="display:grid;grid-template-columns:180px repeat(3,1fr);gap:0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:24px;font-size:0.9em" id="scenGrid">`;
   // Header row
   html+=`<div style="background:#f8fafc;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0">Parameter</div>`;
-  scenarios.forEach((s,i)=>html+=`<div style="background:${colors[i]};color:white;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0;text-align:center">Scenario ${s}<br><input id="scName${i}" value="${presets[i].label}" style="width:100%;margin-top:4px;text-align:center;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:white;padding:2px 4px;font-size:0.85em"></div>`);
+  scenarios.forEach((s,i)=>html+=`<div style="background:${colors[i]};color:white;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0;text-align:center">Scenario ${s}<br><input id="scName${i}" value="${esc(presets[i].label)}" onchange="saveSettings()" style="width:100%;margin-top:4px;text-align:center;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:white;padding:2px 4px;font-size:0.85em"></div>`);
 
   const fields=[
     {key:'retire', label:'Retirement Age',   type:'number', min:50, max:80},
@@ -2822,11 +2850,11 @@ function renderScenarios(){
     scenarios.forEach((s,i)=>{
       const val=presets[i][f.key];
       if(f.type==='select'){
-        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><select id="sc${f.key}${i}" style="width:90%;padding:4px;border:1px solid #cbd5e1;border-radius:4px">`;
+        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><select id="sc${f.key}${i}" onchange="saveSettings()" style="width:90%;padding:4px;border:1px solid #cbd5e1;border-radius:4px">`;
         f.options.forEach(([v,l])=>html+=`<option value="${v}"${val===v?' selected':''}>${l}</option>`);
         html+=`</select></div>`;
       } else {
-        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><input type="number" id="sc${f.key}${i}" value="${val}" min="${f.min||''}" max="${f.max||''}" step="${f.step||1}" style="width:80px;text-align:center;padding:4px;border:1px solid #cbd5e1;border-radius:4px"></div>`;
+        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><input type="number" id="sc${f.key}${i}" value="${val}" min="${f.min||''}" max="${f.max||''}" step="${f.step||1}" onchange="saveSettings()" style="width:80px;text-align:center;padding:4px;border:1px solid #cbd5e1;border-radius:4px"></div>`;
       }
     });
   });
@@ -2839,17 +2867,119 @@ function renderScenarios(){
   el.innerHTML=html;
 }
 
+function _scenarioSim(p){
+  const {curAge,retAge,lifeExp,retPct,inflPct,filing,ssMonthly,ssStartAge,
+    rothConvStrategy,convStartAge,convEndAge,bTaxableInit,bDeferredInit,bRothInit,bHSAInit,
+    hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,spendPhases}=p;
+  const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
+  const birthYear=(new Date()).getFullYear()-curAge;
+  const RMD_AGE=birthYear>=1960?75:(birthYear<=1950?72:73);
+  const yearsToRetire=retAge-curAge;
+  const planEndAge=hasSpouse?Math.max(lifeExp,curAge+(spLifeExp-spAge)):lifeExp;
+  const yearsInRetirement=planEndAge-retAge+1;
+  const CONV_LIMITS={none:0,conservative:filing==='mfj'?96950:48475,moderate:filing==='mfj'?206700:103350,aggressive:filing==='mfj'?394600:197300};
+  const convLimit=CONV_LIMITS[rothConvStrategy]||0;
+  const ssAnnualFRA=ssMonthly*12;
+  const spSSAnnualFRA=(spSSMonthly||0)*12;
+  const spAgeOffset=hasSpouse?(spAge-curAge):0;
+  const hasPhases=spendPhases&&spendPhases.some(ph=>ph.amount>0);
+  const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
+  const fallbackW=totalAtRetire*0.04;
+  let bT=bTaxableInit,bD=bDeferredInit,bR=bRothInit,bH=bHSAInit;
+  const rows=[];let cumTax=0;
+  for(let yr=0;yr<yearsInRetirement;yr++){
+    const age=retAge+yr;
+    const spouseAge=hasSpouse?(age+spAgeOffset):0;
+    const stdDed=getStdDeduction(filing,age,spouseAge,hasSpouse);
+    const inflMult=Math.pow(1+inflPct,yr+yearsToRetire);
+    let yourSS=0;
+    if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp) yourSS=ssAnnualFRA*(SS_AGE_FACTOR[ssStartAge]||1.0)*inflMult;
+    let spSS=0;
+    if(hasSpouse&&spSSAnnualFRA>0&&spouseAge>=(spSSStartAge||67)&&spouseAge<=spLifeExp) spSS=spSSAnnualFRA*(SS_AGE_FACTOR[spSSStartAge||67]||1.0)*inflMult;
+    const ssIncome=yourSS+spSS;
+    const phaseExp=getAnnualExpenseForAge(age,spendPhases||[]);
+    const baseW=hasPhases?phaseExp:fallbackW;
+    let totalNeed=hasPhases?baseW*inflMult:baseW*Math.pow(1+inflPct,yr);
+    const curTot=bT+bD+bR+bH;
+    if(curTot<=0){
+      /* Portfolio depleted — still tax SS income */
+      let depTax=0;
+      if(ssIncome>0){
+        const depSTax=calcSSTaxableAmount(ssIncome,0,filing);
+        const depTI=Math.max(0,depSTax-stdDed);
+        depTax=calcTax(depTI,brackets);
+        const depNMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+        if(depNMed>0) depTax+=calcIRMAA(depSTax,filing,depNMed);
+      }
+      cumTax+=depTax;
+      rows.push({age,spouseAge,afterTax:ssIncome-depTax,tax:depTax,bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,totalIncome:ssIncome,_magi:ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0});
+      continue;
+    }
+    if(!hasPhases){totalNeed=Math.max(curTot*0.035,Math.min(curTot*0.055,totalNeed));}
+    let target=Math.max(0,Math.min(totalNeed-ssIncome,curTot));
+    let rmd=0;
+    if(age>=RMD_AGE&&bD>0){const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));rmd=bD/div;}
+    let wTx=0,wDf=0,wRo=0,wHs=0,rem=target;
+    const annMed=age>=65?5000*Math.pow(1+inflPct,age-curAge):0;
+    if(age>=65&&bH>0){wHs=Math.min(annMed,bH,rem);rem-=wHs;}
+    if(age>=RMD_AGE){wDf=Math.min(rmd,bD);rem-=wDf;if(rem>0){const ft=Math.min(rem,bT);wTx=ft;rem-=ft;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}}
+    else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(convLimit>0?convLimit:(filing==='mfj'?206700:103350))+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
+    if(rem>0&&bH>wHs){const mh=Math.min(rem,bH-wHs);wHs+=mh;rem-=mh;}
+    let rothConv=0;
+    const hsaNM=Math.max(0,wHs-annMed);
+    if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bD>wDf&&convLimit>0){
+      const stFC=ssIncome>0?calcSSTaxableAmount(ssIncome,wDf+wTx+hsaNM,filing):0;
+      const ordBC=wDf+stFC+hsaNM;
+      const room=Math.max(0,convLimit+stdDed-ordBC);
+      rothConv=Math.min(room,bD-wDf);
+    }
+    const hsaPen=(age<65&&hsaNM>0)?hsaNM*0.20:0;
+    const ordInc=wDf+rothConv+hsaNM;
+    const agiSS=ordInc+wTx;
+    const ssTxAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,agiSS,filing):0;
+    const totOrd=ordInc+ssTxAmt;
+    const txInc=Math.max(0,totOrd-stdDed);
+    const incTax=calcTax(txInc,brackets);
+    const capTax=calcLTCG(Math.min(wTx,Math.max(0,totOrd+wTx-stdDed)),txInc,filing);
+    const magi=agiSS+ssTxAmt;
+    const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magi;
+    const nMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+    const irmaa=nMed>0?calcIRMAA(irmaaMagi,filing,nMed):0;
+    const totTax=incTax+capTax+hsaPen+irmaa;
+    const totalW=wTx+wDf+wRo+wHs+ssIncome;
+    const afterTax=totalW-totTax;
+    cumTax+=totTax;
+    const surplus=Math.max(0,-(target-wTx-wDf-wRo-wHs));
+    /* Tax drain cascade: subtract taxes from accounts (taxable→deferred→roth→HSA) */
+    let txRem=totTax;
+    const drT=Math.min(txRem,Math.max(0,bT-wTx+surplus));txRem-=drT;
+    const drD=Math.min(txRem,Math.max(0,bD-wDf-rothConv));txRem-=drD;
+    const drR=Math.min(txRem,Math.max(0,bR-wRo+rothConv));txRem-=drR;
+    const drH=Math.min(txRem,Math.max(0,bH-wHs));
+    bT=Math.max(0,(bT-wTx-drT+surplus)*(1+retPct));
+    bD=Math.max(0,(bD-wDf-rothConv-drD)*(1+retPct));
+    bR=Math.max(0,(bR-wRo+rothConv-drR)*(1+retPct));
+    bH=Math.max(0,(bH-wHs-drH)*(1+retPct));
+    rows.push({age,spouseAge,afterTax,tax:totTax,bTaxable:bT,bDeferred:bD,bRoth:bR,bHSA:bH,totalIncome:totalW,_magi:magi});
+  }
+  return {rows,cumTax};
+}
+
 function runScenarioComparison(){
   const resultsEl=document.getElementById('scenResults');
   if(!resultsEl) return;
-  resultsEl.innerHTML='<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:2em">⏳</div>Running 3 scenarios...</div>';
+  resultsEl.innerHTML='<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:2em">⏳</div>Running 3 scenarios (1,000 Monte Carlo sims each)...</div>';
 
   setTimeout(()=>{
-    const raw=localStorage.getItem('portfolioWdSettings');
-    const saved=raw?JSON.parse(raw):{};
-    const selectedNums=typeof getSelectedAccountNums==='function'?getSelectedAccountNums():null;
-    const buckets=typeof getAccountBuckets==='function'?getAccountBuckets(selectedNums):null;
-    if(!buckets){resultsEl.innerHTML='<p style="color:#dc2626">Error: Switch to Withdrawals tab first to initialize account data.</p>';return;}
+    const raw=localStorage.getItem(SETTINGS_KEY);
+    let saved={};try{saved=raw?JSON.parse(raw):{};}catch(e){saved={};}
+    /* Get selected accounts: prefer DOM checkboxes if present, else use saved selection, else all */
+    let selectedNums=null;
+    const acctCbs=document.querySelectorAll('.acct-sel-cb');
+    if(acctCbs.length>0){ selectedNums=getSelectedAccountNums(); }
+    else if(saved._selectedAccounts&&saved._selectedAccounts.length>0){ selectedNums=new Set(saved._selectedAccounts); }
+    const buckets=getAccountBuckets(selectedNums);
+    if(!buckets||((buckets.taxable.total+buckets.deferred.total+buckets.roth.total+buckets.hsa.total)<=0)){resultsEl.innerHTML='<p style="color:#dc2626">Error: No retirement account balances found. Ensure your portfolio has accounts with holdings.</p>';return;}
 
     const results=[];
     const colors=['#2563eb','#7c3aed','#ea580c'];
@@ -2865,55 +2995,63 @@ function runScenarioComparison(){
 
       const age=parseInt(saved.wdAge)||55;
       const life=parseInt(saved.wdLife)||95;
-      const ss=parseInt(saved.wdSSIncome)||0;
+      const ss=parseFloat(saved.wdSSIncome)||0;
       const filing=saved.wdFiling||'mfj';
-      const vol=parseFloat(saved.wdVol)||12;
       const hasSpouse=saved.wdSpouseToggle==='true'||saved.wdSpouseToggle===true;
       const spAge=parseInt(saved.wdSpAge)||age;
-      const spRetire=parseInt(saved.wdSpRetire)||retire;
       const spLife=parseInt(saved.wdSpLife)||life;
-      const spSS=parseInt(saved.wdSpSSIncome)||0;
+      const spSS=parseFloat(saved.wdSpSSIncome)||0;
       const spSSAge=parseInt(saved.wdSpSSAge)||67;
+      const yearsToRetire=retire-age;
+      const retPct=ret/100;
 
-      // Build spending phases with the scenario's spend amount
+      const bTI=buckets.taxable.total*Math.pow(1+retPct,yearsToRetire);
+      const bDI=buckets.deferred.total*Math.pow(1+retPct,yearsToRetire);
+      const bRI=buckets.roth.total*Math.pow(1+retPct,yearsToRetire);
+      const bHI=buckets.hsa.total*Math.pow(1+retPct,yearsToRetire);
       const phases=[{age:retire,amount:spend}];
 
+      const birthYr=(new Date()).getFullYear()-age;
+      const dynRmdAge=birthYr>=1960?75:(birthYr<=1950?72:73);
+
       try{
-        const plan=computeWithdrawalPlan({
-          currentAge:age, retireAge:retire, lifeExpectancy:life,
-          returnPct:ret/100, inflationPct:infl/100, volPct:vol/100,
-          filing:filing, ssMonthly:ss, ssStartAge:ssAge,
-          rothConvStrategy:conv, customConvPct:parseFloat(saved.wdCustomPct)||15,
+        const sim=_scenarioSim({
+          curAge:age,retAge:retire,lifeExp:life,retPct:retPct,inflPct:infl/100,filing:filing,
+          ssMonthly:ss,ssStartAge:ssAge,rothConvStrategy:conv,
           convStartAge:parseInt(saved.wdConvStartAge)||retire,
-          convEndAge:parseInt(saved.wdConvEndAge)||72,
-          buckets:buckets,
-          hasSpouse:hasSpouse, spouseAge:spAge, spouseRetireAge:spRetire,
-          spouseLifeExpectancy:spLife, spouseSSMonthly:spSS, spouseSSStartAge:spSSAge,
-          spendPhases:phases,
+          convEndAge:parseInt(saved.wdConvEndAge)||(dynRmdAge-1),
+          bTaxableInit:bTI,bDeferredInit:bDI,bRothInit:bRI,bHSAInit:bHI,
+          hasSpouse:hasSpouse,spAge:spAge,spLifeExp:spLife,
+          spSSMonthly:spSS,spSSStartAge:spSSAge,spendPhases:phases,
         });
 
-        // Run MC
-        const mc=runMonteCarlo({
-          currentAge:age, retireAge:retire, lifeExpectancy:life,
-          returnPct:ret/100, inflationPct:infl/100, volPct:vol/100,
-          filing:filing, ssMonthly:ss, ssStartAge:ssAge,
-          rothConvStrategy:conv, customConvPct:parseFloat(saved.wdCustomPct)||15,
-          convStartAge:parseInt(saved.wdConvStartAge)||retire,
-          convEndAge:parseInt(saved.wdConvEndAge)||72,
-          buckets:buckets,
-          hasSpouse:hasSpouse, spouseAge:spAge, spouseRetireAge:spRetire,
-          spouseLifeExpectancy:spLife, spouseSSMonthly:spSS, spouseSSStartAge:spSSAge,
-          spendPhases:phases,
-        });
-
-        const rows=plan.rows.filter(r=>r.age>=retire);
+        const rows=sim.rows;
         const totalAfterTax=rows.reduce((s,r)=>s+(r.afterTax||0),0);
-        const totalTax=rows.reduce((s,r)=>s+(r.tax||0),0);
+        const totalTax=sim.cumTax;
         const depleteAge=rows.find(r=>(r.bTaxable+r.bDeferred+r.bRoth+r.bHSA)<=0);
         const lastRow=rows[rows.length-1];
         const endBal=lastRow?(lastRow.bTaxable+lastRow.bDeferred+lastRow.bRoth+lastRow.bHSA):0;
-        const yr1=rows[0];
+        const yr1=rows.find(r=>r.age===retire);
         const effRate=yr1&&yr1.totalIncome>0?(yr1.tax/yr1.totalIncome*100):0;
+
+        /* Run Monte Carlo for this scenario */
+        const vol=parseFloat(saved.wdVol)||12;
+        const birthYear=(new Date()).getFullYear()-age;
+        const mcRMD=birthYear>=1960?75:(birthYear<=1950?72:73);
+        const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
+        const CONV_LIMITS={none:0,conservative:filing==='mfj'?96950:48475,moderate:filing==='mfj'?206700:103350,aggressive:filing==='mfj'?394600:197300};
+        const totalAtRetire=bTI+bDI+bRI+bHI;
+        const planEndAge=hasSpouse?Math.max(life,age+(spLife-spAge)):life;
+        const mc=runMonteCarlo({
+          nSims:1000, yearsInRetirement:planEndAge-retire+1, yearsToRetire:yearsToRetire,
+          retAge:retire, retPct:retPct, inflPct:infl/100, vol:vol/100, filing:filing,
+          bTaxableInit:bTI, bDeferredInit:bDI, bRothInit:bRI, bHSAInit:bHI, totalAtRetire:totalAtRetire,
+          ssAnnualFRA:ss*12, ssStartAge:ssAge, spSSAnnualFRA:spSS*12, spSSStartAge:spSSAge,
+          hasSpouse:hasSpouse, spAgeOffset:hasSpouse?(spAge-age):0, lifeExp:life, spLifeExp:spLife,
+          curAge:age, spAge:spAge,
+          rothConvStrategy:conv, convBracketLimit:CONV_LIMITS[conv]||0, brackets:brackets,
+          RMD_START_AGE:mcRMD, spendingPhases:phases, hasPhases:true,
+        });
 
         results.push({
           name:name, color:colors[i], retire:retire, spend:spend, ssAge:ssAge,
@@ -2922,7 +3060,7 @@ function runScenarioComparison(){
           endBal:endBal, totalAfterTax:totalAfterTax, totalTax:totalTax,
           effRate:effRate, mcSuccess:mc.successRate,
           yr1Income:yr1?(yr1.afterTax):0,
-          rows:rows, plan:plan,
+          rows:rows,
         });
       }catch(e){
         results.push({name:name,color:colors[i],error:e.message});
@@ -2956,11 +3094,24 @@ function runScenarioComparison(){
 
     metrics.forEach(m=>{
       out+=`<tr><td style="font-weight:500">${m.label}</td>`;
-      // Find best value for highlighting
-      let vals=results.map(r=>m.fn(r));
+      /* Find best value for highlighting */
+      let bestIdx=-1;
+      if(m.best){
+        const numVals=results.map((r,i)=>{
+          if(r.error) return null;
+          if(m.best==='max') return m.label.includes('Lasts')?r.depleteAge:m.label.includes('Monte')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
+          else return m.label.includes('Taxes')?r.totalTax:m.label.includes('Eff')?r.effRate:0;
+        });
+        let bestVal=null;
+        numVals.forEach((v,i)=>{
+          if(v===null) return;
+          if(bestVal===null||(m.best==='max'?v>bestVal:v<bestVal)){bestVal=v;bestIdx=i;}
+        });
+      }
       results.forEach((r,i)=>{
         const v=m.fn(r);
-        const style=r.error?'color:#dc2626':'';
+        const isBest=bestIdx===i&&!r.error;
+        const style=r.error?'color:#dc2626':(isBest?'background:#dcfce7;font-weight:600':'');
         out+=`<td style="text-align:center;${style}">${v}</td>`;
       });
       out+=`</tr>`;
@@ -2975,8 +3126,10 @@ function runScenarioComparison(){
       const maxBal=Math.max(...validResults.flatMap(r=>r.rows.map(row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA)));
       const W=800,H=300,PAD={t:30,r:40,b:40,l:80};
       const pw=W-PAD.l-PAD.r, ph=H-PAD.t-PAD.b;
-      const xScale=a=>(a-minAge)/(maxAge-minAge)*pw+PAD.l;
-      const yScale=v=>PAD.t+ph-(v/maxBal*ph);
+      const xRange=maxAge-minAge||1;
+      const yRange=maxBal||1;
+      const xScale=a=>(a-minAge)/xRange*pw+PAD.l;
+      const yScale=v=>PAD.t+ph-(v/yRange*ph);
 
       out+=`<h3 style="margin:24px 0 12px">\u{1F4C8} Portfolio Balance Projection</h3>`;
       out+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:800px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px">`;

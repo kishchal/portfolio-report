@@ -324,7 +324,7 @@ def main():
     html = html.replace('{{GRAND_TOTAL_SHORT}}', total_short)
     html = html.replace('{{DATA_JSON}}', js_data)
     html = html.replace('{{GRAND_TOTAL_NUM}}', str(round(grand_total, 2)))
-    html = html.replace('{{SUGGESTIONS_JSON}}', sugg_json)
+    html = html.replace('{{SUGGESTIONS_JSON}}', sugg_json.replace('</script', '<\\/script'))
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)

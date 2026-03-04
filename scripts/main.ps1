@@ -244,7 +244,7 @@ foreach ($row in $csvData) {
     $cbStr  = ($row.'Cost Basis Total'        ?? '').Trim()
     $gainLoss    = if ($glStr  -and $glStr  -notin @('--','N/A','n/a')) { $neg2 = $glStr -match '^\(' -or $glStr -match '^-'; $v2 = [double]($glStr -replace '[$ ,()\-+]', ''); if ($neg2) { -$v2 } else { $v2 } } else { $null }
     $gainLossPct = if ($glpStr -and $glpStr -notin @('--','N/A','n/a')) { [double]($glpStr -replace '[%+]', '') } else { $null }
-    $costBasis   = if ($cbStr  -and $cbStr  -notin @('--','N/A','n/a')) { $neg3 = $cbStr -match '^\('; $v3 = [double]($cbStr -replace '[$ ,()\-]', ''); if ($neg3) { -$v3 } else { $v3 } } else { $null }
+    $costBasis   = if ($cbStr  -and $cbStr  -notin @('--','N/A','n/a')) { $neg3 = $cbStr -match '^\(' -or $cbStr -match '^-' -or $cbStr -match '^\$-'; $v3 = [double]($cbStr -replace '[$ ,()\-]', ''); if ($neg3) { -$v3 } else { $v3 } } else { $null }
 
     # Determine category
     if ($CategoryMap.ContainsKey($sym)) {
@@ -372,7 +372,7 @@ $html = $html.Replace('{{GRAND_TOTAL}}', $totalFormatted)
 $html = $html.Replace('{{GRAND_TOTAL_SHORT}}', $totalShort)
 $html = $html.Replace('{{DATA_JSON}}', $jsData)
 $html = $html.Replace('{{GRAND_TOTAL_NUM}}', [math]::Round($grandTotal, 2).ToString())
-$html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson)
+$html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson.Replace('</script', '<\/script'))
 
 $html | Out-File -FilePath $OutputPath -Encoding utf8
 Write-Host "Portfolio report generated: $OutputPath"
