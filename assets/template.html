@@ -13,6 +13,7 @@
     --radius: 10px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { overflow-y: scroll; }
   body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
 
   .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 20px 0; }
@@ -484,7 +485,7 @@ const ACCT_NAME_DATA = buildAcctNamePivot();
 function renderAllocBar(items, colorFn){
   let bh='',lh='';
   items.forEach(d=>{
-    const p=d.total/GRAND*100, c=colorFn(d);
+    const p=GRAND>0?d.total/GRAND*100:0, c=colorFn(d);
     bh+=`<div class="seg" style="width:${p}%;background:${c}"><span class="tip">${esc(d.label)}: ${fmt(d.total)} (${p.toFixed(1)}%)</span></div>`;
     lh+=`<div class="legend-item"><div class="legend-dot" style="background:${c}"></div>${esc(d.label)} (${p.toFixed(1)}%)</div>`;
   });
@@ -733,7 +734,7 @@ function computeCurrentAlloc(){
 
 function allocBar(items,total){
   let h='<div class="sugg-bar-track">';
-  items.forEach(i=>{const p=i.val/total*100;if(p>0.3)h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span></div>`;});
+  items.forEach(i=>{const p=total>0?i.val/total*100:0;if(p>0.3)h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span></div>`;});
   h+='</div>';return h;
 }
 
@@ -1136,7 +1137,7 @@ function runMonteCarlo(params){
         if(rem>0){ const f=Math.min(rem,bR); wR=f; rem-=f; }
       } else {
         const f=Math.min(rem,bT); wT=f; rem-=f;
-        if(rem>0){ const bracketLim=convBracketLimit>0?convBracketLimit+stdDedMC:(filing==='mfj'?206700:103350)+stdDedMC; const d=Math.min(rem,bracketLim,bD); wD=d; rem-=d; }
+        if(rem>0){ const bracketLim=(filing==='mfj'?206700:103350)+stdDedMC; const d=Math.min(rem,bracketLim,bD); wD=d; rem-=d; }
         if(rem>0){ const f2=Math.min(rem,bR); wR=f2; rem-=f2; }
         if(rem>0){ const m=Math.min(rem,bD-wD); wD+=m; rem-=m; }
       }
@@ -1152,7 +1153,7 @@ function runMonteCarlo(params){
       const mcTotalOrd=ordIncMC+ssTaxMC;
       const mcLtcgAdj=Math.min(wT,Math.max(0,mcTotalOrd+wT-stdDedMC));
       const mcTaxBase=calcTax(taxableIncMC,brackets)+calcLTCG(mcLtcgAdj,taxableIncMC,filing)+((age<65&&hsaNonMed>0)?hsaNonMed*0.20:0);
-      const mcNumMedicare=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+      const mcNumMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const mcIrmaaMagi=yr>=2&&magiHistory[yr-2]!=null?magiHistory[yr-2]:(agiMC+ssTaxMC);
       const mcIrmaa=mcNumMedicare>0?calcIRMAA(mcIrmaaMagi,filing,mcNumMedicare):0;
       const mcTax=mcTaxBase+mcIrmaa;
@@ -1361,7 +1362,7 @@ function addSpendPhase(age,amount){
     `<input type="number" class="sp-amt" value="${amount!=null?amount:''}" min="0" max="100000" step="500" placeholder="$/mo (0 = SS only)">`+
     `<span class="sp-label" style="min-width:20px">/mo</span>`+
     `<span class="sp-phase-tag">${getPhaseTag(age!=null?age:defaultAge)}</span>`+
-    `<button type="button" class="spend-phase-del" onclick="this.parentElement.remove()" title="Remove phase">\u00D7</button>`;
+    `<button type="button" class="spend-phase-del" onclick="this.parentElement.remove();saveSettings()" title="Remove phase">\u00D7</button>`;
   container.appendChild(row);
   /* Attach save listeners to dynamically added inputs */
   row.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',saveSettings));
@@ -1459,7 +1460,7 @@ function renderWithdrawals(){
   html+=`<span style="font-size:0.72em;color:var(--text-muted)">Monthly expenses in today's dollars (your age) · Leave empty for 4% rule</span>`;
   html+=`</div>`;
   html+=`<div id="spendPhasesContainer"></div>`;
-  html+=`<button type="button" class="spend-phase-add" onclick="addSpendPhase()">+ Add Phase</button>`;
+  html+=`<button type="button" class="spend-phase-add" onclick="addSpendPhase();saveSettings()">+ Add Phase</button>`;
   html+=`</div>`;
 
   html+=`</div>`;
@@ -1499,7 +1500,9 @@ function renderWithdrawals(){
   el.querySelectorAll('input,select').forEach(inp=>inp.addEventListener('change',saveSettings));
   /* Ensure at least one spending phase row exists if none were loaded from settings */
   const spContainer=document.getElementById('spendPhasesContainer');
-  if(spContainer&&spContainer.children.length===0) addSpendPhase(65,'');
+  const retEl2=document.getElementById('wdRetire');
+  const defRetAge=retEl2?parseInt(retEl2.value)||65:65;
+  if(spContainer&&spContainer.children.length===0) addSpendPhase(defRetAge,'');
 }
 
 /* ---- Account Selector helpers ---- */
@@ -1569,13 +1572,27 @@ function toggleAllAccounts(){
 
 function computeWithdrawalPlan(){
   try {
+  saveSettings();
   const curAge=parseInt(document.getElementById('wdAge').value);
   const retAge=parseInt(document.getElementById('wdRetire').value);
   const lifeExp=parseInt(document.getElementById('wdLife').value);
   const retPct=parseFloat(document.getElementById('wdReturn').value)/100;
   const volPct=parseFloat(document.getElementById('wdVol').value)/100;
   const inflPct=parseFloat(document.getElementById('wdInflation').value)/100;
-  const spendingPhases=getSpendPhases();
+  let spendingPhases=getSpendPhases();
+  /* If no spending phases or all amounts are 0, auto-populate a default phase */
+  if(!spendingPhases.some(p=>p.amount>0)){
+    const selectedNums=getSelectedAccountNums();
+    const bk=getAccountBuckets(selectedNums.size>0?selectedNums:null);
+    const yearsGrow=Math.max(0,(retAge||65)-(curAge||55));
+    const projTotal=(bk.taxable.total+bk.deferred.total+bk.roth.total+bk.hsa.total)*Math.pow(1+(retPct||0.07),yearsGrow);
+    const defaultMonthly=Math.round(projTotal*0.04/12/100)*100; /* 4% rule, rounded to nearest $100 */
+    const container=document.getElementById('spendPhasesContainer');
+    if(container) container.innerHTML='';
+    addSpendPhase(retAge||65, defaultMonthly||5000);
+    spendingPhases=getSpendPhases();
+    saveSettings();
+  }
   const hasPhases=spendingPhases.some(p=>p.amount>0);
   const filing=document.getElementById('wdFiling').value;
   const ssMonthly=parseFloat(document.getElementById('wdSSIncome').value)||0;
@@ -1698,7 +1715,7 @@ function computeWithdrawalPlan(){
     if(curTotal<=0){ /* portfolio depleted — SS still provides income */
       const ssTaxable=ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0;
       const ssTax=ssTaxable>0?calcTax(Math.max(0,ssTaxable-stdDeduction),brackets):0;
-      const depNumMedicare=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+      const depNumMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:ssTaxable;
       const depIrmaa=depNumMedicare>0?calcIRMAA(depIrmaaMagi,filing,depNumMedicare):0;
       const depTax=ssTax+depIrmaa;
@@ -1829,7 +1846,7 @@ function computeWithdrawalPlan(){
     /* IRMAA: Medicare surcharge based on MAGI (2-year lookback) */
     const magiForIRMAA=agiForSS+ssTaxableAmt; /* MAGI ≈ total AGI (ordinary + LTCG + taxable SS) */
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magiForIRMAA; /* 2-year lookback */
-    const numMedicare=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+    const numMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const irmaa=numMedicare>0?calcIRMAA(irmaaMagi,filing,numMedicare):0;
     const totalTax=totalTaxPreIRMAA+irmaa;
     /* HSA medical withdrawals and Roth are tax-free; SS after-tax is ssIncome-ssTax portion */
@@ -2394,7 +2411,7 @@ function renderWdTable(){
     if(curTotal<=0){
       const ssTaxable=ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0;
       const ssTax=ssTaxable>0?calcTax(Math.max(0,ssTaxable-stdDeduction),brackets):0;
-      const rdNumMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+      const rdNumMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const rdIrmaaMagi=i>=2&&rRows[i-2]?rRows[i-2]._magi:ssTaxable;
       const rdIrmaa=rdNumMed>0?calcIRMAA(rdIrmaaMagi,filing,rdNumMed):0;
       const rdTax=ssTax+rdIrmaa;
@@ -2477,7 +2494,7 @@ function renderWdTable(){
     const totalTaxPreIR=incTax+capTax+hsaPenalty;
     const recMagi=agiForSS+ssTaxAmt;
     const recIrmaaMagi=i>=2&&rRows[i-2]?rRows[i-2]._magi:recMagi;
-    const recNumMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+    const recNumMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const recIrmaa=recNumMed>0?calcIRMAA(recIrmaaMagi,filing,recNumMed):0;
     const totalTax=totalTaxPreIR+recIrmaa;
     const totalW=wTaxable+wDeferred+wRoth+wHSA+ssIncome;
@@ -2691,7 +2708,7 @@ function renderTaxLoss(){
     html+=`<div style="margin-bottom:24px">`;
     html+=`<h3 style="margin-bottom:12px">\u{1F534} Harvestable Loss Positions (Taxable Accounts Only)</h3>`;
     html+=`<div style="overflow-x:auto"><table class="wd-tbl" style="font-size:0.85em"><thead><tr>`;
-    html+=`<th title="Stock or fund ticker symbol">Symbol</th><th title="Full name of the security">Description</th><th title="The brokerage account holding this position">Account</th><th style="text-align:right" title="Current market value of the position">Current Value</th><th style="text-align:right" title="Original purchase price (what you paid). This is your tax basis for calculating gains/losses.">Cost Basis</th><th style="text-align:right" title="Current Value minus Cost Basis. Negative means the position is at a loss and potentially harvestable.">Unrealized Loss</th><th style="text-align:right" title="Loss as a percentage of cost basis. Larger negative % = deeper loss.">Loss %</th><th title="Suggested replacement funds that provide similar market exposure without triggering the IRS wash sale rule. These are from different fund families tracking similar indices.">Replacement Fund</th><th title="If this symbol is held in multiple accounts, selling in one and buying in another within 30 days triggers the IRS wash sale rule, disallowing the loss deduction.">Wash Sale Risk</th>`;
+    html+=`<th title="Stock or fund ticker symbol">Symbol</th><th title="Full name of the security">Description</th><th title="The brokerage account holding this position">Account</th><th style="text-align:right" title="Current market value of the position">Current Value</th><th style="text-align:right" title="Original purchase price (what you paid). This is your tax basis for calculating gains/losses.">Cost Basis</th><th style="text-align:right" title="Current Value minus Cost Basis. Negative means the position is at a loss and potentially harvestable.">Unrealized Loss</th><th style="text-align:right" title="Loss as a percentage of cost basis. Larger negative % = deeper loss.">Loss %</th><th title="Suggested replacement funds that provide similar market exposure without triggering the IRS wash sale rule. These are from different fund families tracking similar indices.">Replacement Fund</th><th title="Shows if this symbol is currently held in multiple accounts. NOTE: Wash sale rules apply across ALL accounts (taxable, IRA, Roth, spouse) for 30 days before/after sale. This column only detects current multi-account holdings, not recent purchase history.">Multi-Acct Holding</th>`;
     html+=`</tr></thead><tbody>`;
     taxableLosses.forEach(p=>{
       const isWash=washRiskSyms.has(p.sym);
@@ -2711,9 +2728,10 @@ function renderTaxLoss(){
     });
     html+=`</tbody></table></div></div>`;
   } else {
+    const hasTaxable=positions.some(p=>p.isTaxable);
     html+=`<div style="background:#f0fdf4;border:1px solid #bbf7d0;border-radius:8px;padding:20px;text-align:center;margin-bottom:24px">`;
-    html+=`<div style="font-size:1.2em;margin-bottom:4px">\u{2705} No harvestable losses</div>`;
-    html+=`<p style="color:#64748b">All positions in your taxable accounts are currently at a gain. No tax-loss harvesting opportunities at this time.</p>`;
+    html+=`<div style="font-size:1.2em;margin-bottom:4px">\u{2705} ${hasTaxable?'No harvestable losses':'No taxable accounts detected'}</div>`;
+    html+=`<p style="color:#64748b">${hasTaxable?'All positions in your taxable accounts are currently at a gain. No tax-loss harvesting opportunities at this time.':'Tax-loss harvesting only applies to taxable brokerage accounts (Individual, Joint). Tax-advantaged accounts (IRA, 401k, Roth, HSA) are not eligible.'}</p>`;
     html+=`</div>`;
   }
 
@@ -2767,7 +2785,7 @@ function renderTaxLoss(){
 
   // Disclaimer
   html+=`<div style="background:#f1f5f9;border-radius:8px;padding:16px;font-size:0.85em;color:#64748b">`;
-  html+=`<strong>Disclaimer:</strong> This analysis is for educational purposes only and does not constitute tax advice. Tax-loss harvesting involves complex IRS rules including wash sale regulations, constructive sale rules, and state-specific considerations. Consult a qualified tax professional before executing any tax-loss harvesting strategy. Cost basis data is from your brokerage export and should be verified.`;
+  html+=`<strong>Disclaimer:</strong> This analysis is for educational purposes only and does not constitute tax advice. Tax-loss harvesting involves complex IRS rules including wash sale regulations, constructive sale rules, and state-specific considerations. Consult a qualified tax professional before executing any tax-loss harvesting strategy. Cost basis data is from your brokerage export and should be verified. <strong>Tax rate assumptions:</strong> Savings are estimated at 15% LTCG and 22% ordinary income rates. Your actual rates may differ based on income level (LTCG could be 0% or 20%). State taxes and the 3.8% Net Investment Income Tax (NIIT) are not included. <strong>Custodial (UTMA) accounts:</strong> While taxable, UTMA accounts are subject to Kiddie Tax rules — consult a tax advisor for accounts held by minors.`;
   html+=`</div>`;
 
   html+=`</div>`;
@@ -2908,7 +2926,7 @@ function _scenarioSim(p){
         const depSTax=calcSSTaxableAmount(ssIncome,0,filing);
         const depTI=Math.max(0,depSTax-stdDed);
         depTax=calcTax(depTI,brackets);
-        const depNMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+        const depNMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
         if(depNMed>0) depTax+=calcIRMAA(depSTax,filing,depNMed);
       }
       cumTax+=depTax;
@@ -2923,7 +2941,7 @@ function _scenarioSim(p){
     const annMed=age>=65?5000*Math.pow(1+inflPct,age-curAge):0;
     if(age>=65&&bH>0){wHs=Math.min(annMed,bH,rem);rem-=wHs;}
     if(age>=RMD_AGE){wDf=Math.min(rmd,bD);rem-=wDf;if(rem>0){const ft=Math.min(rem,bT);wTx=ft;rem-=ft;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}}
-    else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(convLimit>0?convLimit:(filing==='mfj'?206700:103350))+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
+    else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(filing==='mfj'?206700:103350)+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
     if(rem>0&&bH>wHs){const mh=Math.min(rem,bH-wHs);wHs+=mh;rem-=mh;}
     let rothConv=0;
     const hsaNM=Math.max(0,wHs-annMed);
@@ -2943,7 +2961,7 @@ function _scenarioSim(p){
     const capTax=calcLTCG(Math.min(wTx,Math.max(0,totOrd+wTx-stdDed)),txInc,filing);
     const magi=agiSS+ssTxAmt;
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magi;
-    const nMed=(age>=65?1:0)+(hasSpouse&&spouseAge>=65?1:0);
+    const nMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const irmaa=nMed>0?calcIRMAA(irmaaMagi,filing,nMed):0;
     const totTax=incTax+capTax+hsaPen+irmaa;
     const totalW=wTx+wDf+wRo+wHs+ssIncome;
@@ -2995,6 +3013,8 @@ function runScenarioComparison(){
 
       const age=parseInt(saved.wdAge)||55;
       const life=parseInt(saved.wdLife)||95;
+      if(age>=retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be less than retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
+      if(life<retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be >= retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
       const ss=parseFloat(saved.wdSSIncome)||0;
       const filing=saved.wdFiling||'mfj';
       const hasSpouse=saved.wdSpouseToggle==='true'||saved.wdSpouseToggle===true;
@@ -3099,7 +3119,7 @@ function runScenarioComparison(){
       if(m.best){
         const numVals=results.map((r,i)=>{
           if(r.error) return null;
-          if(m.best==='max') return m.label.includes('Lasts')?r.depleteAge:m.label.includes('Monte')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
+          if(m.best==='max') return m.label.includes('Lasts')?(typeof r.depleteAge==='string'?parseInt(r.depleteAge)+0.5:r.depleteAge):m.label.includes('Monte')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
           else return m.label.includes('Taxes')?r.totalTax:m.label.includes('Eff')?r.effRate:0;
         });
         let bestVal=null;
@@ -3321,8 +3341,8 @@ function computeInsights(pivot){
       const grP = grVal/tTotal*100;
 
       if(g.type === 'Taxable Investment' || g.type.startsWith('Tax-Deferred')) {
-        if(hrP > 10) typeItems.push(`<strong>${g.type}</strong>: ${hrP.toFixed(1)}% in High Risk/Speculative (${fmt2(hrVal)}) — consider keeping speculative bets in Roth accounts where losses don\u0027t waste tax advantages.`);
-        if(grP > 60) typeItems.push(`<strong>${g.type}</strong>: ${grP.toFixed(1)}% in Growth stocks — heavy growth tilt; tax-inefficient due to low dividends and potential high capital gains.`);
+        if(hrP > 10) typeItems.push(`<strong>${esc(g.type)}</strong>: ${hrP.toFixed(1)}% in High Risk/Speculative (${fmt2(hrVal)}) — consider keeping speculative bets in Roth accounts where losses don\u0027t waste tax advantages.`);
+        if(grP > 60) typeItems.push(`<strong>${esc(g.type)}</strong>: ${grP.toFixed(1)}% in Growth stocks — heavy growth tilt; tax-inefficient due to low dividends and potential high capital gains.`);
       }
       if(g.type === 'Roth') {
         if(hrP < 5 && grP < 30) typeItems.push(`<strong>Roth</strong>: Only ${(hrP+grP).toFixed(1)}% in Growth + High Risk — Roth is ideal for aggressive/high-growth holdings since gains are tax-free. Consider moving growth stocks here.`);
@@ -3335,7 +3355,7 @@ function computeInsights(pivot){
     const acctByVal = {};
     DATA.forEach(d=>d.accounts.forEach(a=>{ acctByVal[a.num]=(acctByVal[a.num]||{name:a.name,val:0}); acctByVal[a.num].val+=a.val; }));
     Object.entries(acctByVal).sort((a,b)=>b[1].val-a[1].val).forEach(([num,o])=>{
-      if(o.val/GRAND>0.20) domItems.push(`Account <strong>${o.name}</strong> (#${num}) holds ${p(o.val)}% — if this account has limited beneficiary protections, consider diversifying across accounts.`);
+      if(o.val/GRAND>0.20) domItems.push(`Account <strong>${esc(o.name)}</strong> (#${esc(num)}) holds ${p(o.val)}% — if this account has limited beneficiary protections, consider diversifying across accounts.`);
     });
     if(domItems.length) insights.push({title:'Account Concentration', icon:'📋', sev:'low', items:domItems});
   }

@@ -203,7 +203,7 @@ if (-not $csvData -or $csvData.Count -eq 0) {
 }
 $hasAccountType = $csvData[0].PSObject.Properties.Name -contains 'Account Type'
 
-$holdings = @()
+$holdings = [System.Collections.Generic.List[PSCustomObject]]::new()
 
 foreach ($row in $csvData) {
     $sym = ($row.Symbol ?? '').Trim()
@@ -242,9 +242,9 @@ foreach ($row in $csvData) {
     $glStr  = ($row.'Total Gain/Loss Dollar'  ?? '').Trim()
     $glpStr = ($row.'Total Gain/Loss Percent' ?? '').Trim()
     $cbStr  = ($row.'Cost Basis Total'        ?? '').Trim()
-    $gainLoss    = if ($glStr  -and $glStr  -notin @('--','N/A','n/a')) { $neg2 = $glStr -match '^\(' -or $glStr -match '^-'; $v2 = [double]($glStr -replace '[$ ,()\-+]', ''); if ($neg2) { -$v2 } else { $v2 } } else { $null }
+    $gainLoss    = if ($glStr  -and $glStr  -notin @('--','N/A','n/a')) { $neg2 = $glStr -match '^\(' -or $glStr -match '^-' -or $glStr -match '^\$-' -or $glStr -match '^-\$'; $v2 = [double]($glStr -replace '[$ ,()\-+]', ''); if ($neg2) { -$v2 } else { $v2 } } else { $null }
     $gainLossPct = if ($glpStr -and $glpStr -notin @('--','N/A','n/a')) { [double]($glpStr -replace '[%+]', '') } else { $null }
-    $costBasis   = if ($cbStr  -and $cbStr  -notin @('--','N/A','n/a')) { $neg3 = $cbStr -match '^\(' -or $cbStr -match '^-' -or $cbStr -match '^\$-'; $v3 = [double]($cbStr -replace '[$ ,()\-]', ''); if ($neg3) { -$v3 } else { $v3 } } else { $null }
+    $costBasis   = if ($cbStr  -and $cbStr  -notin @('--','N/A','n/a')) { $neg3 = $cbStr -match '^\(' -or $cbStr -match '^-' -or $cbStr -match '^\$-' -or $cbStr -match '^-\$'; $v3 = [double]($cbStr -replace '[$ ,()\-]', ''); if ($neg3) { -$v3 } else { $v3 } } else { $null }
 
     # Determine category
     if ($CategoryMap.ContainsKey($sym)) {
@@ -273,7 +273,7 @@ foreach ($row in $csvData) {
             elseif ($cat -match 'Cash|Money') { '' }
             else { '' }
 
-    $holdings += [PSCustomObject]@{
+    $holdings.Add([PSCustomObject]@{
         AccountNumber = $acctNum
         AccountType   = $acctType
         AccountName   = $acctName
@@ -285,7 +285,7 @@ foreach ($row in $csvData) {
         GainLoss      = $gainLoss
         GainLossPct   = $gainLossPct
         CostBasis     = $costBasis
-    }
+    })
 }
 
 if ($holdings.Count -eq 0) {
