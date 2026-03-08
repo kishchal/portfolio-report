@@ -5,7 +5,7 @@ allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "4.0.0"
+  version: "4.1.0"
 ---
 
 # Portfolio Report Skill
@@ -168,7 +168,7 @@ An interactive HTML report featuring:
        - **PDF Export**: Print-optimized layout with parameter summary and chart labels
        - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
    - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary cards, harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags
-   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario state tax %, side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV), per-scenario metric charts with PV/FV toggle, PDF export, localStorage persistence
+   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). PDF export, localStorage persistence.
 4. **3-level drill-down cards**— click top-level group → see Accounts → click Account → see Tickers
 5. **Risk classification** — Individual stock tickers are grouped within each account by risk category:
    - **Blue Chip / Core** — Large, stable companies (AAPL, MSFT, JNJ, PG, WMT, etc.)

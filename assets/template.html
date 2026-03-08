@@ -1398,11 +1398,24 @@ function saveSettings(){
     /* Save scenario fields if on Scenarios tab */
     const scNameEl=document.getElementById('scName0');
     if(scNameEl){
-      const scKeys=['retire','life','spend','ssAge','ret','infl','conv','stax','Name'];
+      /* Save shared profile fields */
+      const sharedIds=['scSharedAge','scSharedFiling','scSharedVol','scSharedSpAge','scSharedSpLife','scSharedSpSS','scSharedSpSSAge'];
+      sharedIds.forEach(id=>{const el=document.getElementById(id);if(el) s[id]=el.type==='checkbox'?el.checked:el.value;});
+      const spCb=document.getElementById('scSharedSpouse');
+      if(spCb) s.scSharedSpouse=spCb.checked;
+
+      const scKeys=['retire','life','ssAge','ss','ret','infl','conv','stax','Name','customPct','convStart','convEnd'];
       const scData=[];
       for(let i=0;i<3;i++){
         const sc={};
         scKeys.forEach(k=>{const el=document.getElementById('sc'+k+i);if(el) sc[k]=el.value;});
+        /* Save spending phases */
+        const phAges=document.querySelectorAll(`#scPhasesList${i} .sc-phase-age`);
+        const phAmts=document.querySelectorAll(`#scPhasesList${i} .sc-phase-amt`);
+        if(phAges.length>0){
+          sc.phases=[];
+          phAges.forEach((el,pi)=>sc.phases.push({age:el.value||'55',amount:phAmts[pi]?.value||'0'}));
+        }
         scData.push(sc);
       }
       s._scenarios=scData;
@@ -1513,7 +1526,7 @@ function getAnnualExpenseForAge(age,phases){
     if(age>=p.age) applicable=p;
     else break;
   }
-  return applicable?applicable.amount*12:(phases.length>0?phases[0].amount*12:0);
+  return applicable?applicable.amount*12:0;
 }
 
 function renderWithdrawals(){
@@ -2137,7 +2150,7 @@ function computeWithdrawalPlan(){
     const noneRows=noneResult.sim.rows;
     /* Estimate future effective tax rate from no-conversion simulation */
     const wdRows=noneRows.filter(r=>r.age>=retAge&&r.tax>0);
-    const estRetireRate=wdRows.length>0?wdRows.reduce((s,r)=>s+r.tax,0)/wdRows.reduce((s,r)=>s+(r.totalW||0)+(r.ssIncome||0),0)||0:0;
+    const estRetireRate=wdRows.length>0?wdRows.reduce((s,r)=>s+r.tax,0)/wdRows.reduce((s,r)=>s+(r.totalW||0),0)||0:0;
     /* Find best BETR among all strategies with conversions */
     const convStrategies=optimizerResults.filter(r=>r.betr>0);
     const bestBETRStrategy=convStrategies.length>0?convStrategies.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,convStrategies[0]):null;
@@ -3005,40 +3018,73 @@ function renderScenarios(){
   };
   if(saved._spendPhases && saved._spendPhases.length>0){
     const first=saved._spendPhases[0];
-    if(first.amount) def.spend=parseInt(first.amount);
+    if(first.amount!=null) def.spend=parseInt(first.amount)||0;
   }
 
   let html=`<div style="text-align:right;margin:0 0 10px"><button class="export-pdf-btn" onclick="exportTabToPDF('scenarios')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button></div>`;
   html+=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F50D} What-If Scenario Comparator</h2>`;
-  html+=`<p style="color:#64748b;margin-bottom:20px">Compare up to 3 retirement scenarios side-by-side. Each scenario uses your current portfolio and account selection. Adjust the key variables below to see how different choices affect your retirement outcome.</p>`;
+  html+=`<p style="color:#64748b;margin-bottom:20px">Compare up to 3 retirement scenarios side-by-side. Each scenario uses your current portfolio. Adjust the key variables below to see how different choices affect your retirement outcome.</p>`;
+
+  /* Shared profile section — these apply to all scenarios */
+  const scAge=parseInt(saved.scSharedAge)||def.age;
+  const scFiling=saved.scSharedFiling||def.filing;
+  const scVol=saved.scSharedVol!=null?parseFloat(saved.scSharedVol):(parseFloat(saved.wdVol)||12);
+  const scSpouse=saved.scSharedSpouse===true||saved.scSharedSpouse==='true'||saved.wdSpouseToggle===true||saved.wdSpouseToggle==='true';
+  const scSpAge=saved.scSharedSpAge!=null?parseInt(saved.scSharedSpAge):(parseInt(saved.wdSpAge)||scAge);
+  const scSpLife=saved.scSharedSpLife!=null?parseInt(saved.scSharedSpLife):(parseInt(saved.wdSpLife)||95);
+  const scSpSS=saved.scSharedSpSS!=null?parseFloat(saved.scSharedSpSS):(parseFloat(saved.wdSpSSIncome)||0);
+  const scSpSSAge=saved.scSharedSpSSAge!=null?parseInt(saved.scSharedSpSSAge):(parseInt(saved.wdSpSSAge)||67);
+
+  html+=`<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 18px;margin-bottom:16px">`;
+  html+=`<div style="font-weight:600;font-size:0.95em;margin-bottom:10px">👤 Your Profile <span style="font-weight:400;color:#64748b;font-size:0.85em">(shared across all scenarios)</span></div>`;
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:16px;align-items:end">`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Current Age</label><input type="number" id="scSharedAge" value="${scAge}" min="25" max="85" onchange="saveSettings()" style="width:70px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Filing Status</label><select id="scSharedFiling" onchange="saveSettings()" style="padding:4px;border:1px solid #cbd5e1;border-radius:4px"><option value="mfj"${scFiling==='mfj'?' selected':''}>Married Filing Jointly</option><option value="single"${scFiling==='single'?' selected':''}>Single</option></select></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">MC Volatility (%)</label><input type="number" id="scSharedVol" value="${scVol}" min="1" max="40" step="1" onchange="saveSettings()" style="width:70px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151"><input type="checkbox" id="scSharedSpouse" ${scSpouse?'checked':''} onchange="document.getElementById('scSpouseSection').style.display=this.checked?'flex':'none';saveSettings()" style="margin-right:4px">Include Spouse</label></div>`;
+  html+=`</div>`;
+  html+=`<div id="scSpouseSection" style="display:${scSpouse?'flex':'none'};flex-wrap:wrap;gap:16px;align-items:end;margin-top:10px;padding-top:10px;border-top:1px solid #e2e8f0">`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Spouse Age</label><input type="number" id="scSharedSpAge" value="${scSpAge}" min="25" max="85" onchange="saveSettings()" style="width:70px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Spouse Life Expectancy</label><input type="number" id="scSharedSpLife" value="${scSpLife}" min="70" max="105" onchange="saveSettings()" style="width:70px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Spouse Monthly SS ($)</label><input type="number" id="scSharedSpSS" value="${scSpSS}" min="0" max="10000" step="100" onchange="saveSettings()" style="width:90px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`<div class="wd-field" style="margin-bottom:0"><label style="font-size:0.82em;font-weight:500;color:#374151">Spouse SS Age</label><input type="number" id="scSharedSpSSAge" value="${scSpSSAge}" min="62" max="70" onchange="saveSettings()" style="width:70px;padding:4px;border:1px solid #cbd5e1;border-radius:4px;text-align:center"></div>`;
+  html+=`</div></div>`;
 
   // Input grid — 3 columns
   const scenarios=['A','B','C'];
   const colors=['#2563eb','#7c3aed','#ea580c'];
+  const defBirthYr=(new Date()).getFullYear()-def.age;
+  const defRmdAge=defBirthYr>=1960?75:(defBirthYr<=1950?72:73);
+  const defConvEnd=defRmdAge-1;
   const presets=[
-    {label:'Base Case', retire:def.retire, spend:def.spend, life:def.life, ssAge:def.ssAge, ret:def.ret, infl:def.infl, conv:def.conv, stax:def.stax},
-    {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, life:def.life, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate', stax:def.stax},
-    {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), life:def.life, ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv, stax:def.stax},
+    {label:'Base Case', retire:def.retire, spend:def.spend, life:def.life, ss:def.ss, ssAge:def.ssAge, ret:def.ret, infl:def.infl, conv:def.conv, stax:def.stax, customPct:15, convStart:def.retire, convEnd:defConvEnd, phases:[{age:def.retire,amount:def.spend}]},
+    {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, life:def.life, ss:def.ss, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate', stax:def.stax, customPct:15, convStart:Math.max(def.age+1,def.retire-3), convEnd:defConvEnd, phases:[{age:Math.max(def.age+1,def.retire-3),amount:def.spend}]},
+    {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), life:def.life, ss:def.ss, ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv, stax:def.stax, customPct:15, convStart:def.retire, convEnd:defConvEnd, phases:[{age:def.retire,amount:Math.round(def.spend*0.75)}]},
   ];
   /* Restore saved scenario values if available */
   if(saved._scenarios&&Array.isArray(saved._scenarios)){
     saved._scenarios.forEach((sc,i)=>{
       if(i<3&&sc){
         if(sc.Name) presets[i].label=sc.Name;
-        if(sc.retire!=null) presets[i].retire=parseFloat(sc.retire);
-        if(sc.spend!=null) presets[i].spend=parseFloat(sc.spend);
-        if(sc.life!=null) presets[i].life=parseFloat(sc.life);
-        if(sc.ssAge!=null) presets[i].ssAge=parseFloat(sc.ssAge);
-        if(sc.ret!=null) presets[i].ret=parseFloat(sc.ret);
-        if(sc.infl!=null) presets[i].infl=parseFloat(sc.infl);
+        if(sc.retire!=null&&!isNaN(parseFloat(sc.retire))) presets[i].retire=parseFloat(sc.retire);
+        if(sc.spend!=null&&!isNaN(parseFloat(sc.spend))) presets[i].spend=parseFloat(sc.spend);
+        if(sc.life!=null&&!isNaN(parseFloat(sc.life))) presets[i].life=parseFloat(sc.life);
+        if(sc.ssAge!=null&&!isNaN(parseFloat(sc.ssAge))) presets[i].ssAge=parseFloat(sc.ssAge);
+        if(sc.ss!=null&&!isNaN(parseFloat(sc.ss))) presets[i].ss=parseFloat(sc.ss);
+        if(sc.ret!=null&&!isNaN(parseFloat(sc.ret))) presets[i].ret=parseFloat(sc.ret);
+        if(sc.infl!=null&&!isNaN(parseFloat(sc.infl))) presets[i].infl=parseFloat(sc.infl);
         if(sc.conv!=null) presets[i].conv=sc.conv;
-        if(sc.stax!=null) presets[i].stax=parseFloat(sc.stax);
+        if(sc.stax!=null&&!isNaN(parseFloat(sc.stax))) presets[i].stax=parseFloat(sc.stax);
+        if(sc.customPct!=null&&!isNaN(parseFloat(sc.customPct))) presets[i].customPct=parseFloat(sc.customPct);
+        if(sc.convStart!=null&&!isNaN(parseFloat(sc.convStart))) presets[i].convStart=parseFloat(sc.convStart);
+        if(sc.convEnd!=null&&!isNaN(parseFloat(sc.convEnd))) presets[i].convEnd=parseFloat(sc.convEnd);
+        if(sc.phases&&Array.isArray(sc.phases)&&sc.phases.length>0) presets[i].phases=sc.phases.map(p=>({age:parseFloat(p.age)||55,amount:parseFloat(p.amount)||0}));
       }
     });
   }
 
-  html+=`<div style="display:grid;grid-template-columns:180px repeat(3,1fr);gap:0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:24px;font-size:0.9em" id="scenGrid">`;
+  html+=`<div style="display:grid;grid-template-columns:180px repeat(3,1fr);gap:0;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;margin-bottom:0;font-size:0.9em" id="scenGrid">`;
   // Header row
   html+=`<div style="background:#f8fafc;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0">Parameter</div>`;
   scenarios.forEach((s,i)=>html+=`<div style="background:${colors[i]};color:white;padding:10px;font-weight:600;border-bottom:1px solid #e2e8f0;text-align:center">Scenario ${s}<br><input id="scName${i}" value="${esc(presets[i].label)}" onchange="saveSettings()" style="width:100%;margin-top:4px;text-align:center;border:1px solid rgba(255,255,255,0.3);border-radius:4px;background:rgba(255,255,255,0.15);color:white;padding:2px 4px;font-size:0.85em"></div>`);
@@ -3046,42 +3092,159 @@ function renderScenarios(){
   const fields=[
     {key:'retire', label:'Retirement Age',   type:'number', min:50, max:80},
     {key:'life',   label:'Life Expectancy',  type:'number', min:70, max:105},
-    {key:'spend',  label:'Monthly Spend ($)', type:'number', min:1000, max:50000, step:500},
     {key:'ssAge',  label:'SS Claiming Age',   type:'number', min:62, max:70},
+    {key:'ss',     label:'Monthly SS ($)',    type:'number', min:0, max:10000, step:100},
     {key:'ret',    label:'Annual Return (%)', type:'number', min:1, max:15, step:0.5},
     {key:'infl',   label:'Inflation (%)',     type:'number', min:1, max:8, step:0.5},
-    {key:'conv',   label:'Roth Strategy',     type:'select', options:[['none','None'],['conservative','Conservative 12%'],['moderate','Moderate 22%'],['aggressive','Aggressive 24%']]},
+    {key:'conv',   label:'Roth Strategy',     type:'select', options:[['none','None'],['conservative','Conservative 12%'],['moderate','Moderate 22%'],['aggressive','Aggressive 24%'],['custom','Custom…']]},
+    {key:'customPct', label:'Custom Bracket %', type:'number', min:1, max:37, step:1, conditional:'conv', showWhen:'custom'},
+    {key:'convStart', label:'Conv. Start Age',  type:'number', min:30, max:90, conditional:'conv', showWhen:'custom'},
+    {key:'convEnd',   label:'Conv. End Age',    type:'number', min:30, max:90, conditional:'conv', showWhen:'custom'},
     {key:'stax',   label:'State Tax (%)',     type:'number', min:0, max:13.3, step:0.5},
   ];
 
   fields.forEach(f=>{
-    html+=`<div style="background:#f8fafc;padding:10px;border-bottom:1px solid #e2e8f0;font-weight:500">${f.label}</div>`;
+    const condClass=f.conditional?` sc-cond-${f.conditional}`:'';
+    const condShow=f.showWhen||'';
+    html+=`<div class="sc-field-label${condClass}" data-showwhen="${condShow}" style="background:#f8fafc;padding:10px;border-bottom:1px solid #e2e8f0;font-weight:500${f.conditional?';display:none':''}${f.conditional?';color:#6b7280;font-size:0.92em':''}${f.conditional?';padding-left:24px':''}">${f.conditional?'↳ ':''}${f.label}</div>`;
     scenarios.forEach((s,i)=>{
       const val=presets[i][f.key];
       if(f.type==='select'){
-        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><select id="sc${f.key}${i}" onchange="saveSettings()" style="width:90%;padding:4px;border:1px solid #cbd5e1;border-radius:4px">`;
+        html+=`<div class="sc-field-cell${condClass}" data-showwhen="${condShow}" style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center${f.conditional?';display:none':''}"><select id="sc${f.key}${i}" onchange="_scConvChanged(${i});saveSettings()" style="width:90%;padding:4px;border:1px solid #cbd5e1;border-radius:4px">`;
         f.options.forEach(([v,l])=>html+=`<option value="${v}"${val===v?' selected':''}>${l}</option>`);
         html+=`</select></div>`;
       } else {
-        html+=`<div style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center"><input type="number" id="sc${f.key}${i}" value="${val}" min="${f.min||''}" max="${f.max||''}" step="${f.step||1}" onchange="saveSettings()" style="width:80px;text-align:center;padding:4px;border:1px solid #cbd5e1;border-radius:4px"></div>`;
+      html+=`<div class="sc-field-cell${condClass}" data-showwhen="${condShow}" data-sc="${i}" style="padding:8px;border-bottom:1px solid #e2e8f0;text-align:center${f.conditional?';display:none':''}"><input type="number" id="sc${f.key}${i}" value="${val}" min="${f.min||''}" max="${f.max||''}" step="${f.step||1}" onchange="saveSettings()" style="width:80px;text-align:center;padding:4px;border:1px solid #cbd5e1;border-radius:4px"></div>`;
       }
     });
   });
   html+=`</div>`;
+
+  /* Spending Phases section — below the grid */
+  html+=`<div style="border:1px solid #e2e8f0;border-top:none;border-radius:0 0 8px 8px;margin-bottom:24px;padding:14px 16px;background:#fafbfc" id="scenPhases">`;
+  html+=`<div style="font-weight:600;font-size:0.9em;margin-bottom:10px">📋 Spending Phases <span style="font-weight:400;color:#64748b;font-size:0.85em">(monthly, in today's dollars — inflation-adjusted automatically)</span></div>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px">`;
+  scenarios.forEach((s,i)=>{
+    html+=`<div style="background:white;border:1px solid #e2e8f0;border-radius:6px;padding:10px" id="scPhasesCol${i}">`;
+    html+=`<div style="font-weight:600;font-size:0.82em;color:${colors[i]};margin-bottom:8px">Scenario ${s}</div>`;
+    html+=`<div id="scPhasesList${i}">`;
+    presets[i].phases.forEach((ph,pi)=>{
+      html+=`<div class="sc-phase-row" style="display:flex;gap:6px;align-items:center;margin-bottom:4px">`;
+      html+=`<label style="font-size:0.78em;color:#64748b;width:28px">Age</label><input type="number" class="sc-phase-age" data-sc="${i}" data-ph="${pi}" value="${ph.age}" min="30" max="100" style="width:50px;padding:3px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:0.85em" onchange="_scPhaseChanged();saveSettings()">`;
+      html+=`<label style="font-size:0.78em;color:#64748b;width:18px">$</label><input type="number" class="sc-phase-amt" data-sc="${i}" data-ph="${pi}" value="${ph.amount}" min="0" max="50000" step="500" style="width:70px;padding:3px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:0.85em" onchange="_scPhaseChanged();saveSettings()">`;
+      html+=`<span style="font-size:0.75em;color:#94a3b8">/mo</span>`;
+      if(pi>0) html+=`<button onclick="this.parentElement.remove();saveSettings()" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:0.9em;padding:0 4px" title="Remove phase">✕</button>`;
+      else html+=`<span style="width:22px"></span>`;
+      html+=`</div>`;
+    });
+    html+=`</div>`;
+    html+=`<button onclick="_scAddPhase(${i})" style="border:1px dashed #cbd5e1;background:none;padding:3px 10px;border-radius:4px;cursor:pointer;font-size:0.78em;color:#64748b;margin-top:4px">+ Add Phase</button>`;
+    html+=`</div>`;
+  });
+  html+=`</div></div>`;
 
   html+=`<div style="text-align:center;margin-bottom:24px"><button onclick="runScenarioComparison()" class="wd-btn" style="padding:12px 32px;font-size:1.05em">\u{1F680} Compare Scenarios</button></div>`;
   html+=`<div id="scenResults"></div>`;
 
   html+=`</div>`;
   el.innerHTML=html;
+
+  /* Show/hide custom Roth fields based on current selection */
+  window._scConvChanged=function(i){
+    const sel=document.getElementById('scconv'+i);
+    if(!sel) return;
+    /* Show conditional rows if ANY scenario is custom (for the label column) */
+    const anyCustom=[0,1,2].some(j=>{const s=document.getElementById('scconv'+j);return s&&s.value==='custom';});
+    document.querySelectorAll('.sc-cond-conv.sc-field-label').forEach(el=>{el.style.display=anyCustom?'':'none';});
+    /* Per-cell: show input cell only if THAT scenario is custom, otherwise show empty placeholder */
+    document.querySelectorAll('.sc-cond-conv.sc-field-cell').forEach(el=>{
+      const sc=el.getAttribute('data-sc');
+      const selJ=document.getElementById('scconv'+sc);
+      const isCustom=selJ&&selJ.value==='custom';
+      el.style.display=anyCustom?'':'none';
+      const inp=el.querySelector('input');
+      if(inp) inp.style.visibility=isCustom?'visible':'hidden';
+    });
+  };
+  /* Initialize visibility */
+  [0,1,2].forEach(i=>window._scConvChanged(i));
+
+  /* Spending phase helpers */
+  window._scGetPhases=function(){
+    const phases=[[],[],[]];
+    for(let i=0;i<3;i++){
+      const ages=document.querySelectorAll(`#scPhasesList${i} .sc-phase-age`);
+      const amts=document.querySelectorAll(`#scPhasesList${i} .sc-phase-amt`);
+      ages.forEach((el,pi)=>{
+        phases[i].push({age:parseInt(el.value)||55,amount:parseInt(amts[pi]?.value)||5000});
+      });
+      if(phases[i].length===0) phases[i].push({age:55,amount:5000});
+    }
+    return phases;
+  };
+  window._scPhaseChanged=function(){};
+  window._scAddPhase=function(scIdx){
+    const list=document.getElementById('scPhasesList'+scIdx);
+    if(!list) return;
+    const existing=list.querySelectorAll('.sc-phase-row');
+    const lastAge=existing.length>0?parseInt(existing[existing.length-1].querySelector('.sc-phase-age')?.value)||65:65;
+    const lastAmt=existing.length>0?parseInt(existing[existing.length-1].querySelector('.sc-phase-amt')?.value)||5000:5000;
+    const pi=existing.length;
+    const row=document.createElement('div');
+    row.className='sc-phase-row';
+    row.style.cssText='display:flex;gap:6px;align-items:center;margin-bottom:4px';
+    row.innerHTML=`<label style="font-size:0.78em;color:#64748b;width:28px">Age</label><input type="number" class="sc-phase-age" data-sc="${scIdx}" data-ph="${pi}" value="${lastAge+10}" min="30" max="100" style="width:50px;padding:3px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:0.85em" onchange="saveSettings()"><label style="font-size:0.78em;color:#64748b;width:18px">$</label><input type="number" class="sc-phase-amt" data-sc="${scIdx}" data-ph="${pi}" value="${Math.round(lastAmt*0.8)}" min="0" max="50000" step="500" style="width:70px;padding:3px;border:1px solid #cbd5e1;border-radius:4px;text-align:center;font-size:0.85em" onchange="saveSettings()"><span style="font-size:0.75em;color:#94a3b8">/mo</span><button onclick="this.parentElement.remove();saveSettings()" style="border:none;background:none;color:#dc2626;cursor:pointer;font-size:0.9em;padding:0 4px" title="Remove phase">✕</button>`;
+    list.appendChild(row);
+    row.querySelectorAll('input').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
+    saveSettings();
+  };
+  window._scRemovePhase=function(scIdx,phIdx){
+    const list=document.getElementById('scPhasesList'+scIdx);
+    if(!list) return;
+    const rows=list.querySelectorAll('.sc-phase-row');
+    if(rows[phIdx]) rows[phIdx].remove();
+    saveSettings();
+  };
+
+  /* Global chart controls */
+  window._scGlobalCharts=true;
+  window._scToggleGlobalCharts=function(isGlobal){
+    window._scGlobalCharts=isGlobal;
+    const globalCtrl=document.getElementById('sc-global-chart-ctrl');
+    const perCharts=document.querySelectorAll('.sc-per-chart-ctrl');
+    if(globalCtrl) globalCtrl.style.display=isGlobal?'flex':'none';
+    perCharts.forEach(el=>{el.style.display=isGlobal?'none':'';});
+    const gBtn=document.getElementById('sc-global-btn');
+    const iBtn=document.getElementById('sc-indiv-btn');
+    if(gBtn){gBtn.style.background=isGlobal?'#1e40af':'white';gBtn.style.color=isGlobal?'white':'#64748b';}
+    if(iBtn){iBtn.style.background=isGlobal?'white':'#1e40af';iBtn.style.color=isGlobal?'#64748b':'white';}
+  };
+  window._scGlobalSwitchChart=function(idx){
+    Object.keys(window._chartRegistry).forEach(cid=>{
+      if(cid.startsWith('sc-chart-')) switchChart(cid,idx);
+    });
+    document.querySelectorAll('.sc-global-tab').forEach((b,i)=>{
+      b.style.background=i===idx?'#1e40af':'#e2e8f0';
+      b.style.color=i===idx?'white':'#64748b';
+    });
+  };
+  window._scGlobalTogglePV=function(pv){
+    Object.keys(window._chartRegistry).forEach(cid=>{
+      if(cid.startsWith('sc-chart-')) toggleChartPV(cid,pv);
+    });
+    const fvB=document.getElementById('sc-global-fv-btn'),pvB=document.getElementById('sc-global-pv-btn');
+    if(fvB){fvB.style.background=pv?'white':'#1e40af';fvB.style.color=pv?'#64748b':'white';}
+    if(pvB){pvB.style.background=pv?'#7c3aed':'white';pvB.style.color=pv?'white':'#64748b';}
+  };
+
   /* Auto-save scenario fields on any input change */
-  el.querySelectorAll('#scenGrid input, #scenGrid select').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
+  el.querySelectorAll('#scenGrid input, #scenGrid select, #scenPhases input, #scSharedAge, #scSharedFiling, #scSharedVol, #scSharedSpouse, #scSharedSpAge, #scSharedSpLife, #scSharedSpSS, #scSharedSpSSAge').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
 }
 
 function _scenarioSim(p){
   const {curAge,retAge,lifeExp,retPct,inflPct,filing,ssMonthly,ssStartAge,
     rothConvStrategy,convStartAge,convEndAge,bTaxableInit,bDeferredInit,bRothInit,bHSAInit,
-    hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,spendPhases}=p;
+    hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,spendPhases,customBracketLimit}=p;
   const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
   const birthYear=(new Date()).getFullYear()-curAge;
   const RMD_AGE=birthYear>=1960?75:(birthYear<=1950?72:73);
@@ -3089,7 +3252,7 @@ function _scenarioSim(p){
   const planEndAge=hasSpouse?Math.max(lifeExp,curAge+(spLifeExp-spAge)):lifeExp;
   const yearsInRetirement=planEndAge-retAge+1;
   const CONV_LIMITS={none:0,conservative:filing==='mfj'?96950:48475,moderate:filing==='mfj'?206700:103350,aggressive:filing==='mfj'?394600:197300};
-  const convLimit=CONV_LIMITS[rothConvStrategy]||0;
+  const convLimit=rothConvStrategy==='custom'?(customBracketLimit||0):(CONV_LIMITS[rothConvStrategy]||0);
   const ssAnnualFRA=ssMonthly*12;
   const spSSAnnualFRA=(spSSMonthly||0)*12;
   const spAgeOffset=hasSpouse?(spAge-curAge):0;
@@ -3147,9 +3310,11 @@ function _scenarioSim(p){
       if(rothConv>0){
         totalConversions+=rothConv;
         /* Estimate conv tax as difference in tax with/without conversion */
-        const ordBConly=wDf+(ssIncome>0?calcSSTaxableAmount(ssIncome,wDf+wTx+hsaNM,filing):0)+hsaNM;
-        const txWithout=calcTax(Math.max(0,ordBConly+(ssIncome>0?calcSSTaxableAmount(ssIncome,ordBConly+wTx,filing):0)-stdDed),brackets);
-        const txWith=calcTax(Math.max(0,ordBConly+rothConv+(ssIncome>0?calcSSTaxableAmount(ssIncome,ordBConly+rothConv+wTx,filing):0)-stdDed),brackets);
+        const ordBase=wDf+hsaNM;
+        const ssWithout=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+wTx,filing):0;
+        const txWithout=calcTax(Math.max(0,ordBase+ssWithout-stdDed),brackets);
+        const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+rothConv+wTx,filing):0;
+        const txWith=calcTax(Math.max(0,ordBase+rothConv+ssWithConv-stdDed),brackets);
         cumConvTax+=(txWith-txWithout)+rothConv*(p.stateTaxPct||0);
       }
     }
@@ -3185,12 +3350,24 @@ function _scenarioSim(p){
   return {rows,cumTax,totalConversions,cumConvTax};
 }
 
+/* Compute bracket limit for custom percentage Roth conversion */
+function _computeCustomBracketLimit(pct, filing){
+  const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
+  /* Match the approach used in the Withdrawals tab: find largest rate <= pct */
+  const rate=pct/100;
+  let customLimit=brackets[0].limit;
+  for(const b of brackets){ if(b.rate<=rate+0.001&&isFinite(b.limit)) customLimit=b.limit; }
+  return customLimit;
+}
+
 function runScenarioComparison(){
   const resultsEl=document.getElementById('scenResults');
   if(!resultsEl) return;
   resultsEl.innerHTML='<div style="text-align:center;padding:40px;color:#64748b"><div style="font-size:2em">⏳</div>Running 3 scenarios (1,000 Monte Carlo sims each)...</div>';
 
   setTimeout(()=>{
+    /* Clear stale scenario chart entries from registry */
+    if(window._chartRegistry){ Object.keys(window._chartRegistry).forEach(k=>{if(k.startsWith('sc-chart-')) delete window._chartRegistry[k];}); }
     const raw=localStorage.getItem(SETTINGS_KEY);
     let saved={};try{saved=raw?JSON.parse(raw):{};}catch(e){saved={};}
     /* Get selected accounts: prefer DOM checkboxes if present, else use saved selection, else all */
@@ -3198,7 +3375,12 @@ function runScenarioComparison(){
     const acctCbs=document.querySelectorAll('.acct-sel-cb');
     if(acctCbs.length>0){ selectedNums=getSelectedAccountNums(); }
     else if(saved._selectedAccounts&&saved._selectedAccounts.length>0){ selectedNums=new Set(saved._selectedAccounts); }
-    const buckets=getAccountBuckets(selectedNums);
+    let buckets=getAccountBuckets(selectedNums);
+    /* If saved selection yields zero balances (e.g., stale account numbers from a different report), fall back to all accounts */
+    if(selectedNums&&(buckets.taxable.total+buckets.deferred.total+buckets.roth.total+buckets.hsa.total)<=0){
+      selectedNums=null;
+      buckets=getAccountBuckets(null);
+    }
     if(!buckets||((buckets.taxable.total+buckets.deferred.total+buckets.roth.total+buckets.hsa.total)<=0)){resultsEl.innerHTML='<p style="color:#dc2626">Error: No retirement account balances found. Ensure your portfolio has accounts with holdings.</p>';return;}
 
     const results=[];
@@ -3207,24 +3389,39 @@ function runScenarioComparison(){
     for(let i=0;i<3;i++){
       const retire=parseInt(document.getElementById('scretire'+i)?.value)||65;
       const life=parseInt(document.getElementById('sclife'+i)?.value)||95;
-      const spend=parseInt(document.getElementById('scspend'+i)?.value)||5000;
       const ssAge=parseInt(document.getElementById('scssAge'+i)?.value)||67;
       const ret=parseFloat(document.getElementById('scret'+i)?.value)||7;
       const infl=parseFloat(document.getElementById('scinfl'+i)?.value)||3;
       const conv=document.getElementById('scconv'+i)?.value||'none';
       const stax=parseFloat(document.getElementById('scstax'+i)?.value)||0;
+      const customPct=parseFloat(document.getElementById('sccustomPct'+i)?.value)||15;
+      const convStartIn=parseInt(document.getElementById('scconvStart'+i)?.value);
+      const convEndIn=parseInt(document.getElementById('scconvEnd'+i)?.value);
       const name=document.getElementById('scName'+i)?.value||'Scenario '+'ABC'[i];
 
-      const age=parseInt(saved.wdAge)||55;
-      if(age>=retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be less than retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
-      if(life<=retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be > retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
-      const ss=parseFloat(saved.wdSSIncome)||0;
-      const filing=saved.wdFiling||'mfj';
-      const hasSpouse=saved.wdSpouseToggle==='true'||saved.wdSpouseToggle===true;
-      const spAge=parseInt(saved.wdSpAge)||age;
-      const spLife=parseInt(saved.wdSpLife)||life;
-      const spSS=parseFloat(saved.wdSpSSIncome)||0;
-      const spSSAge=parseInt(saved.wdSpSSAge)||67;
+      /* Read spending phases for this scenario */
+      const phAges=document.querySelectorAll(`#scPhasesList${i} .sc-phase-age`);
+      const phAmts=document.querySelectorAll(`#scPhasesList${i} .sc-phase-amt`);
+      let phases=[];
+      phAges.forEach((el,pi)=>{
+        const a=parseInt(el.value), m=parseInt(phAmts[pi]?.value);
+        if(!isNaN(a)&&!isNaN(m)) phases.push({age:a,amount:m});
+      });
+      if(phases.length===0) phases=[{age:retire,amount:presets[i].spend||5000}];
+      /* Sort phases by age */
+      phases.sort((a,b)=>a.age-b.age);
+      const spend=phases[0].amount;
+
+      const age=parseInt(document.getElementById('scSharedAge')?.value)||55;
+      if(age>=retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be less than retirement age ('+retire+').'});continue;}
+      if(life<=retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be > retirement age ('+retire+').'});continue;}
+      const ss=parseFloat(document.getElementById('scss'+i)?.value)||0;
+      const filing=document.getElementById('scSharedFiling')?.value||'mfj';
+      const hasSpouse=document.getElementById('scSharedSpouse')?.checked||false;
+      const spAge=parseInt(document.getElementById('scSharedSpAge')?.value)||age;
+      const spLife=parseInt(document.getElementById('scSharedSpLife')?.value)||life;
+      const spSS=parseFloat(document.getElementById('scSharedSpSS')?.value)||0;
+      const spSSAge=parseInt(document.getElementById('scSharedSpSSAge')?.value)||67;
       const yearsToRetire=retire-age;
       const retPct=ret/100;
 
@@ -3232,21 +3429,25 @@ function runScenarioComparison(){
       const bDI=buckets.deferred.total*Math.pow(1+retPct,yearsToRetire);
       const bRI=buckets.roth.total*Math.pow(1+retPct,yearsToRetire);
       const bHI=buckets.hsa.total*Math.pow(1+retPct,yearsToRetire);
-      const phases=[{age:retire,amount:spend}];
 
+      /* Compute custom bracket limit for custom strategy */
       const birthYr=(new Date()).getFullYear()-age;
       const dynRmdAge=birthYr>=1960?75:(birthYr<=1950?72:73);
+      const customBracketLimitVal=conv==='custom'?_computeCustomBracketLimit(customPct,filing):0;
+      const scConvStart=conv==='custom'&&!isNaN(convStartIn)?convStartIn:retire;
+      const scConvEnd=conv==='custom'&&!isNaN(convEndIn)?convEndIn:(dynRmdAge-1);
 
       try{
         const sim=_scenarioSim({
           curAge:age,retAge:retire,lifeExp:life,retPct:retPct,inflPct:infl/100,filing:filing,
-          ssMonthly:ss,ssStartAge:ssAge,rothConvStrategy:conv,
-          convStartAge:parseInt(saved.wdConvStartAge)||retire,
-          convEndAge:parseInt(saved.wdConvEndAge)||(dynRmdAge-1),
+          ssMonthly:ss,ssStartAge:ssAge,rothConvStrategy:conv==='custom'?'custom':conv,
+          convStartAge:scConvStart,
+          convEndAge:Math.min(scConvEnd,dynRmdAge-1),
           bTaxableInit:bTI,bDeferredInit:bDI,bRothInit:bRI,bHSAInit:bHI,
           hasSpouse:hasSpouse,spAge:spAge,spLifeExp:spLife,
           spSSMonthly:spSS,spSSStartAge:spSSAge,spendPhases:phases,
           stateTaxPct:stax/100,
+          customBracketLimit:customBracketLimitVal,
         });
 
         const rows=sim.rows;
@@ -3259,11 +3460,12 @@ function runScenarioComparison(){
         const effRate=yr1&&yr1.totalIncome>0?(yr1.tax/yr1.totalIncome*100):0;
 
         /* Run Monte Carlo for this scenario */
-        const vol=parseFloat(saved.wdVol)||12;
+        const vol=parseFloat(document.getElementById('scSharedVol')?.value)||12;
         const birthYear=(new Date()).getFullYear()-age;
         const mcRMD=birthYear>=1960?75:(birthYear<=1950?72:73);
         const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
         const CONV_LIMITS={none:0,conservative:filing==='mfj'?96950:48475,moderate:filing==='mfj'?206700:103350,aggressive:filing==='mfj'?394600:197300};
+        const mcConvLimit=conv==='custom'?customBracketLimitVal:(CONV_LIMITS[conv]||0);
         const totalAtRetire=bTI+bDI+bRI+bHI;
         const planEndAge=hasSpouse?Math.max(life,age+(spLife-spAge)):life;
         const mc=runMonteCarlo({
@@ -3273,8 +3475,8 @@ function runScenarioComparison(){
           ssAnnualFRA:ss*12, ssStartAge:ssAge, spSSAnnualFRA:spSS*12, spSSStartAge:spSSAge,
           hasSpouse:hasSpouse, spAgeOffset:hasSpouse?(spAge-age):0, lifeExp:life, spLifeExp:spLife,
           curAge:age, spAge:spAge,
-          rothConvStrategy:conv, convBracketLimit:CONV_LIMITS[conv]||0, brackets:brackets,
-          RMD_START_AGE:mcRMD, spendingPhases:phases, hasPhases:true,
+          rothConvStrategy:conv, convBracketLimit:mcConvLimit, brackets:brackets,
+          RMD_START_AGE:mcRMD, spendingPhases:phases, hasPhases:phases.some(p=>p.amount>0),
           stateTaxPct:stax/100,
         });
 
@@ -3282,11 +3484,11 @@ function runScenarioComparison(){
         const mcEndSorted=[...mc.endingBalances].sort((a,b)=>a-b);
         function scPctile(arr,p){ const n=arr.length; if(!n) return 0; const idx=(n-1)*p; const lo=Math.floor(idx); const hi=Math.ceil(idx); return lo===hi?arr[lo]:arr[lo]*(hi-idx)+arr[hi]*(idx-lo); }
         const mcMedian=scPctile(mcEndSorted,0.5), mc10=scPctile(mcEndSorted,0.1), mc90=scPctile(mcEndSorted,0.9);
-        const scPvFactor=1/Math.pow(1+infl/100,life-age);
+        const scPvFactor=1/Math.pow(1+infl/100,planEndAge-age);
 
         results.push({
-          name:name, color:colors[i], retire:retire, life:life, spend:spend, ssAge:ssAge,
-          ret:ret, infl:infl, conv:conv, stax:stax,
+          name:name, color:colors[i], retire:retire, life:life, spend:spend, ss:ss, ssAge:ssAge,
+          ret:ret, infl:infl, conv:conv, stax:stax, phases:phases,
           depleteAge:depleteAge?depleteAge.age:life+'+',
           endBal:endBal, totalAfterTax:totalAfterTax, totalTax:totalTax,
           effRate:effRate, mcSuccess:mc.successRate,
@@ -3313,11 +3515,12 @@ function runScenarioComparison(){
     const metrics=[
       {label:'Retirement Age',          fn:r=>r.error?'—':r.retire},
       {label:'Life Expectancy',          fn:r=>r.error?'—':r.life},
-      {label:'Monthly Spending',        fn:r=>r.error?'—':'$'+r.spend.toLocaleString()},
+      {label:'Spending Plan',           fn:r=>{if(r.error)return '—';if(!r.phases||r.phases.length<=1)return '$'+r.spend.toLocaleString()+'/mo';return r.phases.map(p=>'Age '+p.age+': $'+p.amount.toLocaleString()+'/mo').join('<br>');}},
       {label:'SS Claiming Age',         fn:r=>r.error?'—':r.ssAge},
+      {label:'Monthly SS Income',       fn:r=>r.error?'—':'$'+r.ss.toLocaleString()},
       {label:'Annual Return',           fn:r=>r.error?'—':r.ret+'%'},
       {label:'Inflation',               fn:r=>r.error?'—':r.infl+'%'},
-      {label:'Roth Strategy',           fn:r=>r.error?'—':r.conv},
+      {label:'Roth Strategy',           fn:r=>r.error?'—':(r.conv==='custom'?'Custom':r.conv)},
       {label:'State Tax Rate',           fn:r=>r.error?'—':r.stax+'%'},
       {label:'Portfolio Lasts Until',   fn:r=>r.error?'Error':'Age '+r.depleteAge, best:'max'},
       {label:'Monte Carlo Success',     fn:r=>r.error?'—':r.mcSuccess.toFixed(0)+'%', best:'max'},
@@ -3330,8 +3533,8 @@ function runScenarioComparison(){
       {label:'Effective Tax Rate (Yr 1)',fn:r=>r.error?'—':r.effRate.toFixed(1)+'%', best:'min'},
       {label:'Ending Balance',          fn:r=>r.error?'—':fmt2(r.endBal)+' <span style="color:#7c3aed;font-size:0.85em">(PV: '+fmt2(r.endBal*r.pvFactor)+')</span>', best:'max'},
       {label:'Total Roth Converted',    fn:r=>r.error||!r.totalConversions?'—':fmt2(r.totalConversions)},
-      {label:'Conversion Tax Paid',     fn:r=>r.error||!r.cumConvTax?'—':fmt2(r.cumConvTax), best:'min', numFn:r=>r.cumConvTax||Infinity},
-      {label:'📊 BETR (Break-Even Rate)',fn:r=>r.error||!r.betr?'—':'<span style="color:#065f46;font-weight:600">'+(r.betr*100).toFixed(1)+'%</span>', best:'min', numFn:r=>r.betr||Infinity},
+      {label:'Conversion Tax Paid',     fn:r=>r.error||!r.totalConversions?'—':fmt2(r.cumConvTax), best:'min', numFn:r=>r.totalConversions?r.cumConvTax:null},
+      {label:'📊 BETR (Break-Even Rate)',fn:r=>r.error||!r.betr?'—':'<span style="color:#065f46;font-weight:600">'+(r.betr*100).toFixed(1)+'%</span>', best:'min', numFn:r=>r.totalConversions?r.betr:null},
     ];
 
     metrics.forEach(m=>{
@@ -3342,7 +3545,7 @@ function runScenarioComparison(){
         const numVals=results.map((r,i)=>{
           if(r.error) return null;
           if(m.numFn) return m.numFn(r);
-          if(m.best==='max') return m.label.includes('Lasts')?(typeof r.depleteAge==='string'?parseInt(r.depleteAge)+0.5:r.depleteAge):m.label.includes('Monte Carlo')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
+          if(m.best==='max') return m.label.includes('Lasts')?(typeof r.depleteAge==='string'?Infinity:r.depleteAge):m.label.includes('Monte Carlo')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
           else return m.label.includes('Taxes')?r.totalTax:m.label.includes('Eff')?r.effRate:0;
         });
         let bestVal=null;
@@ -3364,9 +3567,27 @@ function runScenarioComparison(){
     // Per-scenario interactive metric charts
     const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
     if(validResults.length>0){
+      /* Global vs Individual chart control toggle */
+      const chartLabels=['Total Balance','Annual Taxes','After-Tax Income','Account Balances'];
+      out+=`<h3 style="margin:24px 0 8px">\u{1F4CA} Chart Controls</h3>`;
+      out+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">`;
+      out+=`<button id="sc-global-btn" onclick="_scToggleGlobalCharts(true)" style="padding:4px 14px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.82em;font-weight:600;cursor:pointer;background:#1e40af;color:white">Apply to All</button>`;
+      out+=`<button id="sc-indiv-btn" onclick="_scToggleGlobalCharts(false)" style="padding:4px 14px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.82em;font-weight:600;cursor:pointer;background:white;color:#64748b">Individual</button>`;
+      out+=`</div>`;
+      /* Global controls (shown by default — Apply to All is default) */
+      out+=`<div id="sc-global-chart-ctrl" style="display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px;padding:10px 14px;background:#f1f5f9;border-radius:6px;border:1px solid #e2e8f0">`;
+      out+=`<span style="font-size:0.8em;font-weight:600;color:var(--text-muted)">Show values in:</span>`;
+      out+=`<button id="sc-global-fv-btn" onclick="_scGlobalTogglePV(false)" style="padding:4px 12px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.8em;font-weight:600;cursor:pointer;background:#1e40af;color:white">Future Value</button>`;
+      out+=`<button id="sc-global-pv-btn" onclick="_scGlobalTogglePV(true)" style="padding:4px 12px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.8em;font-weight:600;cursor:pointer;background:white;color:#64748b">Present Value</button>`;
+      out+=`<span style="margin-left:12px;font-size:0.8em;font-weight:600;color:var(--text-muted)">Chart:</span>`;
+      chartLabels.forEach((lbl,idx)=>{
+        out+=`<button class="sc-global-tab" onclick="_scGlobalSwitchChart(${idx})" style="padding:4px 12px;border-radius:4px;border:none;font-size:0.78em;font-weight:600;cursor:pointer;background:${idx===0?'#1e40af':'#e2e8f0'};color:${idx===0?'white':'#64748b'}">${lbl}</button>`;
+      });
+      out+=`</div>`;
+
       /* Per-scenario interactive metric charts */
       validResults.forEach((r,ri)=>{
-        const scAge=parseInt(saved.wdAge)||55;
+        const scAge=parseInt(document.getElementById('scSharedAge')?.value)||55;
         const scYearsToRetire=r.retire-scAge;
         const scInflPct=r.infl/100;
         const scSeries=[
@@ -3381,16 +3602,23 @@ function runScenarioComparison(){
           ]},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
-        out+=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
+        const chartHtml=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
+        /* Wrap the FV/PV + tabs controls in sc-per-chart-ctrl for global toggle */
+        const containerIdx=chartHtml.indexOf('<div id="sc-chart-'+ri+'-label"');
+        if(containerIdx>0){
+          out+=`<div class="sc-per-chart-ctrl" style="display:none">${chartHtml.substring(0,containerIdx)}</div>${chartHtml.substring(containerIdx)}`;
+        } else {
+          out+=chartHtml;
+        }
         out+=`</div>`;
       });
     }
 
     // Strategy notes
     out+=`<div style="background:#f1f5f9;border-radius:8px;padding:16px;margin-top:24px;font-size:0.85em;color:#64748b">`;
-    out+=`<strong>Notes:</strong> All scenarios use the same portfolio balance and account selection from the Withdrawals tab. `;
+    out+=`<strong>Notes:</strong> Each scenario independently projects your portfolio using its own parameters. `;
     out+=`Monte Carlo runs 1,000 simulations per scenario. Tax calculations use 2025 federal brackets. `;
-    out+=`Roth conversion strategies apply during the conversion window set in Withdrawals. `;
+    out+=`Roth conversion window runs from retirement age to RMD age (custom strategies use the ages you specify). `;
     out+=`Spending amounts are in today's dollars and inflation-adjusted forward.`;
     out+=`</div>`;
 
