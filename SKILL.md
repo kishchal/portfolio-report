@@ -5,7 +5,7 @@ allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "4.1.0"
+  version: "4.2.0"
 ---
 
 # Portfolio Report Skill
@@ -151,7 +151,7 @@ An interactive HTML report featuring:
      - **Financial Engine**:
        - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
        - IRS Uniform Lifetime Table RMDs — dynamic start age: 75 for born 1960+ (SECURE 2.0), 73 for born 1951-1959, 72 for born ≤1950
-       - 2025 federal tax brackets (OBBBA) with age-aware standard deduction: base $31,500 MFJ / $15,750 Single + additional $1,600/person MFJ ($2,000 Single) at age 65+
+       - 2025 federal tax brackets (OBBBA) with age-aware standard deduction: base $31,500 MFJ / $15,750 Single + $1,600/person MFJ ($2,000 Single) at 65+ + OBBBA $6,000/person 65+ (2025-2028)
        - Tiered LTCG rates: 0% up to $96,700 MFJ / $48,350 Single, 15% up to $600,050/$533,400, 20% above — stacked on ordinary taxable income
        - SS taxation per IRS Pub 915 — combined income (AGI + LTCG + 50% of SS) determines 0%/50%/85% taxable thresholds ($32K/$44K MFJ, $25K/$34K Single)
        - **IRMAA (Medicare surcharges)**: 2025 CMS brackets (6 tiers, MFJ + Single), Part B + Part D surcharges, 2-year MAGI lookback, per-person calculation for ages 65+
@@ -199,7 +199,7 @@ In the "By Account Type" view, sub-types are rolled up into top-level groups:
 | Tax-Deferred Savings  | Tax-Deferred 401(k), Tax-Deferred IRA, Tax-Deferred DCP |
 | Taxable Investment    | Individual, Joint WROS, Individual - TOD               |
 | Roth                  | Roth IRA, Roth IRA for Minor                           |
-| Cash / Money Market   | SPAXX**, FDRXX**, CORE** extracted from all accounts   |
+| Cash / Money Market   | SPAXX**, FDRXX**, CORE**, FZDXX, BROKERAGELINK extracted from all accounts |
 | HSA                   | Health Savings Account                                 |
 | 529 College Savings   | College savings / 529 plans                            |
 | Custodial (UTMA)      | Uniform Transfers to Minors                            |

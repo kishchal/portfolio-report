@@ -1112,13 +1112,12 @@ const STD_DEDUCTION_SINGLE=15750;
 const EXTRA_STD_DED_MFJ=1600; /* per person, MFJ */
 const EXTRA_STD_DED_SINGLE=2000;
 /* OBBBA §101 temporary senior deduction 2025-2028: $6,000 per person regardless of filing status */
-const OBBBA_SENIOR_DED_MFJ=6000; /* per person age 65+, phases out $150K+ MAGI */
-const OBBBA_SENIOR_DED_SINGLE=6000; /* per person, same as MFJ per OBBBA §101; phases out $75K+ MAGI */
+const OBBBA_SENIOR_DED=6000; /* per person age 65+; phases out at $150K MFJ / $75K single MAGI (6%/$ over threshold) */
 function getStdDeduction(filing,age,spouseAge,hasSpouse){
   let base=filing==='mfj'?STD_DEDUCTION_MFJ:STD_DEDUCTION_SINGLE;
   const extra=filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE;
-  if(age>=65) base+=extra;
-  if(filing==='mfj'&&hasSpouse&&spouseAge>=65) base+=extra;
+  if(age>=65){ base+=extra; base+=OBBBA_SENIOR_DED; /* §101 2025-2028; phaseout not modeled */ }
+  if(filing==='mfj'&&hasSpouse&&spouseAge>=65){ base+=extra; base+=OBBBA_SENIOR_DED; }
   return base;
 }
 
@@ -1954,21 +1953,30 @@ function computeWithdrawalPlan(){
     }
 
     /* Roth conversion: fill bracket room in pre-RMD years */
-    let rothConv=0,convTax=0,convMarginalRate=0;
+    let rothConv=0,convTax=0,convMarginalRate=0,taxableConvAmt=0;
     const hsaNonMedForConv=Math.max(0,wHSA-annualMedical);
     if(enableConversions&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&simConvLimit>0){
       const ssTaxableForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedForConv,filing):0;
       const ordinaryBeforeConv=wDeferred+ssTaxableForConv+hsaNonMedForConv;
+      /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
+      const totalIRA=bDeferred;
+      const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
       const bracketRoom=Math.max(0,simConvLimit+stdDeduction-ordinaryBeforeConv);
-      rothConv=Math.min(bracketRoom,bDeferred-wDeferred);
+      /* Each $1 converted adds only $(1-F) taxable income, so effective room is larger */
+      const effectiveRoom=basisFraction<1?bracketRoom/(1-basisFraction):Infinity;
+      rothConv=Math.min(effectiveRoom,bDeferred-wDeferred);
       if(rothConv>0){
-        /* IRA basis pro-rata rule: only (1 - basis/totalIRA) of conversion is taxable */
-        const totalIRA=bDeferred; /* total traditional IRA balance */
-        const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
         const taxableConv=rothConv*(1-basisFraction);
+        taxableConvAmt=taxableConv;
         /* Reduce remaining basis proportionally */
         remainingBasis=Math.max(0,remainingBasis-rothConv*basisFraction);
-        convTax=calcTax(Math.max(0,ordinaryBeforeConv+taxableConv-stdDeduction),brackets)-calcTax(Math.max(0,ordinaryBeforeConv-stdDeduction),brackets);
+        /* Compute conv tax using differential method that captures SS re-taxation */
+        const ordBase=wDeferred+hsaNonMedForConv;
+        const ssWithout=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+wTaxable,filing):0;
+        const txWithout=calcTax(Math.max(0,ordBase+ssWithout-stdDeduction),brackets);
+        const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+taxableConv+wTaxable,filing):0;
+        const txWithConv=calcTax(Math.max(0,ordBase+taxableConv+ssWithConv-stdDeduction),brackets);
+        convTax=txWithConv-txWithout;
         convMarginalRate=rothConv>0?(convTax+taxableConv*stateTaxPct)/rothConv:0;
         totalConversions+=rothConv;
         cumConvTax+=convTax;
@@ -1979,7 +1987,7 @@ function computeWithdrawalPlan(){
     /* Non-medical HSA withdrawals: taxed as ordinary income; 20% penalty if before 65 */
     const hsaNonMedical=Math.max(0,wHSA-annualMedical);
     const hsaPenalty=(age<65&&hsaNonMedical>0)?hsaNonMedical*0.20:0;
-    const ordinaryIncome=wDeferred+rothConv+hsaNonMedical;
+    const ordinaryIncome=wDeferred+taxableConvAmt+hsaNonMedical;
     /* SS taxation: combined income = AGI (incl LTCG) + 50% of SS per IRS Pub 915 */
     const agiForSS=ordinaryIncome+wTaxable; /* LTCG is part of AGI */
     const ssTaxableAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,agiForSS,filing):0;
@@ -2294,7 +2302,7 @@ function computeWithdrawalPlan(){
   const successLabel=mc.successRate>=90?'Excellent':mc.successRate>=75?'Good':mc.successRate>=50?'Moderate':'At Risk';
 
   /* Present value discount factor: discount future values to today's dollars */
-  const pvFactor=1/Math.pow(1+inflPct,yearsInRetirement+yearsToRetire);
+  const pvFactor=1/Math.pow(1+inflPct,planEndAge-curAge);
   const pvMedian=mcMedian*pvFactor, pv10=mc10*pvFactor, pv90=mc90*pvFactor;
 
   html+=`<div class="wd-cards">`;
@@ -2494,7 +2502,7 @@ function computeWithdrawalPlan(){
   html+=`<li><strong>Roth withdrawals</strong> are completely tax-free (contributions + growth) — no impact on tax brackets or Medicare premiums.</li>`;
   html+=`<li><strong>HSA medical withdrawals</strong> are tax-free for qualified medical expenses. Non-medical withdrawals before age 65 incur a <strong>20% penalty</strong> plus ordinary income tax. After 65, non-medical withdrawals are penalty-free but taxed as ordinary income.</li>`;
   const stdDedAge65=getStdDeduction(filing,65,hasSpouse?65:0,hasSpouse);
-  html+=`<li><strong>Standard deduction:</strong> Base 2025 deduction: <strong>${fmtD(stdDeductionBase)}</strong> (${filing==='mfj'?'MFJ':'Single'}). At age 65+, increases to <strong>${fmtD(stdDedAge65)}</strong> (additional ${fmtD(filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE)} per person 65+). The Est. Tax column adjusts by age.</li>`;
+  html+=`<li><strong>Standard deduction:</strong> Base 2025 deduction: <strong>${fmtD(stdDeductionBase)}</strong> (${filing==='mfj'?'MFJ':'Single'}). At age 65+, increases to <strong>${fmtD(stdDedAge65)}</strong> (additional ${fmtD((filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE)+OBBBA_SENIOR_DED)} per person 65+, incl. OBBBA §101 $${OBBBA_SENIOR_DED.toLocaleString()}). The Est. Tax column adjusts by age.</li>`;
   html+=`<li><strong>How Est. Tax is calculated:</strong> <em>Ordinary income</em> (tax-deferred + Roth conversions + non-medical HSA) plus <em>taxable SS</em> (IRS Pub 915), minus the standard deduction, taxed at 2025 federal brackets. Plus 15% LTCG on taxable account withdrawals. Plus 20% HSA penalty if applicable. Taxable withdrawals (LTCG) are also included in AGI for determining how much Social Security is taxable.</li>`;
   html+=`<li><strong>Social Security taxation:</strong> Up to 85% of SS benefits may be taxable depending on "combined income" (AGI + 50% of SS). ${filing==='mfj'?'MFJ: 0% taxable below $32K, 50% at $32K–$44K, 85% above $44K':'Single: 0% taxable below $25K, 50% at $25K–$34K, 85% above $34K'}. SS income also affects Roth conversion bracket room.</li>`;
   html+=`<li><strong>Medicare IRMAA:</strong> High income in retirement triggers Medicare Part B + Part D premium surcharges (IRMAA). The Est. Tax column includes IRMAA costs (marked with ⚕). IRMAA uses a <strong>2-year lookback</strong> on MAGI — a large Roth conversion at age 64 triggers surcharges at age 66. Roth withdrawals do NOT count toward MAGI, making them IRMAA-invisible.</li>`;
@@ -2569,7 +2577,7 @@ function renderWdTable(){
   const {retPct,inflPct,filing,brackets,RMD_START_AGE,hasConv,hasSSData,yearsToRetire,retAge,
     ssAnnualFRA,spSSAnnualFRA,hasSpouse,ssStartAge,spSSStartAge,spAgeOffset,lifeExp,spLifeExp,
     convBracketLimit,rothConvStrategy,spendingPhases,hasPhases,stdDeduction,convStartAge,convEndAge,
-    bTaxableInit,bDeferredInit,bRothInit,bHSAInit}=ctx;
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,iraBasis}=ctx;
   const overrides=ctx.overrides;
   const fmtK=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v);
   const fmtD=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
@@ -2586,6 +2594,7 @@ function renderWdTable(){
     const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
     const fallbackWd=totalAtRetire*0.04;
     let bTaxable=bTaxableInit,bDeferred=bDeferredInit,bRoth=bRothInit,bHSA=bHSAInit;
+    let remainingBasis=iraBasis||0;
     rRows=[];
 
   for(let i=0;i<baseRows.length;i++){
@@ -2659,14 +2668,30 @@ function renderWdTable(){
     }
 
     /* Roth conversion — compute for all rows (overridden rows still get conversions) */
-    let rothConv=0,convTax=0;
+    let rothConv=0,convTax=0,convMarginalRate=0,taxableConvAmt=0;
     if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&convBracketLimit>0){
       const hsaNonMedR=Math.max(0,wHSA-(5000*Math.pow(1+inflPct,age-retAge+yearsToRetire)));
       const ssTaxForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedR,filing):0;
       const ordBefore=wDeferred+ssTaxForConv+hsaNonMedR;
+      /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
+      const totalIRA=bDeferred;
+      const basisFrR=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
       const room=Math.max(0,convBracketLimit+stdDeduction-ordBefore);
-      rothConv=Math.min(room,bDeferred-wDeferred);
-      if(rothConv>0) convTax=calcTax(Math.max(0,ordBefore+rothConv-stdDeduction),brackets)-calcTax(Math.max(0,ordBefore-stdDeduction),brackets);
+      const effectiveRoom=basisFrR<1?room/(1-basisFrR):Infinity;
+      rothConv=Math.min(effectiveRoom,bDeferred-wDeferred);
+      if(rothConv>0){
+        const taxableConvR=rothConv*(1-basisFrR);
+        taxableConvAmt=taxableConvR;
+        remainingBasis=Math.max(0,remainingBasis-rothConv*basisFrR);
+        /* Differential method capturing SS re-taxation */
+        const ordBaseR=wDeferred+hsaNonMedR;
+        const ssWithoutR=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBaseR+wTaxable,filing):0;
+        const txWithoutR=calcTax(Math.max(0,ordBaseR+ssWithoutR-stdDeduction),brackets);
+        const ssWithConvR=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBaseR+taxableConvR+wTaxable,filing):0;
+        const txWithConvR=calcTax(Math.max(0,ordBaseR+taxableConvR+ssWithConvR-stdDeduction),brackets);
+        convTax=txWithConvR-txWithoutR;
+        convMarginalRate=rothConv>0?(convTax+taxableConvR*(ctx.stateTaxPct||0))/rothConv:0;
+      }
     }
 
     /* RMD for display */
@@ -2679,7 +2704,7 @@ function renderWdTable(){
     /* Tax — non-medical HSA: +20% penalty before 65, ordinary income after 65 */
     const hsaNonMedical=Math.max(0,wHSA-annualMedical);
     const hsaPenalty=(age<65&&hsaNonMedical>0)?hsaNonMedical*0.20:0;
-    const ordInc=wDeferred+rothConv+hsaNonMedical;
+    const ordInc=wDeferred+taxableConvAmt+hsaNonMedical;
     const agiForSS=ordInc+wTaxable;
     const ssTaxAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,agiForSS,filing):0;
     const taxableInc=Math.max(0,ordInc+ssTaxAmt-stdDeduction);
@@ -2715,7 +2740,7 @@ function renderWdTable(){
     bHSA=Math.max(0,(bHSA-wHSA-drHR)*(1+retPct));
 
     rRows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,
-      ssIncome,yourSS,spouseSS,totalW,tax:totalTax,afterTax,rothConv,convTax,rmd,irmaa:recIrmaa,_magi:recMagi,
+      ssIncome,yourSS,spouseSS,totalW,tax:totalTax,afterTax,rothConv,convTax,convMarginalRate,rmd,irmaa:recIrmaa,_magi:recMagi,
       bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,depleted:false,overridden});
   }
   } /* end hasOverrides else */
@@ -3284,7 +3309,8 @@ function _scenarioSim(p){
         depTax=calcTax(depTI,brackets);
         if(p.stateTaxPct>0) depTax+=depTI*p.stateTaxPct;
         const depNMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
-        if(depNMed>0) depTax+=calcIRMAA(depSTax,filing,depNMed);
+        const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:depSTax;
+        if(depNMed>0) depTax+=calcIRMAA(depIrmaaMagi,filing,depNMed);
       }
       cumTax+=depTax;
       rows.push({age,spouseAge,afterTax:ssIncome-depTax,tax:depTax,bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,totalIncome:ssIncome,_magi:ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0});
@@ -3407,14 +3433,14 @@ function runScenarioComparison(){
         const a=parseInt(el.value), m=parseInt(phAmts[pi]?.value);
         if(!isNaN(a)&&!isNaN(m)) phases.push({age:a,amount:m});
       });
-      if(phases.length===0) phases=[{age:retire,amount:presets[i].spend||5000}];
+      if(phases.length===0) phases=[{age:retire,amount:5000}];
       /* Sort phases by age */
       phases.sort((a,b)=>a.age-b.age);
       const spend=phases[0].amount;
 
       const age=parseInt(document.getElementById('scSharedAge')?.value)||55;
-      if(age>=retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be less than retirement age ('+retire+').'});continue;}
-      if(life<=retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be > retirement age ('+retire+').'});continue;}
+      if(age>retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be ≤ retirement age ('+retire+').'});continue;}
+      if(life<retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be ≥ retirement age ('+retire+').'});continue;}
       const ss=parseFloat(document.getElementById('scss'+i)?.value)||0;
       const filing=document.getElementById('scSharedFiling')?.value||'mfj';
       const hasSpouse=document.getElementById('scSharedSpouse')?.checked||false;
@@ -3758,7 +3784,7 @@ function computeInsights(pivot){
     const acctItems = [];
     const typeTotals = {};
     ACCT_DATA.forEach(g => { typeTotals[g.type] = g.total; });
-    const taxablePct = (typeTotals['Taxable Investment']||0)/GRAND*100;
+    const taxablePct = ((typeTotals['Taxable Investment']||0)+(typeTotals['Custodial (UTMA)']||0))/GRAND*100;
     const taxDefPct = (TAX_DEFERRED_TYPES.reduce((s,t)=>s+(typeTotals[t]||0),0)+(typeTotals['Tax-Deferred Savings']||0))/GRAND*100;
     const rothPct = (typeTotals['Roth']||0)/GRAND*100;
     const hsaPct = (typeTotals['HSA']||0)/GRAND*100;
