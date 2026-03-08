@@ -293,6 +293,34 @@ if ($holdings.Count -eq 0) {
     exit 1
 }
 
+# --- Aggregate tax lots: merge rows with same (AccountNumber, Symbol) ---
+$aggMap = [ordered]@{}
+foreach ($h in $holdings) {
+    $k = "$($h.AccountNumber)|$($h.Symbol)"
+    if ($aggMap.Contains($k)) {
+        $a = $aggMap[$k]
+        $a.Value += $h.Value
+        if ($null -ne $a.GainLoss -and $null -ne $h.GainLoss) { $a.GainLoss += $h.GainLoss }
+        elseif ($null -ne $h.GainLoss) { $a.GainLoss = $h.GainLoss }
+        if ($null -ne $a.CostBasis -and $null -ne $h.CostBasis) { $a.CostBasis += $h.CostBasis }
+        elseif ($null -ne $h.CostBasis) { $a.CostBasis = $h.CostBasis }
+    } else {
+        $aggMap[$k] = [PSCustomObject]@{
+            AccountNumber = $h.AccountNumber; AccountType = $h.AccountType; AccountName = $h.AccountName
+            Symbol = $h.Symbol; FundName = $h.FundName; Value = $h.Value; Category = $h.Category; Risk = $h.Risk
+            GainLoss = $h.GainLoss; GainLossPct = $h.GainLossPct; CostBasis = $h.CostBasis
+        }
+    }
+}
+# Recalculate gain/loss percentage from aggregated values
+foreach ($h in $aggMap.Values) {
+    if ($h.CostBasis -and $h.CostBasis -gt 0 -and $null -ne $h.GainLoss) {
+        $h.GainLossPct = [Math]::Round($h.GainLoss / $h.CostBasis * 100, 2)
+    } else { $h.GainLossPct = $null }
+}
+$holdings = [System.Collections.Generic.List[object]]::new()
+foreach ($v in $aggMap.Values) { $holdings.Add($v) }
+
 $grandTotal = ($holdings | Measure-Object -Property Value -Sum).Sum
 
 # --- Build hierarchical data: Category → Account → Tickers ---

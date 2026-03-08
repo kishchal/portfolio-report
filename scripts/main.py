@@ -256,10 +256,36 @@ def main():
         print("Error: No valid holdings found in CSV.", file=sys.stderr)
         sys.exit(1)
 
+    # --- Aggregate tax lots: merge rows with same (AccountNumber, Symbol) ---
+    from collections import defaultdict, OrderedDict
+    agg_key = lambda h: (h['AccountNumber'], h['Symbol'])
+    agg_map = OrderedDict()
+    for h in holdings:
+        k = agg_key(h)
+        if k in agg_map:
+            a = agg_map[k]
+            a['Value'] += h['Value']
+            if a['GainLoss'] is not None and h['GainLoss'] is not None:
+                a['GainLoss'] += h['GainLoss']
+            elif h['GainLoss'] is not None:
+                a['GainLoss'] = h['GainLoss']
+            if a['CostBasis'] is not None and h['CostBasis'] is not None:
+                a['CostBasis'] += h['CostBasis']
+            elif h['CostBasis'] is not None:
+                a['CostBasis'] = h['CostBasis']
+        else:
+            agg_map[k] = dict(h)  # shallow copy
+    # Recalculate gain/loss percentage from aggregated values
+    for h in agg_map.values():
+        if h['CostBasis'] and h['CostBasis'] > 0 and h['GainLoss'] is not None:
+            h['GainLossPct'] = round(h['GainLoss'] / h['CostBasis'] * 100, 2)
+        else:
+            h['GainLossPct'] = None
+    holdings = list(agg_map.values())
+
     grand_total = sum(h['Value'] for h in holdings)
 
     # --- Build hierarchical data: Category -> Account -> Tickers ---
-    from collections import defaultdict, OrderedDict
     cat_groups = defaultdict(list)
     for h in holdings:
         cat_groups[h['Category']].append(h)

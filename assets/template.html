@@ -321,6 +321,9 @@
     .wd-panel [style*="border-left:3px solid #3b82f6"], .wd-panel [style*="border-left:3px solid #ec4899"] { display: none !important; }
     #wd-print-params { display: block !important; font-size: 0.8em; margin: 6px 0; columns: 2; column-gap: 16px; }
     #wd-print-params span { display: block; padding: 1px 0; }
+    #scenGrid { display: none !important; }
+    #scenResults { display: block !important; }
+    .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
     .wd-summary-cards { gap: 8px !important; }
@@ -415,6 +418,121 @@ function fmt2(v){ return '$'+Math.round(v).toLocaleString('en-US'); }
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function pct(v){ return GRAND>0?(v/GRAND*100).toFixed(1)+'%':'0.0%'; }
 function ylink(sym){ const s=sym.replace(/\*+$/,''); return /^[A-Z]{1,6}$/.test(s)?`<a href="https://finance.yahoo.com/quote/${s}/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none" title="View ${s} on Yahoo Finance">${esc(sym)}</a>`:esc(sym); }
+
+/* ---- Reusable SVG line/bar chart builder for withdrawal/scenario data ---- */
+/* Chart registry — stores data and render functions for each chart instance */
+window._chartRegistry=window._chartRegistry||{};
+
+function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, seriesDefs){
+  const ages=rows.map(r=>r.age);
+  const minAge=ages[0], maxAge=ages[ages.length-1];
+  const W=900, H=260, Pad={t:30,r:30,b:36,l:75};
+  const pw=W-Pad.l-Pad.r, ph=H-Pad.t-Pad.b;
+  const xRange=maxAge-minAge||1;
+  const barW=Math.max(2,Math.min(12,pw/rows.length-1));
+
+  /* Pre-compute chart data */
+  const chartData=seriesDefs.map(s=>{
+    if(s.type==='stacked'){
+      return {type:'stacked',label:s.label,stack:s.stack.map(st=>({
+        label:st.label,color:st.color,
+        fv:rows.map(r=>typeof st.key==='function'?st.key(r):(r[st.key]||0)),
+      }))};
+    } else {
+      return {type:s.type||'line',label:s.label,color:s.color,
+        fv:rows.map(r=>typeof s.key==='function'?s.key(r):(r[s.key]||0))};
+    }
+  });
+  const pvFactors=rows.map(r=>+(1/Math.pow(1+inflPct,(r.age-retAge)+yearsToRetire)).toFixed(6));
+
+  /* Register chart state */
+  window._chartRegistry[chartId]={data:chartData,ages,pvF:pvFactors,W,H,P:Pad,pw,ph,xR:xRange,bW:barW,minAge,maxAge,usePV:false,activeIdx:0};
+
+  let html='';
+  /* PV/FV toggle */
+  html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">`;
+  html+=`<span style="font-size:0.8em;font-weight:600;color:var(--text-muted)">Show values in:</span>`;
+  html+=`<button id="${chartId}-fv-btn" onclick="toggleChartPV('${chartId}',false)" style="padding:4px 12px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.8em;font-weight:600;cursor:pointer;background:#1e40af;color:white">Future Value</button>`;
+  html+=`<button id="${chartId}-pv-btn" onclick="toggleChartPV('${chartId}',true)" style="padding:4px 12px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.8em;font-weight:600;cursor:pointer;background:white;color:#64748b">Present Value</button>`;
+  html+=`</div>`;
+  /* Chart selector tabs */
+  html+=`<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px">`;
+  seriesDefs.forEach((s,i)=>{
+    const active=i===0?'background:#1e40af;color:white':'background:#e2e8f0;color:#64748b';
+    html+=`<button class="${chartId}-tab" data-idx="${i}" onclick="switchChart('${chartId}',${i})" style="padding:4px 12px;border-radius:4px;border:none;font-size:0.78em;font-weight:600;cursor:pointer;${active}">${s.label}</button>`;
+  });
+  html+=`</div>`;
+  html+=`<div id="${chartId}-label" class="chart-print-label" style="display:none;font-weight:600;font-size:0.85em;margin-bottom:4px"></div>`;
+  html+=`<div id="${chartId}-container" style="min-height:${H}px"></div>`;
+  return html;
+}
+
+function _renderChart(cid){
+  const c=window._chartRegistry[cid];
+  if(!c||!document.getElementById(cid+'-container')) return;
+  const {data,ages,pvF,W,H,P,pw,ph,xR,bW,minAge,maxAge,usePV,activeIdx}=c;
+  const s=data[activeIdx];
+  const xS=a=>(a-minAge)/xR*pw+P.l;
+  const fK=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v).toLocaleString();
+  let vals,totals;
+  if(s.type==='stacked'){
+    vals=s.stack.map(st=>st.fv.map((v,i)=>usePV?v*pvF[i]:v));
+    totals=vals[0].map((_,i)=>vals.reduce((sum,arr)=>sum+arr[i],0));
+  } else {
+    vals=[s.fv.map((v,i)=>usePV?v*pvF[i]:v)];
+    totals=vals[0];
+  }
+  const maxV=Math.max(...totals,1);
+  const yS=v=>P.t+ph-(v/maxV*ph);
+  let svg=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px">`;
+  for(let g=0;g<=4;g++){
+    const y=P.t+ph*g/4, val=maxV*(1-g/4);
+    svg+=`<line x1="${P.l}" y1="${y}" x2="${W-P.r}" y2="${y}" stroke="#e2e8f0" stroke-dasharray="4"/>`;
+    svg+=`<text x="${P.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${fK(val)}</text>`;
+  }
+  for(let a=minAge;a<=maxAge;a+=5){
+    svg+=`<text x="${xS(a).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${a}</text>`;
+  }
+  if(s.type==='stacked'){
+    ages.forEach((a,i)=>{
+      let cumH=0;
+      s.stack.forEach((st,si)=>{
+        const v=vals[si][i];
+        const h=maxV>0?(v/maxV*ph):0;
+        svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-cumH-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${st.color}" opacity="0.85"><title>Age ${a} ${st.label}: ${fK(v)}</title></rect>`;
+        cumH+=h;
+      });
+    });
+    s.stack.forEach((st,si)=>{
+      svg+=`<rect x="${P.l+10+si*120}" y="8" width="10" height="10" rx="2" fill="${st.color}"/>`;
+      svg+=`<text x="${P.l+24+si*120}" y="17" font-size="10" fill="#334155">${st.label}</text>`;
+    });
+  } else if(s.type==='bar'){
+    ages.forEach((a,i)=>{
+      const v=vals[0][i];
+      const h=maxV>0?(v/maxV*ph):0;
+      svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${s.color}" opacity="0.8"><title>Age ${a}: ${fK(v)}</title></rect>`;
+    });
+  } else {
+    const pts=ages.map((a,i)=>`${xS(a).toFixed(1)},${yS(vals[0][i]).toFixed(1)}`).join(' ');
+    svg+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+    ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
+  }
+  svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'#7c3aed':'#64748b'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
+  svg+=`</svg>`;
+  document.getElementById(cid+'-container').innerHTML=svg;
+  document.querySelectorAll('.'+cid+'-tab').forEach((b,i)=>{
+    b.style.background=i===activeIdx?'#1e40af':'#e2e8f0';
+    b.style.color=i===activeIdx?'white':'#64748b';
+  });
+  const fvBtn=document.getElementById(cid+'-fv-btn'),pvBtn=document.getElementById(cid+'-pv-btn');
+  if(fvBtn){fvBtn.style.background=usePV?'white':'#1e40af';fvBtn.style.color=usePV?'#64748b':'white';}
+  if(pvBtn){pvBtn.style.background=usePV?'#7c3aed':'white';pvBtn.style.color=usePV?'white':'#64748b';}
+  const lbl=document.getElementById(cid+'-label');
+  if(lbl) lbl.textContent=s.label+' — '+(usePV?"Present Value (today's $)":'Future Value (nominal $)');
+}
+function switchChart(cid,idx){const c=window._chartRegistry[cid];if(c&&c.data&&idx>=0&&idx<c.data.length){c.activeIdx=idx;_renderChart(cid);}}
+function toggleChartPV(cid,pv){const c=window._chartRegistry[cid];if(c){c.usePV=pv;_renderChart(cid);}}
 
 /* ---- Build Account-Type pivot from the category-based DATA ---- */
 const TAX_DEFERRED_TYPES = ['Tax-Deferred 401(k)','Tax-Deferred IRA','Tax-Deferred DCP'];
@@ -694,6 +812,7 @@ function exportTabToPDF(tabName){
     const fields=[
       ['Return',document.getElementById('wdReturn')],['Volatility',document.getElementById('wdVol')],
       ['Inflation',document.getElementById('wdInflation')],
+      ['State Tax',document.getElementById('wdStateTax')],['IRA Basis',document.getElementById('wdIRABasis')],
       ['Filing',document.getElementById('wdFiling')],['Roth Conv',document.getElementById('wdRothConv')],
       ['Conv Start',document.getElementById('wdConvStartAge')],['Conv End',document.getElementById('wdConvEndAge')],
       ['Your Age',document.getElementById('wdAge')],['Retire Age',document.getElementById('wdRetire')],
@@ -1156,7 +1275,7 @@ function runMonteCarlo(params){
       const mcNumMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const mcIrmaaMagi=yr>=2&&magiHistory[yr-2]!=null?magiHistory[yr-2]:(agiMC+ssTaxMC);
       const mcIrmaa=mcNumMedicare>0?calcIRMAA(mcIrmaaMagi,filing,mcNumMedicare):0;
-      const mcTax=mcTaxBase+mcIrmaa;
+      const mcTax=mcTaxBase+mcIrmaa+(params.stateTaxPct>0?taxableIncMC*params.stateTaxPct:0);
       /* Store MAGI for future IRMAA lookback */
       magiHistory.push(agiMC+ssTaxMC);
       /* Reinvest RMD surplus into taxable */
@@ -1250,6 +1369,7 @@ function getAccountBuckets(selectedNums){
 const SETTINGS_KEY='portfolioReportSettings';
 const SETTINGS_FIELDS=[
   {id:'wdReturn',type:'number'},{id:'wdVol',type:'number'},{id:'wdInflation',type:'number'},
+  {id:'wdStateTax',type:'number'},{id:'wdIRABasis',type:'number'},
   {id:'wdFiling',type:'select'},{id:'wdRothConv',type:'select'},
   {id:'wdCustomPct',type:'number'},{id:'wdConvStartAge',type:'number'},{id:'wdConvEndAge',type:'number'},
   {id:'wdAge',type:'number'},{id:'wdRetire',type:'number'},
@@ -1278,7 +1398,7 @@ function saveSettings(){
     /* Save scenario fields if on Scenarios tab */
     const scNameEl=document.getElementById('scName0');
     if(scNameEl){
-      const scKeys=['retire','spend','ssAge','ret','infl','conv','Name'];
+      const scKeys=['retire','life','spend','ssAge','ret','infl','conv','stax','Name'];
       const scData=[];
       for(let i=0;i<3;i++){
         const sc={};
@@ -1435,6 +1555,8 @@ function renderWithdrawals(){
   html+=`<div class="wd-field"><label>Expected Return %</label><input type="number" id="wdReturn" value="6" min="1" max="15" step="0.5"></div>`;
   html+=`<div class="wd-field"><label title="Used for Monte Carlo simulation">Volatility %</label><input type="number" id="wdVol" value="15" min="5" max="40" step="1"></div>`;
   html+=`<div class="wd-field"><label>Inflation %</label><input type="number" id="wdInflation" value="3" min="0" max="10" step="0.5"></div>`;
+  html+=`<div class="wd-field"><label title="Your state/local income tax rate (flat %).\n\nExamples: CA=13.3%, NY=10.9%, NJ=10.75%, WA/TX/FL=0%\n\nHow it's used:\n• Added on top of federal tax on all taxable income (withdrawals, conversions, SS)\n• Included in the BETR (Break-Even Tax Rate) calculation for Roth conversions\n• A higher state tax increases your BETR, making conversions less favorable\n\nBETR (Vanguard research): The effective marginal rate paid on Roth conversions.\nIf your future withdrawal tax rate > BETR, conversions save money.\n\nLeave at 0 if you live in a no-income-tax state (WA, TX, FL, NV, etc.)">State Tax % <span style='cursor:help;color:#059669;font-size:0.8em'>ⓘ</span></label><input type="number" id="wdStateTax" value="0" min="0" max="13.3" step="0.5"></div>`;
+  html+=`<div class="wd-field"><label title="Your total after-tax (non-deductible) contributions to Traditional IRA.\n\nWhat to enter:\nThe cumulative dollar amount of non-deductible contributions you've made to your Traditional IRA over your lifetime. This is tracked on IRS Form 8606, line 14.\n\nWhere to find it:\n• Your tax return: IRS Form 8606 (filed each year you made non-deductible contributions)\n• Your IRA statements may show contribution history\n• If you've never made non-deductible IRA contributions, leave this at $0\n\nWhy it matters (Pro-Rata Rule):\nWhen you do a Roth conversion, the IRS requires you to treat ALL your Traditional IRA money as a mix of pre-tax and after-tax. The after-tax portion (basis) converts tax-free.\n\nExample: If your IRA has $500K total and $50K is basis (10%), then only 90% of each conversion is taxable. This lowers your BETR.\n\nBETR (Break-Even Tax Rate): Including your IRA basis makes the Roth conversion analysis more accurate by reducing the taxable portion of conversions.">IRA Basis ($) <span style='cursor:help;color:#059669;font-size:0.8em'>ⓘ</span></label><input type="number" id="wdIRABasis" value="0" min="0" step="1000" placeholder="0"></div>`;
   html+=`<div class="wd-field"><label>Filing Status</label><select id="wdFiling"><option value="mfj">Married Filing Jointly</option><option value="single">Single</option></select></div>`;
   html+=`<div class="wd-field"><label>Roth Conversion</label><select id="wdRothConv" onchange="document.getElementById('wdCustomPctWrap').style.display=this.value==='custom'?'flex':'none';var sh=this.value==='none'?'none':'flex';document.getElementById('wdConvAgeWrap').style.display=sh;document.getElementById('wdConvEndWrap').style.display=sh"><option value="none" selected>None</option><option value="conservative">Conservative (12%)</option><option value="moderate">Moderate (22%)</option><option value="aggressive">Aggressive (24%)</option><option value="custom">Custom…</option></select></div>`;
   html+=`<div class="wd-field" id="wdCustomPctWrap" style="display:none"><label>Custom Bracket %</label><input type="number" id="wdCustomPct" value="15" min="1" max="37" step="1"></div>`;
@@ -1497,7 +1619,7 @@ function renderWithdrawals(){
   const savedSettings=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
   if(csEl&&retEl&&savedSettings.wdConvStartAge==null) csEl.value=retEl.value||'65';
   /* Save settings when any input changes */
-  el.querySelectorAll('input,select').forEach(inp=>inp.addEventListener('change',saveSettings));
+  el.querySelectorAll('input,select').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
   /* Ensure at least one spending phase row exists if none were loaded from settings */
   const spContainer=document.getElementById('spendPhasesContainer');
   const retEl2=document.getElementById('wdRetire');
@@ -1579,6 +1701,8 @@ function computeWithdrawalPlan(){
   const retPct=parseFloat(document.getElementById('wdReturn').value)/100;
   const volPct=parseFloat(document.getElementById('wdVol').value)/100;
   const inflPct=parseFloat(document.getElementById('wdInflation').value)/100;
+  const stateTaxPct=parseFloat(document.getElementById('wdStateTax').value||'0')/100;
+  const iraBasis=parseFloat(document.getElementById('wdIRABasis').value||'0');
   let spendingPhases=getSpendPhases();
   /* If no spending phases or all amounts are 0, auto-populate a default phase */
   if(!spendingPhases.some(p=>p.amount>0)){
@@ -1683,6 +1807,7 @@ function computeWithdrawalPlan(){
   function runSimulation(enableConversions, overrideConvLimit){
     const simConvLimit = overrideConvLimit!=null ? overrideConvLimit : convBracketLimit;
     let bTaxable=bTaxableInit,bDeferred=bDeferredInit,bRoth=bRothInit,bHSA=bHSAInit;
+    let remainingBasis=iraBasis; /* Track remaining after-tax basis in traditional IRA */
     const rows=[];
     let cumTax=0,cumConvTax=0,totalConversions=0,cumSS=0,cumSpSS=0;
 
@@ -1715,12 +1840,13 @@ function computeWithdrawalPlan(){
     if(curTotal<=0){ /* portfolio depleted — SS still provides income */
       const ssTaxable=ssIncome>0?calcSSTaxableAmount(ssIncome,0,filing):0;
       const ssTax=ssTaxable>0?calcTax(Math.max(0,ssTaxable-stdDeduction),brackets):0;
+      const depStateTax=stateTaxPct>0&&ssTaxable>0?Math.max(0,ssTaxable-stdDeduction)*stateTaxPct:0;
       const depNumMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:ssTaxable;
       const depIrmaa=depNumMedicare>0?calcIRMAA(depIrmaaMagi,filing,depNumMedicare):0;
-      const depTax=ssTax+depIrmaa;
+      const depTax=ssTax+depStateTax+depIrmaa;
       rows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,totalW:ssIncome,tax:depTax,afterTax:ssIncome-depTax,
-        bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,bTotal:0,rmd:0,depleted:true,rothConv:0,convTax:0,irmaa:depIrmaa,_magi:ssTaxable});
+        bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,bTotal:0,rmd:0,depleted:true,rothConv:0,convTax:0,convMarginalRate:0,irmaa:depIrmaa,stateTax:depStateTax,_magi:ssTaxable});
       continue;
     }
     if(!usingPhases){
@@ -1815,16 +1941,22 @@ function computeWithdrawalPlan(){
     }
 
     /* Roth conversion: fill bracket room in pre-RMD years */
-    let rothConv=0,convTax=0;
+    let rothConv=0,convTax=0,convMarginalRate=0;
     const hsaNonMedForConv=Math.max(0,wHSA-annualMedical);
     if(enableConversions&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&simConvLimit>0){
-      /* Account for SS taxable income when calculating bracket room (use stdDeduction-adjusted room) */
       const ssTaxableForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedForConv,filing):0;
       const ordinaryBeforeConv=wDeferred+ssTaxableForConv+hsaNonMedForConv;
       const bracketRoom=Math.max(0,simConvLimit+stdDeduction-ordinaryBeforeConv);
       rothConv=Math.min(bracketRoom,bDeferred-wDeferred);
       if(rothConv>0){
-        convTax=calcTax(Math.max(0,ordinaryBeforeConv+rothConv-stdDeduction),brackets)-calcTax(Math.max(0,ordinaryBeforeConv-stdDeduction),brackets);
+        /* IRA basis pro-rata rule: only (1 - basis/totalIRA) of conversion is taxable */
+        const totalIRA=bDeferred; /* total traditional IRA balance */
+        const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
+        const taxableConv=rothConv*(1-basisFraction);
+        /* Reduce remaining basis proportionally */
+        remainingBasis=Math.max(0,remainingBasis-rothConv*basisFraction);
+        convTax=calcTax(Math.max(0,ordinaryBeforeConv+taxableConv-stdDeduction),brackets)-calcTax(Math.max(0,ordinaryBeforeConv-stdDeduction),brackets);
+        convMarginalRate=rothConv>0?(convTax+taxableConv*stateTaxPct)/rothConv:0;
         totalConversions+=rothConv;
         cumConvTax+=convTax;
       }
@@ -1843,12 +1975,14 @@ function computeWithdrawalPlan(){
     const incomeTax=calcTax(taxableIncome,brackets);
     const capitalGainsTax=calcLTCG(Math.min(wTaxable,Math.max(0,totalOrdinaryIncome+wTaxable-stdDeduction)),taxableIncome,filing); /* LTCG reduced by unused deduction per IRS QD&CG worksheet */
     const totalTaxPreIRMAA=incomeTax+capitalGainsTax+hsaPenalty;
+    /* State tax: flat rate on taxable income (simplified — no state-specific deductions) */
+    const stateTax=stateTaxPct>0?taxableIncome*stateTaxPct:0;
     /* IRMAA: Medicare surcharge based on MAGI (2-year lookback) */
     const magiForIRMAA=agiForSS+ssTaxableAmt; /* MAGI ≈ total AGI (ordinary + LTCG + taxable SS) */
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magiForIRMAA; /* 2-year lookback */
     const numMedicare=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const irmaa=numMedicare>0?calcIRMAA(irmaaMagi,filing,numMedicare):0;
-    const totalTax=totalTaxPreIRMAA+irmaa;
+    const totalTax=totalTaxPreIRMAA+stateTax+irmaa;
     /* HSA medical withdrawals and Roth are tax-free; SS after-tax is ssIncome-ssTax portion */
     const totalWithdraw=wTaxable+wDeferred+wRoth+wHSA+ssIncome;
     const afterTax=totalWithdraw-totalTax;
@@ -1873,7 +2007,7 @@ function computeWithdrawalPlan(){
     bHSA=Math.max(0,(bHSA-wHSA-drainH)*(1+retPct));
 
     rows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,ssIncome,yourSS,spouseSS,
-      totalW:totalWithdraw,tax:totalTax,afterTax,rothConv,convTax,rmdSurplus,irmaa,_magi:magiForIRMAA,
+      totalW:totalWithdraw,tax:totalTax,afterTax,rothConv,convTax,convMarginalRate,rmdSurplus,irmaa,stateTax,_magi:magiForIRMAA,
       bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,rmd,depleted:false});
   }
   return {rows,cumTax,cumConvTax,totalConversions,cumSS,cumSpSS};
@@ -1899,10 +2033,20 @@ function computeWithdrawalPlan(){
     const convYears=sim.rows.filter(r=>r.rothConv>0).length;
     const firstConvAge=sim.rows.find(r=>r.rothConv>0);
     const lastConvAge=[...sim.rows].reverse().find(r=>r.rothConv>0);
+    /* BETR: Break-Even Tax Rate — the future withdrawal tax rate where conversion becomes neutral.
+       Formula: BETR = 1 - (afterTaxEnd_conv / afterTaxEnd_none) adjusted for tax-free growth benefit.
+       Simplified: if total conversions > 0, BETR ≈ cumConvTax / totalConversions (effective rate paid).
+       More precise: account for time-value by comparing ending balances. */
+    /* BETR: weighted avg effective marginal rate on conversions (federal + state), per Vanguard BETR approach.
+       convMarginalRate per row = (fedConvTax + taxableConv×stateTaxPct) / convAmount */
+    let betr=0;
+    if(sim.totalConversions>0){
+      betr=sim.rows.filter(r=>r.rothConv>0).reduce((sum,r)=>sum+r.convMarginalRate*r.rothConv,0)/sim.totalConversions;
+    }
     return {...s,sim,cumTax:sim.cumTax,cumConvTax:sim.cumConvTax,totalConversions:sim.totalConversions,
       endRoth:lastRow.bRoth,endTotal:lastRow.bTotal,afterTaxEnd:lastRow.afterTax,
       convYears,firstConvAge:firstConvAge?firstConvAge.age:0,lastConvAge:lastConvAge?lastConvAge.age:0,
-      afterTaxLifetime:sim.rows.reduce((s,r)=>s+r.afterTax,0)};
+      afterTaxLifetime:sim.rows.reduce((s,r)=>s+r.afterTax,0),betr};
   });
   const noneResult=optimizerResults[0];
 
@@ -1948,7 +2092,8 @@ function computeWithdrawalPlan(){
     html+=`<div style="overflow-x:auto"><table class="roth-opt-table"><thead><tr>`;
     html+=`<th>Strategy</th><th>Bracket</th><th title="Total amount moved from Tax-Deferred to Roth">Total Converted</th>`;
     html+=`<th title="Tax paid on conversions (upfront cost)">Conv. Tax</th>`;
-    html+=`<th title="Total federal tax paid over entire retirement">Lifetime Tax</th>`;
+    html+=`<th title="Break-Even Tax Rate (BETR) — the effective marginal rate paid on conversions (federal + state). If your expected future withdrawal rate exceeds this, conversions are beneficial. Based on Vanguard BETR research." style="background:#ecfdf5;color:#065f46">BETR</th>`;
+    html+=`<th title="Total federal + state tax paid over entire retirement">Lifetime Tax</th>`;
     html+=`<th title="Total after-tax income received over retirement">Lifetime After-Tax</th>`;
     html+=`<th title="Roth balance at end of plan">Ending Roth Bal</th>`;
     html+=`<th title="Ending portfolio balance (all accounts)">Ending Total Bal</th>`;
@@ -1964,6 +2109,7 @@ function computeWithdrawalPlan(){
       html+=`<td>${r.bracket}</td>`;
       html+=`<td>${r.totalConversions>0?fmtK(r.totalConversions):'—'}</td>`;
       html+=`<td>${r.cumConvTax>0?fmtK(r.cumConvTax):'—'}</td>`;
+      html+=`<td style="background:#ecfdf5;font-weight:600;color:#065f46">${r.betr>0?(r.betr*100).toFixed(1)+'%':'—'}</td>`;
       html+=`<td style="font-weight:600">${fmtK(r.cumTax)}</td>`;
       html+=`<td>${fmtK(r.afterTaxLifetime)}</td>`;
       html+=`<td>${fmtK(r.endRoth)}</td>`;
@@ -1987,10 +2133,45 @@ function computeWithdrawalPlan(){
       html+=`This can happen when tax-deferred balances are small relative to other accounts, or when RMDs don't push you into higher brackets.`;
       html+=`</div>`;
     }
+    /* BETR Insight Card — compare BETR vs estimated retirement withdrawal rate */
+    const noneRows=noneResult.sim.rows;
+    /* Estimate future effective tax rate from no-conversion simulation */
+    const wdRows=noneRows.filter(r=>r.age>=retAge&&r.tax>0);
+    const estRetireRate=wdRows.length>0?wdRows.reduce((s,r)=>s+r.tax,0)/wdRows.reduce((s,r)=>s+(r.totalW||0)+(r.ssIncome||0),0)||0:0;
+    /* Find best BETR among all strategies with conversions */
+    const convStrategies=optimizerResults.filter(r=>r.betr>0);
+    const bestBETRStrategy=convStrategies.length>0?convStrategies.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,convStrategies[0]):null;
+    const bestBETR=bestBETRStrategy?bestBETRStrategy.betr:0;
+    html+=`<div style="margin:12px 0;padding:14px 18px;border-radius:8px;border-left:4px solid #2563eb;background:#eff6ff">`;
+    html+=`<strong>📊 BETR Analysis</strong> <span style="font-size:0.85em;color:#6b7280">(Break-Even Tax Rate — <a href="https://corporate.vanguard.com/content/dam/corp/research/pdf/a_betr_approach_to_roth_conversions_072025.pdf" target="_blank" style="color:#2563eb">Vanguard research</a>)</span><br>`;
+    html+=`<span style="font-size:0.85em;color:#4b5563">BETR is the effective marginal tax rate paid on Roth conversions. If your future withdrawal tax rate exceeds the BETR, conversions save you money.</span><br><br>`;
+    html+=`Your estimated avg retirement withdrawal tax rate (without conversions): <strong>${(estRetireRate*100).toFixed(1)}%</strong><br>`;
+    if(bestBETR>0){
+      const favorable=estRetireRate>bestBETR;
+      html+=`Best conversion strategy BETR (<strong>${bestBETRStrategy.label}</strong>): <strong>${(bestBETR*100).toFixed(1)}%</strong> `;
+      html+=`(fed${stateTaxPct>0?' + '+((stateTaxPct*100).toFixed(1))+'% state':''})<br>`;
+      /* Show all strategy BETRs */
+      html+=`<div style="margin-top:6px;font-size:0.85em">`;
+      convStrategies.forEach(r=>{
+        const isBest=r.key===bestBETRStrategy.key;
+        html+=`<span style="display:inline-block;margin-right:14px;${isBest?'font-weight:700':''}">`;
+        html+=`${r.label}: ${(r.betr*100).toFixed(1)}%${isBest?' ★':''}`;
+        html+=`</span>`;
+      });
+      html+=`</div>`;
+      html+=`<div style="margin-top:8px;padding:6px 10px;border-radius:4px;background:${favorable?'#ecfdf5':'#fffbeb'}">`;
+      if(favorable){
+        html+=`<span style="color:#059669;font-weight:600">✅ Conversions appear beneficial</span> — your future rate (${(estRetireRate*100).toFixed(1)}%) exceeds BETR (${(bestBETR*100).toFixed(1)}%).`;
+      } else {
+        html+=`<span style="color:#b45309;font-weight:600">⚠️ Conversions may not be optimal</span> — BETR (${(bestBETR*100).toFixed(1)}%) ≥ your estimated future rate (${(estRetireRate*100).toFixed(1)}%).`;
+      }
+      html+=`</div>`;
+    } else {
+      html+=`No conversion strategies produced conversions — BETR not applicable with current parameters.`;
+    }
+    html+=`</div>`;
     html+=`</div>`;
   }
-
-  /* Social Security Age Recommendation */
   if(hasSS){
     /* Helper to build SS age comparison table */
     function buildSSTable(label,fraMonthly,personAge,personLifeExp,color){
@@ -2031,36 +2212,31 @@ function computeWithdrawalPlan(){
     html+=`</div>`;
   }
 
-  /* Account depletion chart */
-  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4C9} Account Balance Projection</div>`;
-  html+=`<div class="wd-chart-legend">`;
-  html+=`<span><span class="dot" style="background:#f59e0b"></span>Taxable</span>`;
-  html+=`<span><span class="dot" style="background:#3b82f6"></span>Tax-Deferred</span>`;
-  html+=`<span><span class="dot" style="background:#10b981"></span>Roth</span>`;
-  html+=`<span><span class="dot" style="background:#ec4899"></span>HSA</span>`;
+  /* ---- Interactive Metric Charts ---- */
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CA} Retirement Metrics Charts</div>`;
+  html+=`<p class="wd-desc">Explore key retirement metrics over time. Toggle between Future Value (nominal dollars) and Present Value (today's purchasing power discounted at ${inflPct*100}% inflation).</p>`;
+  const wdChartSeries=[
+    {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
+    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
+    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
+    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar'},
+    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line'},
+    {type:'stacked',label:'Withdrawals by Account',stack:[
+      {key:'taxableW',label:'Taxable',color:'#f59e0b'},
+      {key:'deferredW',label:'Deferred',color:'#3b82f6'},
+      {key:'rothW',label:'Roth',color:'#10b981'},
+      {key:'hsaW',label:'HSA',color:'#ec4899'},
+    ]},
+    {type:'stacked',label:'Account Balances',stack:[
+      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
+      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
+      {key:'bRoth',label:'Roth',color:'#10b981'},
+      {key:'bHSA',label:'HSA',color:'#ec4899'},
+    ]},
+  ];
+  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
+  html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries);
   html+=`</div>`;
-  const maxBal=Math.max(...rows.map(r=>r.bTotal),totalAtRetire);
-  const chartH=196; /* pixels, matches .wd-chart-bar height */
-  html+=`<div class="wd-chart-wrap"><div class="wd-chart">`;
-
-  /* Show every year, but label every 5th */
-  rows.forEach((r,i)=>{
-    const totalH=maxBal>0?(r.bTotal/maxBal*chartH):0;
-    const tH=r.bTotal>0?(r.bTaxable/r.bTotal*totalH):0;
-    const dH=r.bTotal>0?(r.bDeferred/r.bTotal*totalH):0;
-    const rH=r.bTotal>0?(r.bRoth/r.bTotal*totalH):0;
-    const hsaH=r.bTotal>0?(r.bHSA/r.bTotal*totalH):0;
-    const showLabel=(i%5===0||i===rows.length-1);
-    html+=`<div class="wd-chart-bar">`;
-    html+=`<div class="wd-bar-tip">Age ${r.age}<br>Total: ${fmtK(r.bTotal)}<br>Taxable: ${fmtK(r.bTaxable)}<br>Deferred: ${fmtK(r.bDeferred)}<br>Roth: ${fmtK(r.bRoth)}<br>HSA: ${fmtK(r.bHSA)}</div>`;
-    html+=`<div class="wd-bar-seg" style="height:${hsaH}px;background:#ec4899"></div>`;
-    html+=`<div class="wd-bar-seg" style="height:${rH}px;background:#10b981"></div>`;
-    html+=`<div class="wd-bar-seg" style="height:${dH}px;background:#3b82f6"></div>`;
-    html+=`<div class="wd-bar-seg" style="height:${tH}px;background:#f59e0b"></div>`;
-    if(showLabel) html+=`<span class="wd-chart-label">${r.age}</span>`;
-    html+=`</div>`;
-  });
-  html+=`</div></div></div>`;
 
   /* ---- Monte Carlo Simulation ---- */
   const mcParams={nSims:1000,yearsInRetirement,yearsToRetire,retAge,retPct,inflPct,vol:volPct,filing,
@@ -2069,7 +2245,7 @@ function computeWithdrawalPlan(){
     spSSStartAge:hasSpouse?spSSStartAge:0,hasSpouse,
     spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
     curAge,spAge:hasSpouse?spAge:0,
-    rothConvStrategy,convBracketLimit,brackets,RMD_START_AGE,spendingPhases,hasPhases};
+    rothConvStrategy,convBracketLimit,brackets,RMD_START_AGE,spendingPhases,hasPhases,stateTaxPct};
   const mc=runMonteCarlo(mcParams);
 
   /* Year-by-year table with editable overrides */
@@ -2082,7 +2258,7 @@ function computeWithdrawalPlan(){
     spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
     overrides:{}, /* {rowIdx: {taxableW, deferredW, rothW, hsaW}} */
     convBracketLimit,rothConvStrategy,spendingPhases,hasPhases,planEndAge,CONV_LIMITS,convStartAge,convEndAge,
-    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,noneCumTax:noneResult.cumTax};
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,noneCumTax:noneResult.cumTax,stateTaxPct,iraBasis};
 
   html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CB} Year-by-Year Withdrawal Schedule <span style="font-size:0.6em;font-weight:400;color:var(--text-muted)">— click withdrawal cells to override</span></div>`;
   html+=`<div id="wd-tbl-container">`;
@@ -2104,6 +2280,10 @@ function computeWithdrawalPlan(){
   const successColor=mc.successRate>=90?'#059669':mc.successRate>=75?'#d97706':'#dc2626';
   const successLabel=mc.successRate>=90?'Excellent':mc.successRate>=75?'Good':mc.successRate>=50?'Moderate':'At Risk';
 
+  /* Present value discount factor: discount future values to today's dollars */
+  const pvFactor=1/Math.pow(1+inflPct,yearsInRetirement+yearsToRetire);
+  const pvMedian=mcMedian*pvFactor, pv10=mc10*pvFactor, pv90=mc90*pvFactor;
+
   html+=`<div class="wd-cards">`;
   /* Success rate with ring */
   html+=`<div class="wd-card" style="border-top:3px solid ${successColor}"><div class="wd-card-label">Success Rate</div>`;
@@ -2112,9 +2292,9 @@ function computeWithdrawalPlan(){
   const dashOffset=circumf*(1-mc.successRate/100);
   html+=`<div class="mc-success-ring"><svg width="80" height="80"><circle cx="40" cy="40" r="34" fill="none" stroke="#e5e7eb" stroke-width="7"/><circle cx="40" cy="40" r="34" fill="none" stroke="${successColor}" stroke-width="7" stroke-dasharray="${circumf}" stroke-dashoffset="${dashOffset}" stroke-linecap="round"/></svg><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:1.1em;font-weight:700;color:${successColor}">${mc.successRate.toFixed(0)}%</div></div>`;
   html+=`</div><div class="wd-card-sub">${successLabel} — portfolio lasts in ${mc.successRate.toFixed(0)}% of scenarios</div></div>`;
-  html+=`<div class="wd-card wd-card-blue"><div class="wd-card-label">Median Ending Balance</div><div class="wd-card-value">${fmtK(mcMedian)}</div><div class="wd-card-sub">50th percentile at age ${planEndAge}</div></div>`;
-  html+=`<div class="wd-card wd-card-amber"><div class="wd-card-label">Pessimistic (10th pctl)</div><div class="wd-card-value">${fmtK(mc10)}</div><div class="wd-card-sub">Bad luck scenario</div></div>`;
-  html+=`<div class="wd-card wd-card-green"><div class="wd-card-label">Optimistic (90th pctl)</div><div class="wd-card-value">${fmtK(mc90)}</div><div class="wd-card-sub">Good luck scenario</div></div>`;
+  html+=`<div class="wd-card wd-card-blue"><div class="wd-card-label">Median Ending Balance</div><div class="wd-card-value">${fmtK(mcMedian)}</div><div style="color:#7c3aed;font-size:0.85em;font-weight:600">PV: ${fmtK(pvMedian)}</div><div class="wd-card-sub">50th percentile at age ${planEndAge}</div></div>`;
+  html+=`<div class="wd-card wd-card-amber"><div class="wd-card-label">Pessimistic (10th pctl)</div><div class="wd-card-value">${fmtK(mc10)}</div><div style="color:#7c3aed;font-size:0.85em;font-weight:600">PV: ${fmtK(pv10)}</div><div class="wd-card-sub">Bad luck scenario</div></div>`;
+  html+=`<div class="wd-card wd-card-green"><div class="wd-card-label">Optimistic (90th pctl)</div><div class="wd-card-value">${fmtK(mc90)}</div><div style="color:#7c3aed;font-size:0.85em;font-weight:600">PV: ${fmtK(pv90)}</div><div class="wd-card-sub">Good luck scenario</div></div>`;
   html+=`</div>`;
 
   /* Percentile fan chart (SVG) */
@@ -2362,6 +2542,8 @@ function computeWithdrawalPlan(){
   document.getElementById('wd-results').innerHTML=html;
   /* Render the initial table after DOM is ready */
   renderWdTable();
+  /* Render interactive metric charts */
+  setTimeout(()=>_renderChart('wd-charts'),0);
   saveSettings();
   } catch(e) { document.getElementById('wd-results').innerHTML=`<div style="color:red;padding:20px;font-family:monospace"><b>Error:</b> ${esc(e.message||'')}<br><pre>${esc(e.stack||'')}</pre></div>`; }
 }
@@ -2414,9 +2596,10 @@ function renderWdTable(){
       const rdNumMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
       const rdIrmaaMagi=i>=2&&rRows[i-2]?rRows[i-2]._magi:ssTaxable;
       const rdIrmaa=rdNumMed>0?calcIRMAA(rdIrmaaMagi,filing,rdNumMed):0;
-      const rdTax=ssTax+rdIrmaa;
+      const rdStateTax=ctx.stateTaxPct>0&&ssTaxable>0?Math.max(0,ssTaxable-stdDeduction)*ctx.stateTaxPct:0;
+      const rdTax=ssTax+rdStateTax+rdIrmaa;
       rRows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,
-        totalW:ssIncome,tax:rdTax,afterTax:ssIncome-rdTax,rothConv:0,convTax:0,rmd:0,irmaa:rdIrmaa,_magi:ssTaxable,
+        totalW:ssIncome,tax:rdTax,afterTax:ssIncome-rdTax,rothConv:0,convTax:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,_magi:ssTaxable,
         bTaxable:0,bDeferred:0,bRoth:0,bHSA:0,bTotal:0,depleted:true,overridden:false});
       continue;
     }
@@ -2492,11 +2675,12 @@ function renderWdTable(){
     const recLtcgAdj=Math.min(wTaxable,Math.max(0,recTotalOrd+wTaxable-stdDeduction));
     const capTax=calcLTCG(recLtcgAdj,taxableInc,filing);
     const totalTaxPreIR=incTax+capTax+hsaPenalty;
+    const recStateTax=ctx.stateTaxPct>0?taxableInc*ctx.stateTaxPct:0;
     const recMagi=agiForSS+ssTaxAmt;
     const recIrmaaMagi=i>=2&&rRows[i-2]?rRows[i-2]._magi:recMagi;
     const recNumMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const recIrmaa=recNumMed>0?calcIRMAA(recIrmaaMagi,filing,recNumMed):0;
-    const totalTax=totalTaxPreIR+recIrmaa;
+    const totalTax=totalTaxPreIR+recStateTax+recIrmaa;
     const totalW=wTaxable+wDeferred+wRoth+wHSA+ssIncome;
     const afterTax=totalW-totalTax;
 
@@ -2529,7 +2713,7 @@ function renderWdTable(){
   if(ctx.hasSpouse) t+=`<th title="Spouse's age in each retirement year.\n\nDerived from your age and spouse's current age.">Sp. Age</th>`;
   t+=`<th title="Withdrawal from taxable brokerage accounts.\n\nFormula: min(remaining spending need, available taxable balance)\nTax treatment: Long-term capital gains rate (15%)\nWithdrawal order: Used before tax-deferred (pre-RMD) to preserve lower tax brackets.\n\nTaxable withdrawals are included in AGI for Social Security taxation.">Taxable</th>`;
   t+=`<th title="Withdrawal from tax-deferred accounts (401k, Traditional IRA, DCP).\n\nFormula:\n• Before age ${RMD_START_AGE}: min(remaining need, available balance) — voluntary\n• Age ${RMD_START_AGE}+: max(RMD, spending need from deferred)\n• RMD = Deferred Balance ÷ IRS Uniform Lifetime Table divisor\n\nTax treatment: Taxed as ordinary income (2025 federal brackets)\nWithdrawal order: After taxable (pre-RMD); mandatory first during RMD years.">Tax-Deferred</th>`;
-  if(hasConv){ const cl=ctx.CONV_LIMITS||{}; t+=`<th style="background:#ecfdf5;color:#065f46" title="Roth conversion — amount moved from Tax-Deferred to Roth.\n\nFormula: min(bracket room, available deferred balance)\nBracket room = conversion bracket ceiling − (ordinary income + SS taxable − standard deduction)\nConversion bracket ceiling (${ctx.filing==='mfj'?'MFJ':'Single'}):\n  Aggressive=${cl.aggressive?fmtD(cl.aggressive):'N/A'}\n  Moderate=${cl.moderate?fmtD(cl.moderate):'N/A'}\n  Conservative=${cl.conservative?fmtD(cl.conservative):'N/A'}\n\nTax: Taxed as ordinary income in the conversion year.\nBenefit: Grows tax-free in Roth; reduces future RMDs.\nConversion window: ages ${ctx.convStartAge||ctx.retAge}–${ctx.convEndAge||RMD_START_AGE-1}.">Roth Conv</th>`; }
+  if(hasConv){ const cl=ctx.CONV_LIMITS||{}; t+=`<th style="background:#ecfdf5;color:#065f46" title="Roth conversion — amount moved from Tax-Deferred to Roth.\n\nFormula: min(bracket room, available deferred balance)\nBracket room = conversion bracket ceiling − (ordinary income + SS taxable − standard deduction)\nConversion bracket ceiling (${ctx.filing==='mfj'?'MFJ':'Single'}):\n  Aggressive=${cl.aggressive?fmtD(cl.aggressive):'N/A'}\n  Moderate=${cl.moderate?fmtD(cl.moderate):'N/A'}\n  Conservative=${cl.conservative?fmtD(cl.conservative):'N/A'}\n\nTax: Taxed as ordinary income in the conversion year.\nBenefit: Grows tax-free in Roth; reduces future RMDs.\nConversion window: ages ${ctx.convStartAge||ctx.retAge}–${ctx.convEndAge||RMD_START_AGE-1}.">Roth Conv</th>`; t+=`<th style="background:#ecfdf5;color:#065f46;font-size:0.85em" title="Effective marginal tax rate on Roth conversions (federal + state).\n\nFormula: (Federal tax on conversion income + State tax) / Conversion amount\n\nThis is the actual rate paid on conversions — compare to your expected future withdrawal rate.\nIf your future rate > this rate, the conversion saves money (per Vanguard BETR research).">Conv %</th>`; }
   t+=`<th title="Withdrawal from Roth accounts — completely tax-free.\n\nFormula: min(remaining spending need after other sources, available Roth balance)\nTax treatment: $0 tax — both contributions and earnings are tax-free.\nWithdrawal order: Used last to maximize tax-free growth.\n\n✦ Tax-free withdrawal — not included in AGI or ordinary income.">Roth <span style="cursor:help;font-size:0.75em;color:#059669">✦</span></th>`;
   t+=`<th title="Withdrawal from Health Savings Account (HSA).\n\nFormula:\n• Age 65+: up to $5,000/yr (inflation-adjusted) for medical expenses — tax-free\n• Remaining need: additional HSA used as last resort\n\nTax treatment:\n• Medical expenses: Tax-free (no income tax, no penalty)\n• Non-medical, age 65+: Taxed as ordinary income (no penalty)\n• Non-medical, before 65: Taxed as ordinary income + 20% penalty\n\n✦ Medical portion is tax-free — not included in ordinary income.">HSA <span style="cursor:help;font-size:0.75em;color:#059669">✦</span></th>`;
   if(hasSSData) t+=`<th style="background:#eef2ff;color:#3730a3" title="Social Security income (inflation-adjusted).\n\nFormula: Monthly benefit × 12 × age factor × inflation adjustment\n• Age factor: 70% at 62, scaling to 124% at 70 (relative to FRA at 67)\n• Inflation: benefit × (1 + inflation%)^(years from start)\n\nSS Taxation (IRS Pub 915):\n• Combined Income = AGI + 50% of SS benefit\n• Combined < $32K (MFJ): 0% of SS taxable\n• $32K–$44K: up to 50% taxable\n• > $44K: up to 85% taxable\n\nThe taxable portion is added to ordinary income before applying tax brackets.">SS Income</th>`;
@@ -2562,6 +2746,7 @@ function renderWdTable(){
     if(hasConv){
       const convChanged=r.overridden&&Math.abs(r.rothConv-(baseRows[i]?baseRows[i].rothConv:r.rothConv))>1;
       t+=`<td style="color:#059669;font-weight:600;background:${r.rothConv>0?'#ecfdf5':'transparent'}">${r.rothConv>0?fmtD(Math.round(r.rothConv)):'-'}${convChanged?' <span title="Roth conversion auto-adjusted to fill bracket — tax stays the same because ordinary income (deferred + conversion) is unchanged" style="cursor:help;color:#d97706;font-size:0.75em">⟳</span>':''}</td>`;
+      t+=`<td style="background:${r.rothConv>0?'#ecfdf5':'transparent'};font-size:0.85em;color:#065f46">${r.convMarginalRate>0?(r.convMarginalRate*100).toFixed(1)+'%':'-'}</td>`;
     }
     t+=`<td>${mkInput('rothW',r.rothW)}</td>`;
     t+=`<td>${mkInput('hsaW',r.hsaW)}</td>`;
@@ -2815,6 +3000,7 @@ function renderScenarios(){
     ss:     parseInt(saved.wdSSIncome)||0,
     ssAge:  parseInt(saved.wdSSAge)||67,
     conv:   saved.wdRothConv||'none',
+    stax:   parseFloat(saved.wdStateTax)||0,
     spend:  5000,
   };
   if(saved._spendPhases && saved._spendPhases.length>0){
@@ -2822,7 +3008,8 @@ function renderScenarios(){
     if(first.amount) def.spend=parseInt(first.amount);
   }
 
-  let html=`<div class="wd-panel" style="padding:24px">`;
+  let html=`<div style="text-align:right;margin:0 0 10px"><button class="export-pdf-btn" onclick="exportTabToPDF('scenarios')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button></div>`;
+  html+=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F50D} What-If Scenario Comparator</h2>`;
   html+=`<p style="color:#64748b;margin-bottom:20px">Compare up to 3 retirement scenarios side-by-side. Each scenario uses your current portfolio and account selection. Adjust the key variables below to see how different choices affect your retirement outcome.</p>`;
 
@@ -2830,21 +3017,23 @@ function renderScenarios(){
   const scenarios=['A','B','C'];
   const colors=['#2563eb','#7c3aed','#ea580c'];
   const presets=[
-    {label:'Base Case', retire:def.retire, spend:def.spend, ssAge:def.ssAge, ret:def.ret, infl:def.infl, conv:def.conv},
-    {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate'},
-    {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv},
+    {label:'Base Case', retire:def.retire, spend:def.spend, life:def.life, ssAge:def.ssAge, ret:def.ret, infl:def.infl, conv:def.conv, stax:def.stax},
+    {label:'Early Retire', retire:Math.max(def.age+1,def.retire-3), spend:def.spend, life:def.life, ssAge:70, ret:def.ret, infl:def.infl, conv:'moderate', stax:def.stax},
+    {label:'Lean Spending', retire:def.retire, spend:Math.round(def.spend*0.75), life:def.life, ssAge:def.ssAge, ret:def.ret-1, infl:def.infl+0.5, conv:def.conv, stax:def.stax},
   ];
   /* Restore saved scenario values if available */
   if(saved._scenarios&&Array.isArray(saved._scenarios)){
     saved._scenarios.forEach((sc,i)=>{
       if(i<3&&sc){
         if(sc.Name) presets[i].label=sc.Name;
-        if(sc.retire) presets[i].retire=parseFloat(sc.retire);
-        if(sc.spend) presets[i].spend=parseFloat(sc.spend);
-        if(sc.ssAge) presets[i].ssAge=parseFloat(sc.ssAge);
-        if(sc.ret) presets[i].ret=parseFloat(sc.ret);
-        if(sc.infl) presets[i].infl=parseFloat(sc.infl);
-        if(sc.conv) presets[i].conv=sc.conv;
+        if(sc.retire!=null) presets[i].retire=parseFloat(sc.retire);
+        if(sc.spend!=null) presets[i].spend=parseFloat(sc.spend);
+        if(sc.life!=null) presets[i].life=parseFloat(sc.life);
+        if(sc.ssAge!=null) presets[i].ssAge=parseFloat(sc.ssAge);
+        if(sc.ret!=null) presets[i].ret=parseFloat(sc.ret);
+        if(sc.infl!=null) presets[i].infl=parseFloat(sc.infl);
+        if(sc.conv!=null) presets[i].conv=sc.conv;
+        if(sc.stax!=null) presets[i].stax=parseFloat(sc.stax);
       }
     });
   }
@@ -2856,11 +3045,13 @@ function renderScenarios(){
 
   const fields=[
     {key:'retire', label:'Retirement Age',   type:'number', min:50, max:80},
+    {key:'life',   label:'Life Expectancy',  type:'number', min:70, max:105},
     {key:'spend',  label:'Monthly Spend ($)', type:'number', min:1000, max:50000, step:500},
     {key:'ssAge',  label:'SS Claiming Age',   type:'number', min:62, max:70},
     {key:'ret',    label:'Annual Return (%)', type:'number', min:1, max:15, step:0.5},
     {key:'infl',   label:'Inflation (%)',     type:'number', min:1, max:8, step:0.5},
     {key:'conv',   label:'Roth Strategy',     type:'select', options:[['none','None'],['conservative','Conservative 12%'],['moderate','Moderate 22%'],['aggressive','Aggressive 24%']]},
+    {key:'stax',   label:'State Tax (%)',     type:'number', min:0, max:13.3, step:0.5},
   ];
 
   fields.forEach(f=>{
@@ -2883,6 +3074,8 @@ function renderScenarios(){
 
   html+=`</div>`;
   el.innerHTML=html;
+  /* Auto-save scenario fields on any input change */
+  el.querySelectorAll('#scenGrid input, #scenGrid select').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
 }
 
 function _scenarioSim(p){
@@ -2904,7 +3097,7 @@ function _scenarioSim(p){
   const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
   const fallbackW=totalAtRetire*0.04;
   let bT=bTaxableInit,bD=bDeferredInit,bR=bRothInit,bH=bHSAInit;
-  const rows=[];let cumTax=0;
+  const rows=[];let cumTax=0,totalConversions=0,cumConvTax=0;
   for(let yr=0;yr<yearsInRetirement;yr++){
     const age=retAge+yr;
     const spouseAge=hasSpouse?(age+spAgeOffset):0;
@@ -2926,6 +3119,7 @@ function _scenarioSim(p){
         const depSTax=calcSSTaxableAmount(ssIncome,0,filing);
         const depTI=Math.max(0,depSTax-stdDed);
         depTax=calcTax(depTI,brackets);
+        if(p.stateTaxPct>0) depTax+=depTI*p.stateTaxPct;
         const depNMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
         if(depNMed>0) depTax+=calcIRMAA(depSTax,filing,depNMed);
       }
@@ -2950,6 +3144,14 @@ function _scenarioSim(p){
       const ordBC=wDf+stFC+hsaNM;
       const room=Math.max(0,convLimit+stdDed-ordBC);
       rothConv=Math.min(room,bD-wDf);
+      if(rothConv>0){
+        totalConversions+=rothConv;
+        /* Estimate conv tax as difference in tax with/without conversion */
+        const ordBConly=wDf+(ssIncome>0?calcSSTaxableAmount(ssIncome,wDf+wTx+hsaNM,filing):0)+hsaNM;
+        const txWithout=calcTax(Math.max(0,ordBConly+(ssIncome>0?calcSSTaxableAmount(ssIncome,ordBConly+wTx,filing):0)-stdDed),brackets);
+        const txWith=calcTax(Math.max(0,ordBConly+rothConv+(ssIncome>0?calcSSTaxableAmount(ssIncome,ordBConly+rothConv+wTx,filing):0)-stdDed),brackets);
+        cumConvTax+=(txWith-txWithout)+rothConv*(p.stateTaxPct||0);
+      }
     }
     const hsaPen=(age<65&&hsaNM>0)?hsaNM*0.20:0;
     const ordInc=wDf+rothConv+hsaNM;
@@ -2963,7 +3165,7 @@ function _scenarioSim(p){
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magi;
     const nMed=(age>=65&&age<=lifeExp?1:0)+(hasSpouse&&spouseAge>=65&&spouseAge<=spLifeExp?1:0);
     const irmaa=nMed>0?calcIRMAA(irmaaMagi,filing,nMed):0;
-    const totTax=incTax+capTax+hsaPen+irmaa;
+    const totTax=incTax+capTax+hsaPen+irmaa+(p.stateTaxPct>0?txInc*p.stateTaxPct:0);
     const totalW=wTx+wDf+wRo+wHs+ssIncome;
     const afterTax=totalW-totTax;
     cumTax+=totTax;
@@ -2978,9 +3180,9 @@ function _scenarioSim(p){
     bD=Math.max(0,(bD-wDf-rothConv-drD)*(1+retPct));
     bR=Math.max(0,(bR-wRo+rothConv-drR)*(1+retPct));
     bH=Math.max(0,(bH-wHs-drH)*(1+retPct));
-    rows.push({age,spouseAge,afterTax,tax:totTax,bTaxable:bT,bDeferred:bD,bRoth:bR,bHSA:bH,totalIncome:totalW,_magi:magi});
+    rows.push({age,spouseAge,afterTax,tax:totTax,bTaxable:bT,bDeferred:bD,bRoth:bR,bHSA:bH,totalIncome:totalW,rothConv,_magi:magi});
   }
-  return {rows,cumTax};
+  return {rows,cumTax,totalConversions,cumConvTax};
 }
 
 function runScenarioComparison(){
@@ -3004,17 +3206,18 @@ function runScenarioComparison(){
 
     for(let i=0;i<3;i++){
       const retire=parseInt(document.getElementById('scretire'+i)?.value)||65;
+      const life=parseInt(document.getElementById('sclife'+i)?.value)||95;
       const spend=parseInt(document.getElementById('scspend'+i)?.value)||5000;
       const ssAge=parseInt(document.getElementById('scssAge'+i)?.value)||67;
       const ret=parseFloat(document.getElementById('scret'+i)?.value)||7;
       const infl=parseFloat(document.getElementById('scinfl'+i)?.value)||3;
       const conv=document.getElementById('scconv'+i)?.value||'none';
+      const stax=parseFloat(document.getElementById('scstax'+i)?.value)||0;
       const name=document.getElementById('scName'+i)?.value||'Scenario '+'ABC'[i];
 
       const age=parseInt(saved.wdAge)||55;
-      const life=parseInt(saved.wdLife)||95;
       if(age>=retire){results.push({name:name,color:colors[i],error:'Current age ('+age+') must be less than retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
-      if(life<retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be >= retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
+      if(life<=retire){results.push({name:name,color:colors[i],error:'Life expectancy ('+life+') must be > retirement age ('+retire+'). Update on the Withdrawals tab.'});continue;}
       const ss=parseFloat(saved.wdSSIncome)||0;
       const filing=saved.wdFiling||'mfj';
       const hasSpouse=saved.wdSpouseToggle==='true'||saved.wdSpouseToggle===true;
@@ -3043,6 +3246,7 @@ function runScenarioComparison(){
           bTaxableInit:bTI,bDeferredInit:bDI,bRothInit:bRI,bHSAInit:bHI,
           hasSpouse:hasSpouse,spAge:spAge,spLifeExp:spLife,
           spSSMonthly:spSS,spSSStartAge:spSSAge,spendPhases:phases,
+          stateTaxPct:stax/100,
         });
 
         const rows=sim.rows;
@@ -3071,16 +3275,26 @@ function runScenarioComparison(){
           curAge:age, spAge:spAge,
           rothConvStrategy:conv, convBracketLimit:CONV_LIMITS[conv]||0, brackets:brackets,
           RMD_START_AGE:mcRMD, spendingPhases:phases, hasPhases:true,
+          stateTaxPct:stax/100,
         });
 
+        /* MC percentile data */
+        const mcEndSorted=[...mc.endingBalances].sort((a,b)=>a-b);
+        function scPctile(arr,p){ const n=arr.length; if(!n) return 0; const idx=(n-1)*p; const lo=Math.floor(idx); const hi=Math.ceil(idx); return lo===hi?arr[lo]:arr[lo]*(hi-idx)+arr[hi]*(idx-lo); }
+        const mcMedian=scPctile(mcEndSorted,0.5), mc10=scPctile(mcEndSorted,0.1), mc90=scPctile(mcEndSorted,0.9);
+        const scPvFactor=1/Math.pow(1+infl/100,life-age);
+
         results.push({
-          name:name, color:colors[i], retire:retire, spend:spend, ssAge:ssAge,
-          ret:ret, infl:infl, conv:conv,
+          name:name, color:colors[i], retire:retire, life:life, spend:spend, ssAge:ssAge,
+          ret:ret, infl:infl, conv:conv, stax:stax,
           depleteAge:depleteAge?depleteAge.age:life+'+',
           endBal:endBal, totalAfterTax:totalAfterTax, totalTax:totalTax,
           effRate:effRate, mcSuccess:mc.successRate,
           yr1Income:yr1?(yr1.afterTax):0,
+          mcMedian:mcMedian, mc10:mc10, mc90:mc90, pvFactor:scPvFactor,
           rows:rows,
+          betr:sim.totalConversions>0?sim.cumConvTax/sim.totalConversions:0,
+          totalConversions:sim.totalConversions||0, cumConvTax:sim.cumConvTax||0,
         });
       }catch(e){
         results.push({name:name,color:colors[i],error:e.message});
@@ -3098,18 +3312,26 @@ function runScenarioComparison(){
 
     const metrics=[
       {label:'Retirement Age',          fn:r=>r.error?'—':r.retire},
+      {label:'Life Expectancy',          fn:r=>r.error?'—':r.life},
       {label:'Monthly Spending',        fn:r=>r.error?'—':'$'+r.spend.toLocaleString()},
       {label:'SS Claiming Age',         fn:r=>r.error?'—':r.ssAge},
       {label:'Annual Return',           fn:r=>r.error?'—':r.ret+'%'},
       {label:'Inflation',               fn:r=>r.error?'—':r.infl+'%'},
       {label:'Roth Strategy',           fn:r=>r.error?'—':r.conv},
+      {label:'State Tax Rate',           fn:r=>r.error?'—':r.stax+'%'},
       {label:'Portfolio Lasts Until',   fn:r=>r.error?'Error':'Age '+r.depleteAge, best:'max'},
       {label:'Monte Carlo Success',     fn:r=>r.error?'—':r.mcSuccess.toFixed(0)+'%', best:'max'},
+      {label:'MC Median Ending',        fn:r=>r.error?'—':fmt2(r.mcMedian)+' <span style="color:#7c3aed;font-size:0.85em">(PV: '+fmt2(r.mcMedian*r.pvFactor)+')</span>', best:'max', numFn:r=>r.mcMedian},
+      {label:'MC Pessimistic (10th)',   fn:r=>r.error?'—':fmt2(r.mc10)+' <span style="color:#7c3aed;font-size:0.85em">(PV: '+fmt2(r.mc10*r.pvFactor)+')</span>', best:'max', numFn:r=>r.mc10},
+      {label:'MC Optimistic (90th)',    fn:r=>r.error?'—':fmt2(r.mc90)+' <span style="color:#7c3aed;font-size:0.85em">(PV: '+fmt2(r.mc90*r.pvFactor)+')</span>', best:'max', numFn:r=>r.mc90},
       {label:'Year 1 After-Tax Income', fn:r=>r.error?'—':fmt2(r.yr1Income), best:'max'},
       {label:'Lifetime After-Tax Income',fn:r=>r.error?'—':fmt2(r.totalAfterTax), best:'max'},
       {label:'Lifetime Taxes Paid',     fn:r=>r.error?'—':fmt2(r.totalTax), best:'min'},
       {label:'Effective Tax Rate (Yr 1)',fn:r=>r.error?'—':r.effRate.toFixed(1)+'%', best:'min'},
-      {label:'Ending Balance',          fn:r=>r.error?'—':fmt2(r.endBal), best:'max'},
+      {label:'Ending Balance',          fn:r=>r.error?'—':fmt2(r.endBal)+' <span style="color:#7c3aed;font-size:0.85em">(PV: '+fmt2(r.endBal*r.pvFactor)+')</span>', best:'max'},
+      {label:'Total Roth Converted',    fn:r=>r.error||!r.totalConversions?'—':fmt2(r.totalConversions)},
+      {label:'Conversion Tax Paid',     fn:r=>r.error||!r.cumConvTax?'—':fmt2(r.cumConvTax), best:'min', numFn:r=>r.cumConvTax||Infinity},
+      {label:'📊 BETR (Break-Even Rate)',fn:r=>r.error||!r.betr?'—':'<span style="color:#065f46;font-weight:600">'+(r.betr*100).toFixed(1)+'%</span>', best:'min', numFn:r=>r.betr||Infinity},
     ];
 
     metrics.forEach(m=>{
@@ -3119,7 +3341,8 @@ function runScenarioComparison(){
       if(m.best){
         const numVals=results.map((r,i)=>{
           if(r.error) return null;
-          if(m.best==='max') return m.label.includes('Lasts')?(typeof r.depleteAge==='string'?parseInt(r.depleteAge)+0.5:r.depleteAge):m.label.includes('Monte')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
+          if(m.numFn) return m.numFn(r);
+          if(m.best==='max') return m.label.includes('Lasts')?(typeof r.depleteAge==='string'?parseInt(r.depleteAge)+0.5:r.depleteAge):m.label.includes('Monte Carlo')?r.mcSuccess:m.label.includes('Yr 1 After')?r.yr1Income:m.label.includes('Lifetime After')?r.totalAfterTax:m.label.includes('Ending')?r.endBal:0;
           else return m.label.includes('Taxes')?r.totalTax:m.label.includes('Eff')?r.effRate:0;
         });
         let bestVal=null;
@@ -3138,44 +3361,29 @@ function runScenarioComparison(){
     });
     out+=`</tbody></table></div>`;
 
-    // Overlaid balance chart
+    // Per-scenario interactive metric charts
     const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
     if(validResults.length>0){
-      const maxAge=Math.max(...validResults.map(r=>r.rows[r.rows.length-1].age));
-      const minAge=Math.min(...validResults.map(r=>r.rows[0].age));
-      const maxBal=Math.max(...validResults.flatMap(r=>r.rows.map(row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA)));
-      const W=800,H=300,PAD={t:30,r:40,b:40,l:80};
-      const pw=W-PAD.l-PAD.r, ph=H-PAD.t-PAD.b;
-      const xRange=maxAge-minAge||1;
-      const yRange=maxBal||1;
-      const xScale=a=>(a-minAge)/xRange*pw+PAD.l;
-      const yScale=v=>PAD.t+ph-(v/yRange*ph);
-
-      out+=`<h3 style="margin:24px 0 12px">\u{1F4C8} Portfolio Balance Projection</h3>`;
-      out+=`<svg viewBox="0 0 ${W} ${H}" style="width:100%;max-width:800px;background:#fafafa;border:1px solid #e2e8f0;border-radius:8px">`;
-      // Grid
-      for(let g=0;g<=4;g++){
-        const y=PAD.t+ph*g/4;
-        const val=maxBal*(1-g/4);
-        out+=`<line x1="${PAD.l}" y1="${y}" x2="${W-PAD.r}" y2="${y}" stroke="#e2e8f0" stroke-dasharray="4"/>`;
-        out+=`<text x="${PAD.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="#94a3b8">${val>=1e6?(val/1e6).toFixed(1)+'M':val>=1e3?(val/1e3).toFixed(0)+'K':'0'}</text>`;
-      }
-      // X axis labels
-      for(let a=minAge;a<=maxAge;a+=5){
-        out+=`<text x="${xScale(a)}" y="${H-8}" text-anchor="middle" font-size="10" fill="#94a3b8">${a}</text>`;
-      }
-      // Lines
-      validResults.forEach(r=>{
-        const points=r.rows.map(row=>`${xScale(row.age).toFixed(1)},${yScale(row.bTaxable+row.bDeferred+row.bRoth+row.bHSA).toFixed(1)}`).join(' ');
-        out+=`<polyline points="${points}" fill="none" stroke="${r.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
+      /* Per-scenario interactive metric charts */
+      validResults.forEach((r,ri)=>{
+        const scAge=parseInt(saved.wdAge)||55;
+        const scYearsToRetire=r.retire-scAge;
+        const scInflPct=r.infl/100;
+        const scSeries=[
+          {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
+          {type:'stacked',label:'Account Balances',stack:[
+            {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
+            {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
+            {key:'bRoth',label:'Roth',color:'#10b981'},
+            {key:'bHSA',label:'HSA',color:'#ec4899'},
+          ]},
+        ];
+        out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
+        out+=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
+        out+=`</div>`;
       });
-      // Legend
-      validResults.forEach((r,i)=>{
-        const lx=PAD.l+10+i*160;
-        out+=`<rect x="${lx}" y="8" width="12" height="12" rx="2" fill="${r.color}"/>`;
-        out+=`<text x="${lx+16}" y="18" font-size="11" fill="#334155">${esc(r.name)}</text>`;
-      });
-      out+=`</svg>`;
     }
 
     // Strategy notes
@@ -3187,6 +3395,10 @@ function runScenarioComparison(){
     out+=`</div>`;
 
     resultsEl.innerHTML=out;
+    /* Render per-scenario metric charts */
+    setTimeout(()=>{
+      validResults.forEach((r,ri)=>_renderChart('sc-chart-'+ri));
+    },0);
   },50);
 }
 
@@ -3212,7 +3424,7 @@ function _restoreTab(key){
   if(insEl) insEl.style.display=c.insights;
   document.getElementById('allocBar').innerHTML=c.allocBar;
   document.getElementById('legend').innerHTML=c.legend;
-  if(key==='withdrawals') document.querySelectorAll('#drilldown input, #drilldown select').forEach(el=>el.addEventListener('change',saveSettings));
+  if(key==='withdrawals') document.querySelectorAll('#drilldown input, #drilldown select').forEach(el=>{el.addEventListener('change',saveSettings);el.addEventListener('input',saveSettings);});
 }
 let _activeTab='acctName';
 
@@ -3268,6 +3480,9 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
   renderAcctNamePivot();
   _renderedTabs.add('acctName');
 })();
+
+/* Auto-save on page close/refresh — ensures no input values are lost */
+window.addEventListener('beforeunload',()=>saveSettings());
 
 function toggleCat(el){
   el.classList.toggle('open');

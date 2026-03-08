@@ -1,11 +1,11 @@
 ---
 name: portfolio-report
-description: Generate an interactive HTML portfolio allocation report from a Fidelity CSV export with five pivot views (By Account Type / By Investment Category / By Account / Suggestions / Withdrawals), data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios and account guidance, and a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, and Monte Carlo analysis.
+description: Generate an interactive HTML portfolio allocation report from a Fidelity CSV export with seven pivot views (By Account Type / By Investment Category / By Account / Suggestions / Withdrawals / Tax-Loss Harvesting / Scenarios), data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios and account guidance, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, and a what-if scenario comparator.
 allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "3.11.0"
+  version: "4.0.0"
 ---
 
 # Portfolio Report Skill
@@ -116,12 +116,16 @@ When the `Account Type` column is missing, the type is **auto-inferred** from th
 
 Wrapper accounts whose Description is `BROKERAGELINK` and whose Account Name ends with `401K PLAN` are automatically excluded to avoid double-counting (e.g. MICROSOFT 401K PLAN is a wrapper for the BrokerageLink sub-account that lists the actual holdings).
 
+### Tax-Lot Aggregation
+
+Multiple rows for the same ticker in the same account (different tax lots with different cost bases) are automatically merged by both `main.py` and `main.ps1`. Values, gain/loss, and cost basis are summed; gain/loss percentage is recalculated from the aggregated totals. This prevents duplicate ticker entries in the drill-down views.
+
 ### Output
 
 An interactive HTML report featuring:
 1. **Header** with total portfolio value
 2. **Horizontal allocation bar** with hover tooltips — updates dynamically per active pivot
-3. **Pivot selector** (tab toggle) with five views:
+3. **Pivot selector** (tab toggle) with seven views:
    - **By Account Type** (default) — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
    - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
    - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
@@ -157,9 +161,15 @@ An interactive HTML report featuring:
        - Excess RMD surplus reinvested into taxable brokerage account
        - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
        - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
-       - Monte Carlo engine (500 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
-       - **Settings persistence**: All withdrawal inputs saved to browser localStorage with merge logic. Pre-tab-switch save ensures no data loss. Settings auto-restore on reopen.
-4. **3-level drill-down cards** — click top-level group → see Accounts → click Account → see Tickers
+       - Monte Carlo engine (1000 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
+       - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
+       - **Account Selector**: Multi-select dropdown to choose which accounts to include; persisted in localStorage
+       - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
+       - **PDF Export**: Print-optimized layout with parameter summary and chart labels
+       - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
+   - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary cards, harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags
+   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario state tax %, side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV), per-scenario metric charts with PV/FV toggle, PDF export, localStorage persistence
+4. **3-level drill-down cards**— click top-level group → see Accounts → click Account → see Tickers
 5. **Risk classification** — Individual stock tickers are grouped within each account by risk category:
    - **Blue Chip / Core** — Large, stable companies (AAPL, MSFT, JNJ, PG, WMT, etc.)
    - **Growth** — Profitable high-growth tech (NVDA, AVGO, AMD, META, AMZN, CRM, etc.)
@@ -334,3 +344,19 @@ python scripts/main.py Portfolio.csv --output report_py.html
 | `assets/template.html` | `CASH_SYMS` array (new cash symbols), `CATEGORY_COLORS` (new category colors), `ACCT_TYPE_COLORS` (new account type colors) |
 | `assets/risk_cache.json` | Run `--refresh-all` / `-RefreshAll` if new stock symbols appear |
 | `SKILL.md` | Update tables, examples, and frontmatter version to match current data |
+
+### 8. Ensure New Input Fields Are Cached (CRITICAL)
+
+**Every new user input field** added to any tab (Withdrawals, Scenarios, etc.) **MUST** be cached in localStorage so values persist across page refresh and report files.
+
+**Checklist for new input fields:**
+
+1. **Add to `SETTINGS_FIELDS` array** (`template.html` ~line 1369): Include `{id:'fieldId', type:'number|select|checkbox'}` for Withdrawals tab fields. This handles save/restore via `saveSettings()` / `loadSettings()`.
+
+2. **Event listeners are auto-attached**: Line ~1621 attaches `change` + `input` listeners to ALL inputs in the Withdrawals panel. Line ~3073 does the same for Scenario fields. The `beforeunload` handler also calls `saveSettings()`.
+
+3. **For Scenario tab fields**: Add the key to the `scKeys` array (~line 1400), add to `fields` array (~line 3042), add to `presets` array (~line 3017), and add a default value in the `def` object (~line 2990).
+
+4. **Verify restoration**: After adding a field, test: set a value → refresh page → navigate to tab → confirm value persists. If the tab re-renders from scratch (Withdrawals, Scenarios), `loadSettings()` or `saved._scenarios` restoration handles it. If restored from DOM cache, values are preserved automatically.
+
+5. **Edge case**: When old localStorage lacks the new field, `loadSettings` skips it (`s[f.id]!=null` check) and the HTML default value is used. Ensure the default in HTML is a reasonable fallback.
