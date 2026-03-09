@@ -5,7 +5,7 @@ allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "4.2.0"
+  version: "4.3.0"
 ---
 
 # Portfolio Report Skill
@@ -157,12 +157,12 @@ An interactive HTML report featuring:
        - **IRMAA (Medicare surcharges)**: 2025 CMS brackets (6 tiers, MFJ + Single), Part B + Part D surcharges, 2-year MAGI lookback, per-person calculation for ages 65+
        - HSA tax rules: tax-free for medical ($5K/yr inflation-adjusted at 65+), ordinary income after 65 for non-medical, 20% penalty + ordinary income before age 65
        - **Roth Conversion Optimizer**: Compares None/Conservative(12%)/Moderate(22%)/Aggressive(24%)/Custom strategies with configurable conversion window (start/end ages); bracket room = ceiling + std deduction − ordinary income
-       - **Spending Phases**: User-defined spending by age (e.g., go-go/slow-go/no-go) with per-phase monthly amounts; phases inflate from today's dollars; 4% guardrails disabled when phases active
+       - **Spending Phases**: User-defined spending by age (e.g., go-go/slow-go/no-go) with per-phase monthly amounts in today's dollars; auto-populated default = 4% of projected portfolio deflated to today's dollars; phases inflate from today; 4% guardrails disabled when phases active
        - Excess RMD surplus reinvested into taxable brokerage account
        - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
        - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
        - Monte Carlo engine (1000 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
-       - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
+       - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, cumConvTax includes federal + state tax (consistent across all engines), BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
        - **Account Selector**: Multi-select dropdown to choose which accounts to include; persisted in localStorage
        - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
        - **PDF Export**: Print-optimized layout with parameter summary and chart labels

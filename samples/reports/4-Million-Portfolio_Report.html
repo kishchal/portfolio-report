@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Report — Mar 07, 2026</title>
+<title>Portfolio Report — Mar 09, 2026</title>
 <style>
   :root {
     --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
@@ -338,7 +338,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Allocation Report</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 07, 2026 &middot; Report generated Mar 07, 2026 at 11:35 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 09, 2026 &middot; Report generated Mar 09, 2026 at 08:43 AM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -381,7 +381,7 @@
 </div>
 
 <div class="footer">
-  Generated Mar 07, 2026
+  Generated Mar 09, 2026
 </div>
 
 <script>
@@ -1796,7 +1796,7 @@ const OBBBA_SENIOR_DED=6000; /* per person age 65+; phases out at $150K MFJ / $7
 function getStdDeduction(filing,age,spouseAge,hasSpouse){
   let base=filing==='mfj'?STD_DEDUCTION_MFJ:STD_DEDUCTION_SINGLE;
   const extra=filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE;
-  if(age>=65){ base+=extra; base+=OBBBA_SENIOR_DED; /* §101 2025-2028; phaseout not modeled */ }
+  if(age>=65){ base+=extra; base+=OBBBA_SENIOR_DED; /* §101 2025-2028; sunset/extension not modeled — brackets also use static 2025 values */ }
   if(filing==='mfj'&&hasSpouse&&spouseAge>=65){ base+=extra; base+=OBBBA_SENIOR_DED; }
   return base;
 }
@@ -2402,7 +2402,8 @@ function computeWithdrawalPlan(){
     const bk=getAccountBuckets(selectedNums.size>0?selectedNums:null);
     const yearsGrow=Math.max(0,(retAge||65)-(curAge||55));
     const projTotal=(bk.taxable.total+bk.deferred.total+bk.roth.total+bk.hsa.total)*Math.pow(1+(retPct||0.07),yearsGrow);
-    const defaultMonthly=Math.round(projTotal*0.04/12/100)*100; /* 4% rule, rounded to nearest $100 */
+    /* Phase amounts are today's dollars — deflate future-dollar 4% back to today */
+    const defaultMonthly=Math.round(projTotal*0.04/12/Math.pow(1+(inflPct||0),yearsGrow)/100)*100;
     const container=document.getElementById('spendPhasesContainer');
     if(container) container.innerHTML='';
     addSpendPhase(retAge||65, defaultMonthly||5000);
@@ -2659,7 +2660,7 @@ function computeWithdrawalPlan(){
         convTax=txWithConv-txWithout;
         convMarginalRate=rothConv>0?(convTax+taxableConv*stateTaxPct)/rothConv:0;
         totalConversions+=rothConv;
-        cumConvTax+=convTax;
+        cumConvTax+=convTax+taxableConv*stateTaxPct;
       }
     }
 
@@ -3350,7 +3351,7 @@ function renderWdTable(){
     /* Roth conversion — compute for all rows (overridden rows still get conversions) */
     let rothConv=0,convTax=0,convMarginalRate=0,taxableConvAmt=0;
     if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&convBracketLimit>0){
-      const hsaNonMedR=Math.max(0,wHSA-(5000*Math.pow(1+inflPct,age-retAge+yearsToRetire)));
+      const hsaNonMedR=Math.max(0,wHSA-annualMedical);
       const ssTaxForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedR,filing):0;
       const ordBefore=wDeferred+ssTaxForConv+hsaNonMedR;
       /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
@@ -3949,7 +3950,7 @@ function renderScenarios(){
 function _scenarioSim(p){
   const {curAge,retAge,lifeExp,retPct,inflPct,filing,ssMonthly,ssStartAge,
     rothConvStrategy,convStartAge,convEndAge,bTaxableInit,bDeferredInit,bRothInit,bHSAInit,
-    hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,spendPhases,customBracketLimit}=p;
+    hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,spendPhases,customBracketLimit,iraBasis}=p;
   const brackets=filing==='mfj'?TAX_BRACKETS_MFJ:TAX_BRACKETS_SINGLE;
   const birthYear=(new Date()).getFullYear()-curAge;
   const RMD_AGE=birthYear>=1960?75:(birthYear<=1950?72:73);
@@ -3965,6 +3966,7 @@ function _scenarioSim(p){
   const totalAtRetire=bTaxableInit+bDeferredInit+bRothInit+bHSAInit;
   const fallbackW=totalAtRetire*0.04;
   let bT=bTaxableInit,bD=bDeferredInit,bR=bRothInit,bH=bHSAInit;
+  let remainingBasis=iraBasis||0;
   const rows=[];let cumTax=0,totalConversions=0,cumConvTax=0;
   for(let yr=0;yr<yearsInRetirement;yr++){
     const age=retAge+yr;
@@ -4006,26 +4008,33 @@ function _scenarioSim(p){
     if(age>=RMD_AGE){wDf=Math.min(rmd,bD);rem-=wDf;if(rem>0){const ft=Math.min(rem,bT);wTx=ft;rem-=ft;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}}
     else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(filing==='mfj'?206700:103350)+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
     if(rem>0&&bH>wHs){const mh=Math.min(rem,bH-wHs);wHs+=mh;rem-=mh;}
-    let rothConv=0;
+    let rothConv=0,taxableConvAmt=0;
     const hsaNM=Math.max(0,wHs-annMed);
     if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bD>wDf&&convLimit>0){
       const stFC=ssIncome>0?calcSSTaxableAmount(ssIncome,wDf+wTx+hsaNM,filing):0;
       const ordBC=wDf+stFC+hsaNM;
+      /* IRA basis pro-rata — size conversion correctly for basis */
+      const totalIRA=bD;
+      const basisFr=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
       const room=Math.max(0,convLimit+stdDed-ordBC);
-      rothConv=Math.min(room,bD-wDf);
+      const effectiveRoom=basisFr<1?room/(1-basisFr):Infinity;
+      rothConv=Math.min(effectiveRoom,bD-wDf);
       if(rothConv>0){
+        const taxableConv=rothConv*(1-basisFr);
+        taxableConvAmt=taxableConv;
+        remainingBasis=Math.max(0,remainingBasis-rothConv*basisFr);
         totalConversions+=rothConv;
-        /* Estimate conv tax as difference in tax with/without conversion */
+        /* Estimate conv tax using differential method with SS re-taxation */
         const ordBase=wDf+hsaNM;
         const ssWithout=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+wTx,filing):0;
         const txWithout=calcTax(Math.max(0,ordBase+ssWithout-stdDed),brackets);
-        const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+rothConv+wTx,filing):0;
-        const txWith=calcTax(Math.max(0,ordBase+rothConv+ssWithConv-stdDed),brackets);
-        cumConvTax+=(txWith-txWithout)+rothConv*(p.stateTaxPct||0);
+        const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+taxableConv+wTx,filing):0;
+        const txWith=calcTax(Math.max(0,ordBase+taxableConv+ssWithConv-stdDed),brackets);
+        cumConvTax+=(txWith-txWithout)+taxableConv*(p.stateTaxPct||0);
       }
     }
     const hsaPen=(age<65&&hsaNM>0)?hsaNM*0.20:0;
-    const ordInc=wDf+rothConv+hsaNM;
+    const ordInc=wDf+taxableConvAmt+hsaNM;
     const agiSS=ordInc+wTx;
     const ssTxAmt=ssIncome>0?calcSSTaxableAmount(ssIncome,agiSS,filing):0;
     const totOrd=ordInc+ssTxAmt;
@@ -4154,6 +4163,7 @@ function runScenarioComparison(){
           spSSMonthly:spSS,spSSStartAge:spSSAge,spendPhases:phases,
           stateTaxPct:stax/100,
           customBracketLimit:customBracketLimitVal,
+          iraBasis:parseFloat(saved.wdIRABasis||document.getElementById('wdIRABasis')?.value||'0'),
         });
 
         const rows=sim.rows;
@@ -4465,7 +4475,7 @@ function computeInsights(pivot){
     const typeTotals = {};
     ACCT_DATA.forEach(g => { typeTotals[g.type] = g.total; });
     const taxablePct = ((typeTotals['Taxable Investment']||0)+(typeTotals['Custodial (UTMA)']||0))/GRAND*100;
-    const taxDefPct = (TAX_DEFERRED_TYPES.reduce((s,t)=>s+(typeTotals[t]||0),0)+(typeTotals['Tax-Deferred Savings']||0))/GRAND*100;
+    const taxDefPct = (typeTotals['Tax-Deferred Savings']||0)/GRAND*100;
     const rothPct = (typeTotals['Roth']||0)/GRAND*100;
     const hsaPct = (typeTotals['HSA']||0)/GRAND*100;
 
