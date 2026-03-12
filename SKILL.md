@@ -5,7 +5,7 @@ allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "4.3.0"
+  version: "4.4.0"
 ---
 
 # Portfolio Report Skill
@@ -146,7 +146,9 @@ An interactive HTML report featuring:
        - Ending balance distribution histogram
        - Interpretation notes with actionable guidance based on success rate
        - Tax estimation in MC: simplified income tax + LTCG + HSA penalty per simulated year
-     - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated.
+     - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), W/D % (annual withdrawal rate as percentage of beginning portfolio balance, color-coded: green ≤4%, amber 4-5%, red >5%), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated.
+     - **Spending Suggestions** — "See Spending Suggestions" button opens a modal with three scenarios: Die with Zero, Leave $2.50M Legacy, Leave $4.50M Legacy. All three use deterministic binary-search solvers (`_scenarioSim()` at the expected return rate) for consistent results every time. Monte Carlo success rate shown as informational risk indicator. Metrics include ending balance (nominal + PV), lifetime after-tax income, lifetime taxes, Roth conversions, BETR. "Compare in What-If Scenarios" button passes results to the Scenarios tab with full cache fingerprint validation (return%, inflation, SS, Roth strategy, ages, state tax).
+     - **Tab State Persistence** — Withdrawal results (summary cards, charts, year-by-year table) are cached after computation and restored when navigating back from other tabs, avoiding re-calculation.
      - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules, standard deduction, HSA penalty rules), assumptions & methodology
      - **Financial Engine**:
        - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
@@ -162,13 +164,15 @@ An interactive HTML report featuring:
        - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
        - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
        - Monte Carlo engine (1000 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
+       - **Deterministic Spending Solvers**: Binary search on `_scenarioSim()` for spending amounts: DWZ targets ending balance = $0, legacy targets ending balance ≥ target FV. Both include SS income in upper bound. Zero-portfolio guard returns 0 when portfolio empty. Converges to $10/mo in 35 iterations with adaptive rounding.
+       - **Suggestion-to-Scenario Cache**: Full parameter fingerprint (return%, inflation, SS, Roth strategy, retire/life ages, state tax) ensures cached spending suggestions are invalidated when any assumption changes. Target metadata (`_target`/`_targetMonthly`) persisted in localStorage with spending-match validation.
        - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, cumConvTax includes federal + state tax (consistent across all engines), BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
        - **Account Selector**: Multi-select dropdown to choose which accounts to include; persisted in localStorage
        - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
        - **PDF Export**: Print-optimized layout with parameter summary and chart labels
        - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
    - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary cards, harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags
-   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). PDF export, localStorage persistence.
+   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence.
 4. **3-level drill-down cards**— click top-level group → see Accounts → click Account → see Tickers
 5. **Risk classification** — Individual stock tickers are grouped within each account by risk category:
    - **Blue Chip / Core** — Large, stable companies (AAPL, MSFT, JNJ, PG, WMT, etc.)

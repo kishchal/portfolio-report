@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Report — {{REPORT_DATE}}</title>
+<title>Portfolio Report — Mar 12, 2026</title>
 <style>
   :root {
     --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
@@ -363,11 +363,11 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Allocation Report</h1>
-      <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 04:48 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
-      <div class="total">{{GRAND_TOTAL}}</div>
+      <div class="total">$3,000,000.03</div>
     </div>
   </div>
 </div>
@@ -406,7 +406,7 @@
 </div>
 
 <div class="footer">
-  Generated {{REPORT_DATE}}
+  Generated Mar 12, 2026
 </div>
 
 <script>
@@ -428,9 +428,689 @@ const BADGE_CLS = {
   '529 College Savings':'badge-529','Custodial (UTMA)':'badge-utma',
   'Investment':'badge-inv','Retirement':'badge-ret','Health Savings':'badge-hsa'
 };
-const GRAND = {{GRAND_TOTAL_NUM}};
-const DATA = {{DATA_JSON}};
-const SUGG_METRICS = {{SUGGESTIONS_JSON}};
+const GRAND = 3000000.03;
+const DATA = [
+  {cat:'Cash / Money Market',total:759660.87,accounts:[
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:583935.3,tickers:[
+      {sym:'BROKERAGELINK',name:'BrokerageLink Cash',val:583935.3,risk:'',gl:0,glPct:0,cb:583935.3},]},
+    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:133975.59,tickers:[
+      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:133733.69,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:241.9,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:39754.26,tickers:[
+      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:34327.12,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:5427.14,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:838.35,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:838.35,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:458.99,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:458.99,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:423.7,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:421.8,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'CORE**',name:'FDIC-Insured Deposit Sweep',val:1.9,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:137.98,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:137.98,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:101.65,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:101.65,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'961437285',type:'HSA',name:'Health Savings Account',val:34,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:34,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:1.05,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:1.05,risk:'',gl:null,glPct:null,cb:null},]},]},
+  {cat:'Individual Stocks',total:685950.94,accounts:[
+    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:314039.55,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:314039.55,risk:'Growth',gl:null,glPct:null,cb:null},]},
+    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:260698.3,tickers:[
+      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:20849.35,risk:'High Risk / Speculative',gl:5818.48,glPct:38.71,cb:15030.87},
+      {sym:'AAPL',name:'APPLE INC',val:18602.84,risk:'Growth',gl:2735.41,glPct:17.24,cb:15867.43},
+      {sym:'AMZN',name:'AMAZON.COM INC',val:8969.53,risk:'Blue Chip / Core',gl:761.32,glPct:9.28,cb:8208.21},
+      {sym:'GOOGL',name:'ALPHABET INC CAP STK CL A',val:8274.82,risk:'Growth',gl:3757.42,glPct:83.18,cb:4517.4},
+      {sym:'AVGO',name:'BROADCOM INC COM',val:7087.48,risk:'Growth',gl:3116.05,glPct:78.46,cb:3971.43},
+      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:6768.2,risk:'Growth',gl:651.74,glPct:10.66,cb:6116.47},
+      {sym:'GOOG',name:'ALPHABET INC CAP STK CL C',val:6681.04,risk:'Growth',gl:3016.73,glPct:82.33,cb:3664.31},
+      {sym:'BRKB',name:'BERKSHIRE HATHAWAY INC COM USD0.0033 CLASS B',val:3908.97,risk:'Blue Chip / Core',gl:161.2,glPct:4.3,cb:3747.77},
+      {sym:'JNJ',name:'JOHNSON \u0026JOHNSON COM',val:3892.28,risk:'Dividend / Value',gl:1632.02,glPct:72.2,cb:2260.26},
+      {sym:'LLY',name:'ELI LILLY \u0026CO COM',val:3746,risk:'Blue Chip / Core',gl:960.92,glPct:34.5,cb:2785.09},
+      {sym:'JPM',name:'JPMORGAN CHASE \u0026CO. COM',val:3640.04,risk:'Blue Chip / Core',gl:890.75,glPct:32.4,cb:2749.29},
+      {sym:'V',name:'VISA INC',val:2874.32,risk:'Blue Chip / Core',gl:237.3,glPct:9,cb:2637.02},
+      {sym:'WMT',name:'WALMART INC COM',val:2709.93,risk:'Blue Chip / Core',gl:939.52,glPct:53.07,cb:1770.42},
+      {sym:'AMAT',name:'APPLIED MATERIALS INC COM USD0.01',val:2573.32,risk:'Blue Chip / Core',gl:1581.72,glPct:159.51,cb:991.6},
+      {sym:'XOM',name:'EXXON MOBIL CORP COM',val:2464.74,risk:'Blue Chip / Core',gl:730.11,glPct:42.09,cb:1734.64},
+      {sym:'MA',name:'MASTERCARD INCORPORATED CL A',val:2256.1,risk:'Blue Chip / Core',gl:31.36,glPct:1.41,cb:2224.74},
+      {sym:'KO',name:'COCA-COLA CO',val:2144.26,risk:'Blue Chip / Core',gl:500.65,glPct:30.46,cb:1643.61},
+      {sym:'COST',name:'COSTCO WHOLESALE CORP COM',val:2087.7,risk:'Blue Chip / Core',gl:206.3,glPct:10.97,cb:1881.4},
+      {sym:'ABBV',name:'ABBVIE INC COM USD0.01',val:2049.84,risk:'Blue Chip / Core',gl:467.44,glPct:29.54,cb:1582.39},
+      {sym:'APH',name:'AMPHENOL CORP CLASS A COM USD0.001',val:2049.37,risk:'Growth',gl:1062.67,glPct:107.7,cb:986.7},
+      {sym:'GE',name:'GE AEROSPACE COM NEW',val:2047.87,risk:'Growth',gl:1027.45,glPct:100.69,cb:1020.41},
+      {sym:'MU',name:'MICRON TECHNOLOGY INC',val:1929.66,risk:'Growth',gl:1484.96,glPct:333.92,cb:444.7},
+      {sym:'CAT',name:'CATERPILLAR INC COM',val:1907.28,risk:'Growth',gl:1102.56,glPct:137.01,cb:804.72},
+      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:1796.47,risk:'High Risk / Speculative',gl:904.97,glPct:101.51,cb:891.5},
+      {sym:'NFLX',name:'NETFLIX INC',val:1794.85,risk:'Growth',gl:446.72,glPct:33.14,cb:1348.13},
+      {sym:'HD',name:'HOME DEPOT INC',val:1622.82,risk:'Blue Chip / Core',gl:25.84,glPct:1.62,cb:1596.98},
+      {sym:'MRK',name:'MERCK \u0026CO. INC COM',val:1588.11,risk:'Dividend / Value',gl:514.93,glPct:47.98,cb:1073.19},
+      {sym:'WFC',name:'WELLS FARGO CO NEW COM',val:1552.41,risk:'Blue Chip / Core',gl:333.08,glPct:27.32,cb:1219.33},
+      {sym:'PLTR',name:'PALANTIR TECHNOLOGIES INC CL A',val:1505.22,risk:'High Risk / Speculative',gl:1018.94,glPct:209.54,cb:486.28},
+      {sym:'PM',name:'PHILIP MORRIS INTERNATIONAL INC COM NPV',val:1455.49,risk:'Dividend / Value',gl:367.72,glPct:33.8,cb:1087.77},
+      {sym:'GEV',name:'GE VERNOVA INC COM',val:1423.87,risk:'Blue Chip / Core',gl:959.74,glPct:206.78,cb:464.13},
+      {sym:'RTX',name:'RTX CORPORATION COM USD1.00',val:1393.02,risk:'Blue Chip / Core',gl:579.33,glPct:71.2,cb:813.69},
+      {sym:'GS',name:'GOLDMAN SACHS GROUP INC COM USD0.01',val:1379.15,risk:'Growth',gl:544.76,glPct:65.29,cb:834.4},
+      {sym:'PG',name:'PROCTER AND GAMBLE CO COM',val:1364.6,risk:'Dividend / Value',gl:77.85,glPct:6.05,cb:1286.75},
+      {sym:'PEP',name:'PEPSICO INC',val:1341.66,risk:'Blue Chip / Core',gl:277.35,glPct:26.06,cb:1064.31},
+      {sym:'GILD',name:'GILEAD SCIENCES INC COM USD0.001',val:1316.64,risk:'Dividend / Value',gl:530.21,glPct:67.42,cb:786.43},
+      {sym:'CSCO',name:'CISCO SYSTEMS INC',val:1293.69,risk:'Blue Chip / Core',gl:400.3,glPct:44.81,cb:893.4},
+      {sym:'KLAC',name:'KLA CORP COM NEW',val:1289.27,risk:'Blue Chip / Core',gl:718.46,glPct:125.87,cb:570.81},
+      {sym:'ETN',name:'EATON CORPORATION PLC',val:1268.95,risk:'Blue Chip / Core',gl:363.41,glPct:40.13,cb:905.53},
+      {sym:'IBM',name:'INTERNATIONAL BUS MACH CORP COM USD0.20',val:1242.51,risk:'Dividend / Value',gl:112.05,glPct:9.91,cb:1130.46},
+      {sym:'MCD',name:'MCDONALD S CORP',val:1206.37,risk:'Blue Chip / Core',gl:147.68,glPct:13.95,cb:1058.7},
+      {sym:'BAC',name:'BANK AMERICA CORP COM',val:1188.42,risk:'Blue Chip / Core',gl:115.12,glPct:10.73,cb:1073.3},
+      {sym:'TMO',name:'THERMO FISHER SCIENTIFIC INC',val:1176.04,risk:'Blue Chip / Core',gl:178.09,glPct:17.85,cb:997.96},
+      {sym:'CVX',name:'CHEVRON CORP NEW COM',val:1139.54,risk:'Blue Chip / Core',gl:264.35,glPct:30.2,cb:875.19},
+      {sym:'AMGN',name:'AMGEN INC',val:1127.96,risk:'Blue Chip / Core',gl:366.67,glPct:48.16,cb:761.29},
+      {sym:'COF',name:'CAPITAL ONE FINANCIAL CORP COM USD0.01',val:1116.75,risk:'Growth',gl:190.36,glPct:20.55,cb:926.39},
+      {sym:'COP',name:'CONOCOPHILLIPS COM',val:1093.67,risk:'Dividend / Value',gl:327.8,glPct:42.8,cb:765.87},
+      {sym:'STX',name:'SEAGATE TECHNOLOGY HLDGS PUB LTD CO SEAGATE TECHNOLOGY HOLDINGS PLC ORDINARY SHARES ISIN #IE00BKVD2N49',val:1080.73,risk:'Growth',gl:842.5,glPct:353.65,cb:238.23},
+      {sym:'C',name:'CITIGROUP INC',val:1018.03,risk:'Blue Chip / Core',gl:427.81,glPct:72.48,cb:590.22},
+      {sym:'CRM',name:'SALESFORCE INC COM',val:1017.37,risk:'Blue Chip / Core',gl:11.24,glPct:1.12,cb:1006.12},
+      {sym:'T',name:'AT\u0026T INC COM USD1',val:988.48,risk:'Dividend / Value',gl:212.4,glPct:27.37,cb:776.09},
+      {sym:'MDT',name:'MEDTRONIC PLC',val:987.02,risk:'Dividend / Value',gl:171.96,glPct:21.1,cb:815.07},
+      {sym:'TJX',name:'TJX COMPANIES INC',val:983.39,risk:'Blue Chip / Core',gl:271.45,glPct:38.13,cb:711.94},
+      {sym:'CMCSA',name:'COMCAST CORP',val:974,risk:'Dividend / Value',gl:156.81,glPct:19.19,cb:817.19},
+      {sym:'ORCL',name:'ORACLE CORP',val:973.85,risk:'Growth',gl:-73.63,glPct:-7.03,cb:1047.47},
+      {sym:'HWM',name:'HOWMET AEROSPACE INC COM',val:929.41,risk:'Blue Chip / Core',gl:490.92,glPct:111.96,cb:438.48},
+      {sym:'NEM',name:'NEWMONT CORP COM ISIN #US6516391066 SEDOL #BJYKTV2',val:928.63,risk:'Dividend / Value',gl:654.8,glPct:239.13,cb:273.83},
+      {sym:'ANET',name:'ARISTA NETWORKS INC COM SHS',val:925.46,risk:'Growth',gl:400.46,glPct:76.28,cb:525},
+      {sym:'HAL',name:'HALLIBURTON CO COM USD2.50',val:920.38,risk:'Blue Chip / Core',gl:404.79,glPct:78.51,cb:515.59},
+      {sym:'PWR',name:'QUANTA SERVICES COM USD0.00001',val:916.54,risk:'Growth',gl:535.05,glPct:140.25,cb:381.49},
+      {sym:'BLK',name:'BLACKROCK INC COM',val:908.26,risk:'Growth',gl:130.01,glPct:16.71,cb:778.25},
+      {sym:'CME',name:'CME GROUP INC COM',val:905.39,risk:'Blue Chip / Core',gl:273.57,glPct:43.3,cb:631.82},
+      {sym:'PNC',name:'PNC FINANCIAL SERVICES GROUP COM USD5',val:904.1,risk:'Dividend / Value',gl:252.25,glPct:38.7,cb:651.84},
+      {sym:'WELL',name:'WELLTOWER INC COM',val:901.45,risk:'High Risk / Speculative',gl:309.92,glPct:52.39,cb:591.53},
+      {sym:'INTC',name:'INTEL CORP COM USD0.001',val:895.2,risk:'High Risk / Speculative',gl:506.71,glPct:130.43,cb:388.49},
+      {sym:'SCHW',name:'SCHWAB CHARLES CORP COM',val:876.4,risk:'Dividend / Value',gl:205.99,glPct:30.73,cb:670.41},
+      {sym:'USB',name:'US BANCORP',val:867.36,risk:'Blue Chip / Core',gl:265.64,glPct:44.15,cb:601.73},
+      {sym:'AEP',name:'AMERICAN ELEC PWR CO INC COM',val:865.27,risk:'Dividend / Value',gl:275.05,glPct:46.6,cb:590.22},
+      {sym:'NOW',name:'SERVICENOW INC COM USD0.001',val:862.75,risk:'Growth',gl:34.52,glPct:4.17,cb:828.23},
+      {sym:'LOW',name:'LOWES COMPANIES INC COM USD0.50',val:854.81,risk:'Blue Chip / Core',gl:108.82,glPct:14.59,cb:745.99},
+      {sym:'CSX',name:'CSX CORP COM USD1',val:849.02,risk:'Blue Chip / Core',gl:298.23,glPct:54.15,cb:550.79},
+      {sym:'MS',name:'MORGAN STANLEY COM USD0.01',val:845.05,risk:'Blue Chip / Core',gl:266.37,glPct:46.03,cb:578.68},
+      {sym:'LHX',name:'L3HARRIS TECHNOLOGIES INC COM',val:844.19,risk:'Blue Chip / Core',gl:382.07,glPct:82.68,cb:462.12},
+      {sym:'KEYS',name:'KEYSIGHT TECHNOLOGIES INC COM USD0.01 WD',val:839.13,risk:'Growth',gl:445.37,glPct:113.11,cb:393.75},
+      {sym:'NOC',name:'NORTHROP GRUMMAN CORP COM USD1',val:837.83,risk:'Blue Chip / Core',gl:335.72,glPct:66.86,cb:502.12},
+      {sym:'TT',name:'TRANE TECHNOLOGIES PLC COM USD1',val:823.7,risk:'Blue Chip / Core',gl:237.46,glPct:40.51,cb:586.24},
+      {sym:'O',name:'REALTY INCOME CORP COM',val:817.63,risk:'Blue Chip / Core',gl:186.57,glPct:29.56,cb:631.07},
+      {sym:'LIN',name:'LINDE PLC COM EUR0.001',val:809.98,risk:'Blue Chip / Core',gl:133.13,glPct:19.67,cb:676.86},
+      {sym:'BA',name:'BOEING CO',val:803.64,risk:'Growth',gl:270.88,glPct:50.84,cb:532.77},
+      {sym:'PFE',name:'PFIZER INC',val:793.08,risk:'Dividend / Value',gl:94.27,glPct:13.49,cb:698.81},
+      {sym:'PLD',name:'PROLOGIS INC. COM',val:791.26,risk:'Blue Chip / Core',gl:215.78,glPct:37.5,cb:575.48},
+      {sym:'VRT',name:'VERTIV HOLDINGS CO COM CL A',val:781.5,risk:'High Risk / Speculative',gl:565.38,glPct:261.6,cb:216.12},
+      {sym:'TFC',name:'TRUIST FINL CORP COM',val:775.92,risk:'Dividend / Value',gl:220.8,glPct:39.78,cb:555.12},
+      {sym:'SYK',name:'STRYKER CORPORATION COM',val:775.03,risk:'Blue Chip / Core',gl:43.08,glPct:5.89,cb:731.95},
+      {sym:'JCI',name:'JOHNSON CONTROLS INTERNATIONAL PLC COM USD1.00',val:769.94,risk:'Blue Chip / Core',gl:362.7,glPct:89.06,cb:407.24},
+      {sym:'HCA',name:'HCA HEALTHCARE INC COM',val:749.22,risk:'Blue Chip / Core',gl:325.91,glPct:76.99,cb:423.31},
+      {sym:'DUK',name:'DUKE ENERGY CORP NEW COM NEW ISIN #US26441C2044 SEDOL #B7JZSK0',val:746.97,risk:'Dividend / Value',gl:100.64,glPct:15.57,cb:646.32},
+      {sym:'MO',name:'ALTRIA GROUP INC',val:731.93,risk:'Dividend / Value',gl:161.23,glPct:28.25,cb:570.69},
+      {sym:'UBER',name:'UBER TECHNOLOGIES INC COM',val:730.13,risk:'Growth',gl:89.89,glPct:14.04,cb:640.23},
+      {sym:'ITW',name:'ILLINOIS TOOL WORKS INC COM',val:729.23,risk:'Blue Chip / Core',gl:157.75,glPct:27.6,cb:571.47},
+      {sym:'ED',name:'CONSOLIDATED EDISON INC COM USD0.10',val:725.44,risk:'Dividend / Value',gl:152.54,glPct:26.63,cb:572.9},
+      {sym:'ABT',name:'ABBOTT LABORATORIES',val:721.83,risk:'Blue Chip / Core',gl:-6.99,glPct:-0.96,cb:728.82},
+      {sym:'DE',name:'DEERE \u0026 CO',val:718.92,risk:'Blue Chip / Core',gl:255.05,glPct:54.98,cb:463.87},
+      {sym:'MCK',name:'MCKESSON CORP',val:692.77,risk:'Blue Chip / Core',gl:336.03,glPct:94.19,cb:356.74},
+      {sym:'PGR',name:'PROGRESSIVE CORP COM',val:692.42,risk:'Dividend / Value',gl:37.56,glPct:5.74,cb:654.86},
+      {sym:'CVS',name:'CVS HEALTH CORPORATION COM USD0.01',val:689.24,risk:'Blue Chip / Core',gl:293.56,glPct:74.19,cb:395.69},
+      {sym:'UNP',name:'UNION PAC CORP COM',val:689.13,risk:'Dividend / Value',gl:127.43,glPct:22.69,cb:561.7},
+      {sym:'SBUX',name:'STARBUCKS CORP COM USD0.001',val:688.84,risk:'Blue Chip / Core',gl:88.07,glPct:14.66,cb:600.77},
+      {sym:'ISRG',name:'INTUITIVE SURGICAL INC',val:676.07,risk:'Growth',gl:82.8,glPct:13.96,cb:593.26},
+      {sym:'RSG',name:'REPUBLIC SERVICES INC',val:674.88,risk:'Blue Chip / Core',gl:86.31,glPct:14.66,cb:588.57},
+      {sym:'TXN',name:'TEXAS INSTRUMENTS INC COM USD1.00',val:671.64,risk:'Blue Chip / Core',gl:104.27,glPct:18.38,cb:567.37},
+      {sym:'HIG',name:'THE HARTFORD INSURANCE GROUP, INC. COMMON STOCK',val:670.61,risk:'Dividend / Value',gl:148.97,glPct:28.56,cb:521.64},
+      {sym:'FCX',name:'FREEPORT-MCMORAN INC COM USD0.10',val:666.46,risk:'Blue Chip / Core',gl:323.18,glPct:94.14,cb:343.28},
+      {sym:'MLM',name:'MARTIN MARIETTA MATERIALS INC COM USD0.01',val:652.57,risk:'Blue Chip / Core',gl:187.27,glPct:40.25,cb:465.29},
+      {sym:'BX',name:'BLACKSTONE INC',val:652.4,risk:'Growth',gl:-73.54,glPct:-10.13,cb:725.94},
+      {sym:'PSX',name:'PHILLIPS 66',val:648.51,risk:'Blue Chip / Core',gl:221.48,glPct:51.87,cb:427.03},
+      {sym:'DTE',name:'DTE ENERGY CO',val:643.15,risk:'Blue Chip / Core',gl:115.14,glPct:21.81,cb:528.02},
+      {sym:'INTU',name:'INTUIT INC',val:641.73,risk:'Growth',gl:41.64,glPct:6.94,cb:600.09},
+      {sym:'FANG',name:'DIAMONDBACK ENERGY INC COM USD0.01',val:640.68,risk:'Blue Chip / Core',gl:179.34,glPct:38.87,cb:461.34},
+      {sym:'MMM',name:'3M CO',val:639.63,risk:'Blue Chip / Core',gl:119.6,glPct:23,cb:520.03},
+      {sym:'EXC',name:'EXELON CORP COM NPV',val:639.14,risk:'Dividend / Value',gl:148.89,glPct:30.37,cb:490.25},
+      {sym:'CAH',name:'CARDINAL HEALTH INC COM NPV',val:638.71,risk:'Blue Chip / Core',gl:299.45,glPct:88.26,cb:339.27},
+      {sym:'NSC',name:'NORFOLK SOUTHN CORP COM',val:638.19,risk:'Blue Chip / Core',gl:201.16,glPct:46.03,cb:437.02},
+      {sym:'WMB',name:'WILLIAMS COS INC COM',val:636.83,risk:'Blue Chip / Core',gl:201.53,glPct:46.3,cb:435.3},
+      {sym:'FDX',name:'FEDEX CORP COM USD0.10',val:634.67,risk:'Blue Chip / Core',gl:262.1,glPct:70.35,cb:372.57},
+      {sym:'RCL',name:'ROYAL CARIBBEAN GROUP COM USD0.01',val:630.95,risk:'High Risk / Speculative',gl:202.03,glPct:47.1,cb:428.92},
+      {sym:'HON',name:'HONEYWELL INTERNATIONAL INC COM USD1',val:630.1,risk:'Blue Chip / Core',gl:144.42,glPct:29.74,cb:485.68},
+      {sym:'ADBE',name:'ADOBE INC COM',val:624.64,risk:'Blue Chip / Core',gl:7.84,glPct:1.27,cb:616.8},
+      {sym:'OVV',name:'OVINTIV INC COM ISIN #US69047Q1022 SEDOL #BL3GRC2',val:620.17,risk:'Dividend / Value',gl:209.27,glPct:50.93,cb:410.9},
+      {sym:'ADI',name:'ANALOG DEVICES INC COM',val:618.18,risk:'Growth',gl:154.55,glPct:33.33,cb:463.63},
+      {sym:'CEG',name:'CONSTELLATION ENERGY CORP COM',val:612.42,risk:'Blue Chip / Core',gl:221.67,glPct:56.73,cb:390.76},
+      {sym:'ROK',name:'ROCKWELL AUTOMATION INC COM USD1',val:610.04,risk:'Blue Chip / Core',gl:234.71,glPct:62.53,cb:375.33},
+      {sym:'CDNS',name:'CADENCE DESIGN SYSTEMS INC COM USD0.01',val:593.51,risk:'Blue Chip / Core',gl:102.69,glPct:20.92,cb:490.82},
+      {sym:'COR',name:'CENCORA INC COM',val:587.84,risk:'Blue Chip / Core',gl:149.22,glPct:34.02,cb:438.62},
+      {sym:'TDY',name:'TELEDYNE TECHNOLOGIES INC',val:587.19,risk:'Blue Chip / Core',gl:192.53,glPct:48.78,cb:394.67},
+      {sym:'GD',name:'GENERAL DYNAMICS CORP COM',val:585.7,risk:'Blue Chip / Core',gl:149.86,glPct:34.38,cb:435.84},
+      {sym:'VMC',name:'VULCAN MATERIALS CO',val:581.82,risk:'Blue Chip / Core',gl:145.92,glPct:33.48,cb:435.9},
+      {sym:'ELV',name:'ELEVANCE HEALTH INC COM',val:573.08,risk:'Blue Chip / Core',gl:1.29,glPct:0.23,cb:571.78},
+      {sym:'APP',name:'APPLOVIN CORP COM CL A',val:571.02,risk:'High Risk / Speculative',gl:212.71,glPct:59.36,cb:358.31},
+      {sym:'CRWD',name:'CROWDSTRIKE HLDGS INC CL A',val:569.65,risk:'High Risk / Speculative',gl:91.82,glPct:19.22,cb:477.83},
+      {sym:'LRCX',name:'LAM RESEARCH CORP COM NEW',val:565.52,risk:'Growth',gl:105.58,glPct:22.96,cb:459.94},
+      {sym:'DIS',name:'DISNEY WALT CO COM',val:562.12,risk:'Blue Chip / Core',gl:26.36,glPct:4.92,cb:535.77},
+      {sym:'KR',name:'KROGER CO COM USD1.00',val:550.63,risk:'Blue Chip / Core',gl:67.3,glPct:13.92,cb:483.32},
+      {sym:'ECL',name:'ECOLAB INC',val:549.41,risk:'Blue Chip / Core',gl:126.09,glPct:29.79,cb:423.32},
+      {sym:'MPC',name:'MARATHON PETROLEUM CORP COM USD0.01',val:549.13,risk:'Blue Chip / Core',gl:225.75,glPct:69.81,cb:323.38},
+      {sym:'UPS',name:'UNITED PARCEL SERVICE INC CL B',val:548.51,risk:'Blue Chip / Core',gl:144.34,glPct:35.71,cb:404.17},
+      {sym:'SRE',name:'SEMPRA COM',val:536.78,risk:'Blue Chip / Core',gl:152.33,glPct:39.62,cb:384.45},
+      {sym:'EVRG',name:'EVERGY INC COM',val:533.53,risk:'Dividend / Value',gl:149.04,glPct:38.76,cb:384.49},
+      {sym:'EBAY',name:'EBAY INC. COM',val:530.63,risk:'Blue Chip / Core',gl:155.52,glPct:41.46,cb:375.11},
+      {sym:'DHR',name:'DANAHER CORPORATION COM',val:530.16,risk:'Blue Chip / Core',gl:-6.46,glPct:-1.2,cb:536.62},
+      {sym:'KEY',name:'KEYCORP COM',val:527.06,risk:'Growth',gl:179.48,glPct:51.64,cb:347.58},
+      {sym:'AZO',name:'AUTOZONE INC COM USD0.01',val:526.94,risk:'Blue Chip / Core',gl:104.6,glPct:24.77,cb:422.34},
+      {sym:'IQV',name:'IQVIA HLDGS INC COM',val:526.15,risk:'Blue Chip / Core',gl:82.62,glPct:18.63,cb:443.53},
+      {sym:'AXP',name:'AMERICAN EXPRESS CO COM USD0.20',val:523.53,risk:'Blue Chip / Core',gl:32.12,glPct:6.54,cb:491.41},
+      {sym:'MKL',name:'MARKEL GROUP INC COM NPV',val:516.87,risk:'Dividend / Value',gl:85.98,glPct:19.95,cb:430.89},
+      {sym:'DELL',name:'DELL TECHNOLOGIES INC CL C',val:513.14,risk:'Growth',gl:243.36,glPct:90.21,cb:269.78},
+      {sym:'MRSH',name:'MARSH COMMON STOCK',val:504.15,risk:'Dividend / Value',gl:14.29,glPct:2.92,cb:489.85},
+      {sym:'ATO',name:'ATMOS ENERGY CORP COM NPV',val:500.61,risk:'Dividend / Value',gl:122.77,glPct:32.49,cb:377.84},
+      {sym:'REGN',name:'REGENERON PHARMACEUTICALS INC',val:496.15,risk:'Dividend / Value',gl:139.59,glPct:39.15,cb:356.56},
+      {sym:'NEE',name:'NEXTERA ENERGY INC COM USD0.01',val:487.17,risk:'Blue Chip / Core',gl:102.8,glPct:26.75,cb:384.37},
+      {sym:'CL',name:'COLGATE-PALMOLIVE CO COM',val:486.87,risk:'Blue Chip / Core',gl:94.87,glPct:24.2,cb:392},
+      {sym:'BIIB',name:'BIOGEN INC COM USD0.0005',val:485.41,risk:'Dividend / Value',gl:144.05,glPct:42.2,cb:341.36},
+      {sym:'FAST',name:'FASTENAL COM STK USD0.01',val:482.64,risk:'Blue Chip / Core',gl:85.06,glPct:21.39,cb:397.57},
+      {sym:'DLR',name:'DIGITAL REALTY TRUST INC',val:479.55,risk:'Growth',gl:91.44,glPct:23.56,cb:388.11},
+      {sym:'TRV',name:'TRAVELERS COMPANIES INC COM STK NPV',val:478.13,risk:'Dividend / Value',gl:99.88,glPct:26.41,cb:378.26},
+      {sym:'TMUS',name:'T-MOBILE US INC COM',val:473.72,risk:'Dividend / Value',gl:66.16,glPct:16.23,cb:407.57},
+      {sym:'ORLY',name:'OREILLY AUTOMOTIVE INC COM',val:467.24,risk:'Blue Chip / Core',gl:77.95,glPct:20.02,cb:389.28},
+      {sym:'CTAS',name:'CINTAS CORP',val:462.05,risk:'Blue Chip / Core',gl:37.43,glPct:8.81,cb:424.62},
+      {sym:'VRTX',name:'VERTEX PHARMACEUTICALS INC',val:459.27,risk:'Blue Chip / Core',gl:74.59,glPct:19.39,cb:384.68},
+      {sym:'FTNT',name:'FORTINET INC COM USD0.001',val:447.3,risk:'Blue Chip / Core',gl:14.19,glPct:3.28,cb:433.11},
+      {sym:'DAL',name:'DELTA AIR LINES INC',val:437.98,risk:'Blue Chip / Core',gl:160.61,glPct:57.9,cb:277.37},
+      {sym:'MAR',name:'MARRIOTT INTERNATIONAL INC COM USD0.01 CLASS A',val:434.98,risk:'Blue Chip / Core',gl:60.31,glPct:16.1,cb:374.67},
+      {sym:'DOW',name:'DOW INC COM',val:434.59,risk:'High Risk / Speculative',gl:126.87,glPct:41.23,cb:307.72},
+      {sym:'SNOW',name:'SNOWFLAKE INC. COMMON STOCK',val:434.44,risk:'High Risk / Speculative',gl:110.03,glPct:33.92,cb:324.4},
+      {sym:'FTV',name:'FORTIVE CORP COM',val:434.43,risk:'Blue Chip / Core',gl:73.42,glPct:20.34,cb:361.01},
+      {sym:'NXPI',name:'NXP SEMICONDUCTORS NV',val:432.25,risk:'Blue Chip / Core',gl:78.37,glPct:22.15,cb:353.88},
+      {sym:'PTC',name:'PTC INC',val:430.42,risk:'Blue Chip / Core',gl:36.68,glPct:9.32,cb:393.75},
+      {sym:'NKE',name:'NIKE INC CLASS B COM NPV',val:429.8,risk:'Blue Chip / Core',gl:29.94,glPct:7.49,cb:399.86},
+      {sym:'IFF',name:'INTERNATIONAL FLAVORS \u0026FRAGRANCES COM USD0.125',val:427.22,risk:'High Risk / Speculative',gl:95.5,glPct:28.79,cb:331.72},
+      {sym:'WM',name:'WASTE MANAGEMENT INC',val:425.13,risk:'Blue Chip / Core',gl:57.86,glPct:15.75,cb:367.28},
+      {sym:'MNST',name:'MONSTER BEVERAGE CORP NEW COM',val:422.42,risk:'Blue Chip / Core',gl:117.52,glPct:38.54,cb:304.91},
+      {sym:'EW',name:'EDWARDS LIFESCIENCES CORP',val:421.5,risk:'Blue Chip / Core',gl:88.52,glPct:26.58,cb:332.98},
+      {sym:'URI',name:'UNITED RENTALS INC',val:420.27,risk:'Blue Chip / Core',gl:87.62,glPct:26.34,cb:332.65},
+      {sym:'PRU',name:'PRUDENTIAL FINANCIAL INC',val:415.92,risk:'Blue Chip / Core',gl:-2.73,glPct:-0.65,cb:418.65},
+      {sym:'F',name:'FORD MTR CO DEL COM',val:411.92,risk:'High Risk / Speculative',gl:105.17,glPct:34.29,cb:306.74},
+      {sym:'BMY',name:'BRISTOL-MYERS SQUIBB CO COM',val:411.23,risk:'Dividend / Value',gl:97.48,glPct:31.07,cb:313.75},
+      {sym:'RJF',name:'RAYMOND JAMES FINL INC COM',val:410.07,risk:'Blue Chip / Core',gl:57.15,glPct:16.19,cb:352.92},
+      {sym:'DHI',name:'DR HORTON INC COM STK USD0.01',val:408.04,risk:'Blue Chip / Core',gl:73.35,glPct:21.92,cb:334.69},
+      {sym:'TROW',name:'PRICE T ROWE GROUPS COM USD0.20',val:406.17,risk:'Blue Chip / Core',gl:36.41,glPct:9.85,cb:369.76},
+      {sym:'SHW',name:'SHERWIN-WILLIAMS CO',val:403.97,risk:'Blue Chip / Core',gl:36.42,glPct:9.91,cb:367.56},
+      {sym:'EA',name:'ELECTRONIC ARTS INC',val:403.66,risk:'Blue Chip / Core',gl:127.17,glPct:45.99,cb:276.5},
+      {sym:'HPE',name:'HEWLETT PACKARD ENTERPRISE CO COM',val:401.06,risk:'High Risk / Speculative',gl:146.63,glPct:57.63,cb:254.43},
+      {sym:'DASH',name:'DOORDASH INC CL A',val:397.54,risk:'High Risk / Speculative',gl:36.74,glPct:10.18,cb:360.8},
+      {sym:'ON',name:'ON SEMICONDUCTOR CORP COM USD0.01',val:396.32,risk:'High Risk / Speculative',gl:156.81,glPct:65.47,cb:239.51},
+      {sym:'NET',name:'CLOUDFLARE INC CL A COM',val:394.95,risk:'High Risk / Speculative',gl:150.61,glPct:61.64,cb:244.34},
+      {sym:'ILMN',name:'ILLUMINA INC COM USD0.01',val:391.35,risk:'Blue Chip / Core',gl:160.13,glPct:69.25,cb:231.22},
+      {sym:'LNG',name:'CHENIERE ENERGY INC COM USD0.003',val:389.49,risk:'Dividend / Value',gl:96.1,glPct:32.76,cb:293.38},
+      {sym:'VST',name:'VISTRA CORP COM',val:387.66,risk:'Blue Chip / Core',gl:119.27,glPct:44.44,cb:268.39},
+      {sym:'MDLZ',name:'MONDELEZ INTL INC COM NPV',val:379.82,risk:'Blue Chip / Core',gl:20.14,glPct:5.6,cb:359.68},
+      {sym:'EQIX',name:'EQUINIX INC COM',val:378.52,risk:'Blue Chip / Core',gl:20.2,glPct:5.64,cb:358.32},
+      {sym:'ULTA',name:'ULTA BEAUTY INC COM',val:377.94,risk:'Blue Chip / Core',gl:179.61,glPct:90.56,cb:198.33},
+      {sym:'ROST',name:'ROSS STORES INC',val:377.14,risk:'Blue Chip / Core',gl:79.24,glPct:26.6,cb:297.9},
+      {sym:'ACGL',name:'ARCH CAPITAL GROUP COM STK USD0.01',val:377.06,risk:'Dividend / Value',gl:38.2,glPct:11.27,cb:338.86},
+      {sym:'ABNB',name:'AIRBNB INC COM CL A',val:370.26,risk:'Blue Chip / Core',gl:37.64,glPct:11.32,cb:332.62},
+      {sym:'AMT',name:'AMERICAN TOWER CORP NEW COM',val:364.81,risk:'Blue Chip / Core',gl:32.03,glPct:9.62,cb:332.78},
+      {sym:'NVR',name:'NVR INC COM USD0.01',val:360.82,risk:'Blue Chip / Core',gl:9.32,glPct:2.65,cb:351.5},
+      {sym:'SO',name:'SOUTHERN CO',val:359.54,risk:'Dividend / Value',gl:38.36,glPct:11.94,cb:321.17},
+      {sym:'XYZ',name:'BLOCK INC CL A',val:358.14,risk:'High Risk / Speculative',gl:62.89,glPct:21.3,cb:295.26},
+      {sym:'VZ',name:'VERIZON COMMUNICATIONS INC',val:354.78,risk:'Dividend / Value',gl:72.26,glPct:25.58,cb:282.52},
+      {sym:'MPWR',name:'MONOLITHIC POWER SYSTEMS INC',val:351.11,risk:'Growth',gl:165.75,glPct:89.42,cb:185.36},
+      {sym:'TGT',name:'TARGET CORP',val:340.52,risk:'Blue Chip / Core',gl:66.72,glPct:24.37,cb:273.8},
+      {sym:'TTWO',name:'TAKE-TWO INTERACTIVE SOFTWARE INC',val:335.74,risk:'High Risk / Speculative',gl:17.28,glPct:5.43,cb:318.46},
+      {sym:'CLX',name:'CLOROX CO COM USD1.00',val:335.13,risk:'Dividend / Value',gl:69.03,glPct:25.94,cb:266.1},
+      {sym:'CHD',name:'CHURCH \u0026DWIGHT CO INC COM',val:331.41,risk:'Blue Chip / Core',gl:66.82,glPct:25.25,cb:264.59},
+      {sym:'SLB',name:'SLB LIMITED TRADING',val:330.33,risk:'Blue Chip / Core',gl:120.39,glPct:57.34,cb:209.95},
+      {sym:'ALL',name:'ALLSTATE CORP COM USD0.01',val:329.08,risk:'Dividend / Value',gl:32.99,glPct:11.14,cb:296.1},
+      {sym:'SNPS',name:'SYNOPSYS INC',val:328.42,risk:'Growth',gl:33.46,glPct:11.34,cb:294.95},
+      {sym:'WY',name:'WEYERHAEUSER CO MTN BE COM NEW',val:316.87,risk:'Blue Chip / Core',gl:41.06,glPct:14.89,cb:275.82},
+      {sym:'KDP',name:'KEURIG DR PEPPER INC COM',val:313.2,risk:'Dividend / Value',gl:29.99,glPct:10.59,cb:283.22},
+      {sym:'AVB',name:'AVALONBAY COMMUNITIES INC COM USD0.01',val:313.09,risk:'Dividend / Value',gl:2.11,glPct:0.68,cb:310.98},
+      {sym:'HOOD',name:'ROBINHOOD MKTS INC COM CL A',val:310.88,risk:'High Risk / Speculative',gl:125.26,glPct:67.48,cb:185.62},
+      {sym:'FISV',name:'FISERV INC COM STK USD0.01',val:310.44,risk:'Blue Chip / Core',gl:-0.61,glPct:-0.2,cb:311.04},
+      {sym:'LMT',name:'LOCKHEED MARTIN CORP COM USD1.00',val:308.45,risk:'Blue Chip / Core',gl:43.23,glPct:16.3,cb:265.22},
+      {sym:'VRSK',name:'VERISK ANALYTICS INC COM',val:304.17,risk:'Blue Chip / Core',gl:42.55,glPct:16.26,cb:261.61},
+      {sym:'CMG',name:'CHIPOTLE MEXICAN GRILL INC',val:303.1,risk:'Blue Chip / Core',gl:-9.19,glPct:-2.94,cb:312.29},
+      {sym:'RBLX',name:'ROBLOX CORP CL A',val:291.17,risk:'High Risk / Speculative',gl:49.82,glPct:20.64,cb:241.35},
+      {sym:'CI',name:'THE CIGNA GROUP COM',val:289.73,risk:'Blue Chip / Core',gl:8.02,glPct:2.85,cb:281.71},
+      {sym:'QRVO',name:'QORVO INC',val:286.14,risk:'Blue Chip / Core',gl:85.37,glPct:42.52,cb:200.76},
+      {sym:'PYPL',name:'PAYPAL HLDGS INC COM',val:284.88,risk:'Blue Chip / Core',gl:18.81,glPct:7.07,cb:266.07},
+      {sym:'DDOG',name:'DATADOG INC CL A COM',val:284.24,risk:'High Risk / Speculative',gl:32.74,glPct:13.02,cb:251.5},
+      {sym:'ICE',name:'INTERCONTINENTAL EXCHANGE INC COM USD0.01',val:278.5,risk:'Blue Chip / Core',gl:16.07,glPct:6.12,cb:262.43},
+      {sym:'LULU',name:'LULULEMON ATHLETICA INC COM USD0.005',val:278.35,risk:'Blue Chip / Core',gl:17.88,glPct:6.86,cb:260.46},
+      {sym:'ROP',name:'ROPER TECHNOLOGIES INC',val:278.25,risk:'Dividend / Value',gl:12.95,glPct:4.88,cb:265.3},
+      {sym:'EFX',name:'EQUIFAX INC COM USD1.25',val:277.55,risk:'Blue Chip / Core',gl:14.68,glPct:5.58,cb:262.87},
+      {sym:'LYB',name:'LYONDELLBASELL INDUSTRIES N V COM EUR0.04 CLASS A',val:272.72,risk:'High Risk / Speculative',gl:69.17,glPct:33.98,cb:203.55},
+      {sym:'DOCU',name:'DOCUSIGN INC COM',val:272.58,risk:'Blue Chip / Core',gl:3.34,glPct:1.24,cb:269.24},
+      {sym:'AON',name:'AON PLC SHS CL A COM USD0.01',val:271.62,risk:'Dividend / Value',gl:9.83,glPct:3.75,cb:261.79},
+      {sym:'MCO',name:'MOODYS CORP COM USD0.01',val:270.94,risk:'Blue Chip / Core',gl:8.35,glPct:3.18,cb:262.59},
+      {sym:'FICO',name:'FAIR ISAAC CORP',val:270.33,risk:'Growth',gl:5.1,glPct:1.92,cb:265.23},
+      {sym:'WBD',name:'WARNER BROS DISCOVERY INC COM SER A',val:268.29,risk:'Blue Chip / Core',gl:49.23,glPct:22.47,cb:219.05},
+      {sym:'TRU',name:'TRANSUNION COM',val:268.12,risk:'Blue Chip / Core',gl:5.48,glPct:2.09,cb:262.64},
+      {sym:'DXCM',name:'DEXCOM INC',val:266.02,risk:'Blue Chip / Core',gl:4.51,glPct:1.72,cb:261.51},
+      {sym:'IRM',name:'IRON MTN INC DEL COM',val:265.86,risk:'High Risk / Speculative',gl:5.25,glPct:2.01,cb:260.61},
+      {sym:'UAL',name:'UNITED AIRLS HLDGS INC COM',val:264.3,risk:'Blue Chip / Core',gl:95.77,glPct:56.83,cb:168.53},
+      {sym:'CHTR',name:'CHARTER COMMUNICATIONS INC NEW CL A',val:262.31,risk:'Blue Chip / Core',gl:-0.82,glPct:-0.31,cb:263.13},
+      {sym:'AMP',name:'AMERIPRISE FINANCIAL INC COM USD0.01',val:261.7,risk:'Blue Chip / Core',gl:3.97,glPct:1.54,cb:257.73},
+      {sym:'KVUE',name:'KENVUE INC COM',val:260.39,risk:'Blue Chip / Core',gl:33.77,glPct:14.9,cb:226.62},
+      {sym:'CNC',name:'CENTENE CORP',val:253.32,risk:'High Risk / Speculative',gl:48.42,glPct:23.63,cb:204.9},
+      {sym:'GEHC',name:'GE HEALTHCARE TECHNOLOGIES INC COMMON STOCK',val:251.67,risk:'Blue Chip / Core',gl:-17.38,glPct:-6.46,cb:269.04},
+      {sym:'TTD',name:'THE TRADE DESK INC COM CL A',val:251.04,risk:'Blue Chip / Core',gl:-17.24,glPct:-6.43,cb:268.29},
+      {sym:'OMC',name:'OMNICOM GROUP INC COM USD0.15',val:246.79,risk:'High Risk / Speculative',gl:29.66,glPct:13.66,cb:217.12},
+      {sym:'CARR',name:'CARRIER GLOBAL CORPORATION COM',val:242.44,risk:'Blue Chip / Core',gl:43.41,glPct:21.81,cb:199.04},
+      {sym:'TEAM',name:'ATLASSIAN CORPORATION CL A',val:239.64,risk:'High Risk / Speculative',gl:-21.07,glPct:-8.08,cb:260.71},
+      {sym:'ZM',name:'ZOOM COMMUNICATIONS INC CLASS A COMMON',val:237.62,risk:'Dividend / Value',gl:8.95,glPct:3.91,cb:228.66},
+      {sym:'CVNA',name:'CARVANA CO CL A',val:233.33,risk:'High Risk / Speculative',gl:51.83,glPct:28.56,cb:181.5},
+      {sym:'MDB',name:'MONGODB INC CL A',val:229.71,risk:'High Risk / Speculative',gl:85.64,glPct:59.44,cb:144.07},
+      {sym:'UNH',name:'UNITEDHEALTH GROUP INC',val:229.6,risk:'Blue Chip / Core',gl:-5.91,glPct:-2.51,cb:235.5},
+      {sym:'FLUT',name:'FLUTTER ENTERTAINMENT PLC ORD EUR0.09 (DI)',val:226.28,risk:'High Risk / Speculative',gl:-37.27,glPct:-14.14,cb:263.55},
+      {sym:'DD',name:'DUPONT DE NEMOURS INC COM',val:220.55,risk:'High Risk / Speculative',gl:85.77,glPct:63.64,cb:134.78},
+      {sym:'ARE',name:'ALEXANDRIA REAL ESTATE EQUITIES COM USD0.01',val:190.3,risk:'High Risk / Speculative',gl:15.08,glPct:8.61,cb:175.22},
+      {sym:'EL',name:'ESTEE LAUDER COMPANIES INC COM USD0.01 CLASS A',val:184.21,risk:'High Risk / Speculative',gl:57.53,glPct:45.41,cb:126.68},
+      {sym:'QCOM',name:'QUALCOMM INC',val:100.04,risk:'Blue Chip / Core',gl:1.89,glPct:1.93,cb:98.14},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:81022.61,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:38993.51,risk:'Growth',gl:14041.02,glPct:56.27,cb:24952.48},
+      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:23914.94,risk:'High Risk / Speculative',gl:13119.98,glPct:121.54,cb:10794.97},
+      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:11342.39,risk:'High Risk / Speculative',gl:4004.1,glPct:54.56,cb:7338.29},
+      {sym:'AAPL',name:'APPLE INC',val:4202.96,risk:'Growth',gl:1656.29,glPct:65.04,cb:2546.67},
+      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:2502.76,risk:'Growth',gl:1222.41,glPct:95.47,cb:1280.35},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:56.51,risk:'High Risk / Speculative',gl:-2480.43,glPct:-97.77,cb:2536.93},
+      {sym:'CWBHF',name:'CHARLOTTES WEB HOLDINGS INC COM NPV',val:9.54,risk:'High Risk / Speculative',gl:-80.9,glPct:-89.45,cb:90.44},]},
+    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:29164.13,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:28883.25,risk:'Growth',gl:9554.71,glPct:49.43,cb:19328.54},
+      {sym:'PSNY',name:'POLESTAR AUTOMOTIVE HOLDING UK PLC SPON ADS CL A EACH REP 30 CL A (P/S)',val:178.14,risk:'High Risk / Speculative',gl:-3596.49,glPct:-95.28,cb:3774.63},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:102.74,risk:'High Risk / Speculative',gl:-3673.43,glPct:-97.28,cb:3776.17},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:562.5,tickers:[
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:562.5,risk:'High Risk / Speculative',gl:-22021.88,glPct:-97.51,cb:22584.38},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:286.62,tickers:[
+      {sym:'NIO',name:'NIO INC SPON ADS EACH REP 1 ORD SHS CLASS A',val:181.31,risk:'High Risk / Speculative',gl:-1508.45,glPct:-89.27,cb:1689.75},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:105.31,risk:'High Risk / Speculative',gl:-3908.58,glPct:-97.38,cb:4013.89},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:177.23,tickers:[
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:177.23,risk:'High Risk / Speculative',gl:-7296.46,glPct:-97.63,cb:7473.68},]},]},
+  {cat:'US Index Funds',total:664227.11,accounts:[
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:362663.05,tickers:[
+      {sym:'SCHD',name:'Schwab US Dividend Equity ETF',val:258842.96,risk:'',gl:2762.29,glPct:1.08,cb:256080.67},
+      {sym:'FSKAX',name:'Fidelity Total Market Index',val:103820.09,risk:'',gl:-484.13,glPct:-0.46,cb:104304.22},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:133711.06,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:133711.06,risk:'',gl:2174.01,glPct:1.65,cb:131537.06},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:121825.29,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:121825.29,risk:'',gl:2954.18,glPct:2.49,cb:118871.11},]},
+    {num:'961437285',type:'HSA',name:'Health Savings Account',val:42539.18,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:42539.18,risk:'',gl:14383.01,glPct:51.08,cb:28156.17},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:1835.02,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:1835.02,risk:'',gl:235.28,glPct:14.71,cb:1599.74},]},
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:1653.51,tickers:[
+      {sym:'59515R401',name:'Vanguard 500 Index Trust (401k)',val:661.38,risk:'',gl:-0.03,glPct:-0,cb:661.41},
+      {sym:'31617E471',name:'Fidelity Growth Company Pool Cl S (401k)',val:551.2,risk:'',gl:0.03,glPct:0.01,cb:551.18},
+      {sym:'SMID CAP GROWTH ACCT',name:'SMID Cap Growth Account (401k)',val:440.93,risk:'',gl:-0.01,glPct:-0,cb:440.94},]},]},
+  {cat:'International Funds',total:592727.16,accounts:[
+    {num:'62917',type:'Tax-Deferred DCP',name:'EMPLOYER DCP',val:227994.43,tickers:[
+      {sym:'VFWSX',name:'Vanguard FTSE All-World ex-US',val:227994.43,risk:'',gl:1569.47,glPct:0.69,cb:226424.96},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:157498.14,tickers:[
+      {sym:'FZILX',name:'Fidelity ZERO International Index',val:157498.14,risk:'',gl:23143.27,glPct:17.23,cb:134354.86},]},
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:118924.56,tickers:[
+      {sym:'FZILX',name:'Fidelity ZERO International Index',val:118924.56,risk:'',gl:18129.67,glPct:17.99,cb:100794.89},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:87758.86,tickers:[
+      {sym:'FTIHX',name:'Fidelity Total International Index',val:87758.86,risk:'',gl:10751,glPct:13.96,cb:77007.86},]},
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:551.17,tickers:[
+      {sym:'INTL GROWTH ACCOUNT',name:'International Growth Account (401k)',val:551.17,risk:'',gl:-0.01,glPct:-0,cb:551.18},]},]},
+  {cat:'Bond Funds',total:205339.68,accounts:[
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:102977.24,tickers:[
+      {sym:'FXNAX',name:'Fidelity US Bond Index',val:102977.24,risk:'',gl:544.97,glPct:0.53,cb:102432.27},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:102362.44,tickers:[
+      {sym:'FXNAX',name:'Fidelity US Bond Index',val:102362.44,risk:'',gl:541.72,glPct:0.53,cb:101820.72},]},]},
+  {cat:'Tech Sector Fund',total:86056.77,accounts:[
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:77133.64,tickers:[
+      {sym:'FSPTX',name:'Fidelity Select Technology',val:77133.64,risk:'',gl:12809.6,glPct:19.91,cb:64324.04},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:8923.13,tickers:[
+      {sym:'FSPTX',name:'Fidelity Select Technology',val:8923.13,risk:'',gl:2587.95,glPct:40.85,cb:6335.18},]},]},
+  {cat:'Growth / Leveraged ETFs',total:6037.5,accounts:[
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:3639.98,tickers:[
+      {sym:'TQQQ',name:'ProShares UltraPro QQQ (3x Nasdaq)',val:3639.98,risk:'',gl:1556.15,glPct:74.68,cb:2083.84},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:2397.52,tickers:[
+      {sym:'VOOG',name:'Vanguard S\u0026P 500 Growth ETF',val:2323.49,risk:'',gl:334.63,glPct:16.83,cb:1988.85},
+      {sym:'PBW',name:'Invesco WilderHill Clean Energy ETF',val:74.03,risk:'',gl:-169.93,glPct:-69.66,cb:243.95},]},]},];
+const SUGG_METRICS = {
+  "_meta": {
+    "fetched": "03/12/2026 16:43:33",
+    "source": "yfinance",
+    "fund_count": 33
+  },
+  "funds": {
+    "VTI": {
+      "ret1y": 22.73,
+      "ret2y": 15.47,
+      "ret3y": 21.78,
+      "ret5y": 11.38,
+      "vol3y": 18.21,
+      "maxDD": -35.0,
+      "beta": 1.04,
+      "divYield": 1.11
+    },
+    "VOO": {
+      "ret1y": 22.65,
+      "ret2y": 15.92,
+      "ret3y": 22.37,
+      "ret5y": 12.92,
+      "vol3y": 17.92,
+      "maxDD": -33.99,
+      "beta": 1.0,
+      "divYield": 1.12
+    },
+    "FXAIX": {
+      "ret1y": 22.6,
+      "ret2y": 15.94,
+      "ret3y": 22.41,
+      "ret5y": 12.94,
+      "vol3y": 17.97,
+      "maxDD": -33.79,
+      "beta": 1.0,
+      "divYield": 1.11
+    },
+    "FSKAX": {
+      "ret1y": 22.61,
+      "ret2y": 15.46,
+      "ret3y": 21.76,
+      "ret5y": 11.39,
+      "vol3y": 18.36,
+      "maxDD": -35.01,
+      "beta": 1.05,
+      "divYield": 1.0
+    },
+    "AVUV": {
+      "ret1y": 27.97,
+      "ret2y": 11.95,
+      "ret3y": 16.25,
+      "ret5y": 9.16,
+      "vol3y": 28.67,
+      "maxDD": -49.42,
+      "beta": 1.16,
+      "divYield": 1.43
+    },
+    "VXF": {
+      "ret1y": 22.37,
+      "ret2y": 12.09,
+      "ret3y": 17.61,
+      "ret5y": 3.66,
+      "vol3y": 22.17,
+      "maxDD": -41.72,
+      "beta": 1.34,
+      "divYield": 1.1
+    },
+    "SCHD": {
+      "ret1y": 17.47,
+      "ret2y": 12.66,
+      "ret3y": 13.62,
+      "ret5y": 8.86,
+      "vol3y": 16.67,
+      "maxDD": -33.37,
+      "beta": 0.65,
+      "divYield": 3.3
+    },
+    "QQQM": {
+      "ret1y": 28.23,
+      "ret2y": 17.8,
+      "ret3y": 28.8,
+      "ret5y": 14.57,
+      "vol3y": 22.24,
+      "maxDD": -35.04,
+      "beta": 1.15,
+      "divYield": 0.5
+    },
+    "COWZ": {
+      "ret1y": 18.89,
+      "ret2y": 8.9,
+      "ret3y": 14.13,
+      "ret5y": 11.61,
+      "vol3y": 20.13,
+      "maxDD": -38.63,
+      "beta": 0.81,
+      "divYield": 2.03
+    },
+    "DGRW": {
+      "ret1y": 17.02,
+      "ret2y": 11.54,
+      "ret3y": 17.21,
+      "ret5y": 12.12,
+      "vol3y": 16.15,
+      "maxDD": -32.04,
+      "beta": 0.87,
+      "divYield": 1.34
+    },
+    "VXUS": {
+      "ret1y": 30.22,
+      "ret2y": 18.34,
+      "ret3y": 18.12,
+      "ret5y": 7.94,
+      "vol3y": 17.0,
+      "maxDD": -35.97,
+      "beta": 0.99,
+      "divYield": 2.86
+    },
+    "VEA": {
+      "ret1y": 32.16,
+      "ret2y": 18.59,
+      "ret3y": 18.87,
+      "ret5y": 9.27,
+      "vol3y": 17.16,
+      "maxDD": -35.74,
+      "beta": 1.06,
+      "divYield": 2.86
+    },
+    "VWO": {
+      "ret1y": 25.99,
+      "ret2y": 18.24,
+      "ret3y": 16.12,
+      "ret5y": 4.33,
+      "vol3y": 19.15,
+      "maxDD": -36.39,
+      "beta": 0.79,
+      "divYield": 2.58
+    },
+    "FTIHX": {
+      "ret1y": 30.63,
+      "ret2y": 18.38,
+      "ret3y": 18.03,
+      "ret5y": 7.85,
+      "vol3y": 15.9,
+      "maxDD": -35.75,
+      "beta": 0.99,
+      "divYield": 2.5
+    },
+    "AVDV": {
+      "ret1y": 53.5,
+      "ret2y": 31.65,
+      "ret3y": 26.34,
+      "ret5y": 14.04,
+      "vol3y": 19.66,
+      "maxDD": -43.01,
+      "beta": 1.06,
+      "divYield": 2.6
+    },
+    "SCHE": {
+      "ret1y": 25.91,
+      "ret2y": 18.69,
+      "ret3y": 16.29,
+      "ret5y": 4.07,
+      "vol3y": 19.38,
+      "maxDD": -36.16,
+      "beta": 0.81,
+      "divYield": 2.65
+    },
+    "IEMG": {
+      "ret1y": 37.19,
+      "ret2y": 21.6,
+      "ret3y": 18.96,
+      "ret5y": 5.07,
+      "vol3y": 19.74,
+      "maxDD": -38.71,
+      "beta": 0.94,
+      "divYield": 2.41
+    },
+    "EFA": {
+      "ret1y": 24.02,
+      "ret2y": 15.42,
+      "ret3y": 16.98,
+      "ret5y": 8.68,
+      "vol3y": 17.11,
+      "maxDD": -34.19,
+      "beta": 1.01,
+      "divYield": 3.08
+    },
+    "BND": {
+      "ret1y": 5.39,
+      "ret2y": 4.78,
+      "ret3y": 3.98,
+      "ret5y": 0.37,
+      "vol3y": 5.49,
+      "maxDD": -18.58,
+      "beta": 0.98,
+      "divYield": 3.82
+    },
+    "FXNAX": {
+      "ret1y": 5.24,
+      "ret2y": 4.71,
+      "ret3y": 3.92,
+      "ret5y": 0.34,
+      "vol3y": 4.96,
+      "maxDD": -18.13,
+      "beta": 0.99,
+      "divYield": 3.58
+    },
+    "VGSH": {
+      "ret1y": 4.24,
+      "ret2y": 4.7,
+      "ret3y": 4.1,
+      "ret5y": 1.82,
+      "vol3y": 1.57,
+      "maxDD": -5.7,
+      "beta": 0.25,
+      "divYield": 3.95
+    },
+    "SCHP": {
+      "ret1y": 5.12,
+      "ret2y": 5.07,
+      "ret3y": 3.87,
+      "ret5y": 1.6,
+      "vol3y": 5.61,
+      "maxDD": -14.26,
+      "beta": 0.74,
+      "divYield": 3.99
+    },
+    "BNDX": {
+      "ret1y": 4.12,
+      "ret2y": 3.54,
+      "ret3y": 3.98,
+      "ret5y": 0.23,
+      "vol3y": 4.02,
+      "maxDD": -16.23,
+      "beta": 0.6,
+      "divYield": 4.34
+    },
+    "HYG": {
+      "ret1y": 7.22,
+      "ret2y": 7.68,
+      "ret3y": 9.28,
+      "ret5y": 3.91,
+      "vol3y": 8.33,
+      "maxDD": -22.03,
+      "beta": 0.64,
+      "divYield": 5.77
+    },
+    "AGG": {
+      "ret1y": 5.58,
+      "ret2y": 4.84,
+      "ret3y": 4.0,
+      "ret5y": 0.36,
+      "vol3y": 5.36,
+      "maxDD": -18.43,
+      "beta": 0.99,
+      "divYield": 3.83
+    },
+    "VCSH": {
+      "ret1y": 5.84,
+      "ret2y": 5.87,
+      "ret3y": 5.87,
+      "ret5y": 2.46,
+      "vol3y": 3.33,
+      "maxDD": -12.86,
+      "beta": 0.41,
+      "divYield": 4.34
+    },
+    "VTIP": {
+      "ret1y": 4.86,
+      "ret2y": 5.61,
+      "ret3y": 5.04,
+      "ret5y": 3.51,
+      "vol3y": 2.73,
+      "maxDD": -6.27,
+      "beta": 0.25,
+      "divYield": 3.77
+    },
+    "MUB": {
+      "ret1y": 4.73,
+      "ret2y": 2.76,
+      "ret3y": 3.29,
+      "ret5y": 1.0,
+      "vol3y": 4.88,
+      "maxDD": -13.68,
+      "beta": 0.9,
+      "divYield": 3.1
+    },
+    "TLT": {
+      "ret1y": 1.34,
+      "ret2y": -0.03,
+      "ret3y": -2.45,
+      "ret5y": -5.65,
+      "vol3y": 14.9,
+      "maxDD": -48.35,
+      "beta": 2.38,
+      "divYield": 4.28
+    },
+    "VNQ": {
+      "ret1y": 6.8,
+      "ret2y": 7.21,
+      "ret3y": 8.5,
+      "ret5y": 3.72,
+      "vol3y": 20.67,
+      "maxDD": -42.4,
+      "beta": 1.15,
+      "divYield": 3.63
+    },
+    "VNQI": {
+      "ret1y": 21.8,
+      "ret2y": 12.11,
+      "ret3y": 10.02,
+      "ret5y": 0.64,
+      "vol3y": 15.89,
+      "maxDD": -38.35,
+      "beta": 0.91,
+      "divYield": 4.25
+    },
+    "GLD": {
+      "ret1y": 76.51,
+      "ret2y": 54.53,
+      "ret3y": 38.93,
+      "ret5y": 24.1,
+      "vol3y": 15.64,
+      "maxDD": -22.0,
+      "beta": 0.67,
+      "divYield": 0.0
+    },
+    "PDBC": {
+      "ret1y": 30.83,
+      "ret2y": 16.32,
+      "ret3y": 10.45,
+      "ret5y": 12.89,
+      "vol3y": 17.6,
+      "maxDD": -40.73,
+      "beta": 0.89,
+      "divYield": 3.42
+    }
+  }
+};
 
 const RISK_COLORS = {
   'Growth':'#2563eb','High Risk / Speculative':'#dc2626',
@@ -4505,3 +5185,4 @@ function computeInsights(pivot){
 </script>
 </body>
 </html>
+
