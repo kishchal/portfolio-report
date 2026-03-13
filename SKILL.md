@@ -1,16 +1,16 @@
 ---
 name: portfolio-report
-description: Generate an interactive HTML portfolio allocation report from a Fidelity CSV export with seven pivot views (By Account Type / By Investment Category / By Account / Suggestions / Withdrawals / Tax-Loss Harvesting / Scenarios), data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios and account guidance, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, and a what-if scenario comparator.
+description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account Type / By Investment Category / By Account sub-pivots), Suggestions, Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, a what-if scenario comparator, and point-in-time portfolio snapshot comparison.
 allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "4.4.0"
+  version: "5.0.0"
 ---
 
 # Portfolio Report Skill
 
-Generates a professional, interactive HTML portfolio allocation report from a Fidelity portfolio positions CSV export.
+Generates a professional, interactive HTML portfolio analysis report ("Portfolio Analysis & Insights") from a Fidelity portfolio positions CSV export.
 
 ## When to Use
 
@@ -107,14 +107,19 @@ When the `Account Type` column is missing, the type is **auto-inferred** from th
 | Health Savings Account            | HSA                   |
 | *COLLEGE SAVINGS, 529             | 529 College Savings   |
 | UTMA, Uniform Transfers to Minors | Custodial (UTMA)      |
-| *401K*, BrokerageLink*            | Tax-Deferred 401(k)   |
+| *403(b)*, 403B*                   | Tax-Deferred 403(b)   |
+| *457(b)*, 457B*                   | Tax-Deferred 457(b)   |
+| *TSP*, Thrift Savings*            | Tax-Deferred TSP      |
+| *401K*                            | Tax-Deferred 401(k)   |
+| BrokerageLink*                    | Tax-Deferred 401(k)   |
 | *DCP, Deferred Comp*              | Tax-Deferred DCP      |
-| Rollover IRA, Traditional IRA     | Tax-Deferred IRA      |
-| INDIVIDUAL, Joint*, WROS*         | Taxable Investment    |
+| Rollover IRA, Traditional IRA, SEP IRA, SIMPLE IRA | Tax-Deferred IRA |
+| *IRA* (catch-all)                 | Tax-Deferred IRA      |
+| INDIVIDUAL, Joint*, WROS*, Trust* | Taxable Investment    |
 
 ### Duplicate Account Filtering
 
-Wrapper accounts whose Description is `BROKERAGELINK` and whose Account Name ends with `401K PLAN` are automatically excluded to avoid double-counting (e.g. MICROSOFT 401K PLAN is a wrapper for the BrokerageLink sub-account that lists the actual holdings).
+Wrapper accounts whose Description is `BROKERAGELINK` and whose Account Name ends with a workplace plan pattern (e.g. `401K PLAN`, `403B PLAN`, `457B PLAN`, `TSP PLAN`) are automatically excluded to avoid double-counting. The wrapper account is a container for the BrokerageLink sub-account that lists the actual holdings.
 
 ### Tax-Lot Aggregation
 
@@ -122,13 +127,14 @@ Multiple rows for the same ticker in the same account (different tax lots with d
 
 ### Output
 
-An interactive HTML report featuring:
-1. **Header** with total portfolio value
+An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
+1. **Header** with total portfolio value, source CSV filename in the footer
 2. **Horizontal allocation bar** with hover tooltips — updates dynamically per active pivot
-3. **Pivot selector** (tab toggle) with seven views:
-   - **By Account Type** (default) — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
-   - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
-   - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
+3. **Tab navigation** with underline-style main tabs and segmented-control sub-tabs:
+   - **Holdings** (default) — consolidated tab with three sub-pivot views:
+     - **By Account Type** (default sub-pivot) — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
+     - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
+     - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
    - **Suggestions** — Investment research and portfolio construction guidance featuring:
      - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown (US Equity, International, Bonds, Cash, Real Estate, Alternatives, Other) against three model portfolios. All holdings always sum to 100% — unmapped categories (CDs, Unspecified) are captured in the "Other" bucket.
      - **Fund-by-Fund Analysis** — table of 19 recommended ETFs/index funds/bond funds with performance metrics (1Y/3Y returns, volatility, max drawdown), expense ratios, and suitability scores (Growth, Risk, Diversification, Cost on 1–10 scale)
@@ -139,7 +145,7 @@ An interactive HTML report featuring:
      - **Input Panel** — shared fields (expected return %, inflation %, filing status, Roth conversion strategy) plus per-participant sections for You and Spouse (toggle): current age, retirement age, life expectancy, monthly SS income, SS starting age (62–70)
      - **Summary Cards** — projected portfolio at retirement, year-1 total income (portfolio + combined SS), effective tax rate, combined Social Security card (per-participant breakdown), portfolio longevity
      - **Social Security Age Recommendation** — per-participant comparison tables showing benefits at ages 62/67/70 with monthly/annual amounts, % of FRA, years collecting, inflation-adjusted lifetime totals, and optimal claiming age recommendation based on each person's life expectancy
-     - **Account Balance Projection Chart** — stacked bar chart showing Taxable/Tax-Deferred/Roth/HSA depletion over time
+     - **Account Balance Projection Chart** — stacked bar chart showing Taxable/Tax-Deferred/Roth/HSA depletion over time (default chart, shown first among metric charts)
      - **Monte Carlo Analysis** — 500 randomized simulations with log-normal return distributions:
        - Summary cards: success rate (with visual ring), median ending balance, 10th/90th percentile outcomes
        - Percentile fan chart (SVG): 10th–90th and 25th–75th percentile bands with median line and deterministic overlay
@@ -171,8 +177,12 @@ An interactive HTML report featuring:
        - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
        - **PDF Export**: Print-optimized layout with parameter summary and chart labels
        - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
-   - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary cards, harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags
-   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence.
+   - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary metric cards (harvestable losses, unrealized gains, net gain/loss, est. tax savings), harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags. PDF export button.
+   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts (Account Balances default) with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence.
+   - **Snapshot Diff** — Upload a previous Fidelity CSV to compare against the current report. Shows Previous/Current summary panels with source filenames, change banner (total change, % change, time span), allocation drift bar chart with percentage labels (≥5% segments labeled), and two hierarchical drilldown sections:
+     - **By Category** — groups changed positions by investment category → account → symbol
+     - **By Account** — groups changed positions by account → symbol
+     Each section has its own divider card header with a distinct background color. PDF export and Clear Comparison buttons in toolbar.
 4. **3-level drill-down cards**— click top-level group → see Accounts → click Account → see Tickers
 5. **Risk classification** — Individual stock tickers are grouped within each account by risk category:
    - **Blue Chip / Core** — Large, stable companies (AAPL, MSFT, JNJ, PG, WMT, etc.)
@@ -193,6 +203,9 @@ An interactive HTML report featuring:
        - Equities: recommended 60-70% · Individual Stocks: ≤20% · International: 15-25% · Bonds: 15-30% · Cash: 3-5% · Sector/Thematic: ≤10%
      - **Category Deep Dive** — notes on each category (US stock fund overlap, target-date overlap, sector bets)
      - **Stock Risk Profile** — Growth ≤40%, High Risk ≤10%, Dividend/Value ≥20%, Blue Chip ≥25% recommendations; sector concentration flags
+8. **Settings Import/Export** — gear menu (top-right) with Save Settings (exports all user inputs from all tabs as a timestamped JSON file, e.g., `portfolio-settings-2026-03-13-01-30-00.json`) and Load Settings (imports JSON file to restore all inputs and update localStorage). Enables sharing configurations across report files.
+9. **PDF Export** — available on Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Print-optimized CSS hides interactive controls.
+10. **Footer** — shows generation date and source CSV filename
 
 ### Account Type Grouping (By Account Type pivot)
 
@@ -282,7 +295,7 @@ If new account name patterns appear that don't match existing regex rules in `Ge
 if ($n -match '(?i)new_pattern') { return 'Appropriate Type' }
 ```
 
-Valid account types: `Taxable Investment`, `Tax-Deferred 401(k)`, `Tax-Deferred IRA`, `Tax-Deferred DCP`, `Roth`, `HSA`, `529 College Savings`, `Custodial (UTMA)`.
+Valid account types: `Taxable Investment`, `Tax-Deferred 401(k)`, `Tax-Deferred 403(b)`, `Tax-Deferred 457(b)`, `Tax-Deferred TSP`, `Tax-Deferred IRA`, `Tax-Deferred DCP`, `Roth`, `HSA`, `529 College Savings`, `Custodial (UTMA)`.
 
 ### 3. Check for New Individual Stocks Missing from Risk Cache
 
@@ -305,7 +318,7 @@ If new cash or money market fund symbols appear (e.g., settlement funds, sweep a
 
 ### 5. Check for New Duplicate/Wrapper Accounts
 
-If new wrapper accounts appear (similar to the MICROSOFT 401K PLAN / BROKERAGELINK pattern), add filtering logic in `scripts/main.ps1` to exclude them. Look for accounts where the total value exactly matches another account's total.
+If new wrapper accounts appear (similar to the employer 401K PLAN / BROKERAGELINK pattern), add filtering logic in `scripts/main.ps1` to exclude them. Look for accounts where the total value exactly matches another account's total.
 
 ### 6. Update Documentation
 

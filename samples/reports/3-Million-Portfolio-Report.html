@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Report — Mar 12, 2026</title>
+<title>Portfolio Analysis &amp; Insights — Mar 12, 2026</title>
 <style>
   :root {
     --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
@@ -23,6 +23,93 @@
   .header .total { font-size: 1.8em; font-weight: 700; letter-spacing: -0.5px; }
   .header .total-label { font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
 
+  /* Settings gear menu */
+  .settings-menu-wrap { position: relative; }
+  .settings-gear-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white;
+    width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1.25em; transition: background 0.2s, border-color 0.2s; }
+  .settings-gear-btn:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.4); }
+  .settings-dropdown { display: none; position: absolute; top: 44px; right: 0; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 210px; z-index: 1000; overflow: hidden; }
+  .settings-dropdown.open { display: block; }
+  .settings-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 0.88em; font-weight: 500;
+    color: var(--text); cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: background 0.15s; }
+  .settings-dropdown-item:hover { background: var(--bg-secondary); }
+  .settings-dropdown-item svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); }
+  .settings-dropdown-sep { height: 1px; background: var(--border); margin: 0; }
+
+  /* Snapshot Diff tab */
+  .sd-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 30px;
+    text-align: center; background: var(--bg-secondary); transition: border-color 0.2s, background 0.2s; cursor: pointer; }
+  .sd-upload-zone:hover, .sd-upload-zone.dragover { border-color: var(--primary); background: var(--primary-light); }
+  .sd-upload-icon { font-size: 2.5em; margin-bottom: 10px; color: var(--text-muted); }
+  .sd-upload-title { font-size: 1.05em; font-weight: 600; margin-bottom: 4px; }
+  .sd-upload-sub { font-size: 0.85em; color: var(--text-muted); }
+  .sd-summary { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: center; margin-bottom: 24px; }
+  .sd-snap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 24px; box-shadow: var(--shadow); }
+  .sd-snap-label { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .sd-snap-date { font-size: 0.92em; font-weight: 600; margin-bottom: 8px; }
+  .sd-snap-total { font-size: 1.5em; font-weight: 700; letter-spacing: -0.5px; }
+  .sd-arrow { font-size: 1.8em; color: var(--text-muted); padding: 0 18px; text-align: center; }
+  .sd-change-banner { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; margin-bottom: 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .sd-change-val { font-size: 1.3em; font-weight: 700; }
+  .sd-change-pct { font-size: 1em; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
+  .sd-change-days { font-size: 0.85em; color: var(--text-muted); }
+  .sd-pos { color: #059669; } .sd-neg { color: #dc2626; }
+  .sd-pos-bg { background: #ecfdf5; color: #059669; } .sd-neg-bg { background: #fef2f2; color: #dc2626; }
+  .sd-section { margin-bottom: 24px; }
+  .sd-section-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; user-select: none; }
+  .sd-section-title { font-size: 1.05em; font-weight: 700; }
+  .sd-section-count { font-size: 0.82em; color: var(--text-muted); }
+  .sd-section-chevron { font-size: 0.7em; color: var(--text-muted); transition: transform 0.25s; }
+  .sd-section-hdr.open .sd-section-chevron { transform: rotate(90deg); }
+  .sd-section-body { display: none; }
+  .sd-section-body.open { display: block; }
+  .sd-tbl { width: 100%; border-collapse: collapse; font-size: 0.88em; }
+  .sd-tbl th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--border); font-weight: 600;
+    color: var(--text-muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .sd-tbl th.num { text-align: right; }
+  .sd-tbl td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
+  .sd-tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sd-tbl tr:hover { background: #fafbfc; }
+  .sd-bar-cell { width: 120px; }
+  .sd-drift-bar { height: 8px; border-radius: 4px; min-width: 2px; }
+  .sd-badge-new { background: #ecfdf5; color: #059669; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-badge-closed { background: #fef2f2; color: #dc2626; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-badge-warn { background: #fffbeb; color: #d97706; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-drift-row { display: flex; align-items: center; height: 32px; border-radius: 4px; overflow: hidden; background: #f1f5f9; }
+  .sd-drift-seg { height: 100%; transition: width 0.3s; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .sd-drift-seg .sd-drift-label { font-size: 0.68em; font-weight: 600; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,0.4); white-space: nowrap; pointer-events: none; }
+  .sd-drift-legend { display: flex; gap: 4px; align-items: center; font-size: 0.75em; color: var(--text-muted); margin-top: 3px; }
+  .sd-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .sd-clear-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px;
+    font-size: 0.85em; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+  .sd-clear-btn:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+
+  /* Snapshot Diff drilldown ticker rows */
+  .sd-ticker-header, .sd-ticker-row { display: grid; grid-template-columns: 100px 1fr 100px 100px 100px 70px; gap: 8px; align-items: center; padding: 6px 16px; font-size: 0.85em; }
+  .sd-ticker-header-acct, .sd-ticker-header-acct + .sd-ticker-row,
+  .sd-ticker-header-acct ~ .sd-ticker-row { grid-template-columns: 100px 1fr 140px 100px 100px 100px 70px; }
+  .sd-ticker-header { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 2px; }
+  .sd-ticker-row { border-bottom: 1px solid #f1f5f9; }
+  .sd-ticker-row:last-child { border-bottom: none; }
+  .sd-ticker-row:hover { background: #f8fafc; }
+  .sd-ticker-val { text-align: right; font-variant-numeric: tabular-nums; }
+  .sd-ticker-sym { font-weight: 600; }
+  .sd-ticker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 0.92em; }
+  .sd-ticker-cat { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85em; color: var(--text-muted); }
+
+  /* Snapshot Diff section dividers */
+  .sd-divider { display: flex; align-items: center; gap: 14px; margin: 32px 0 16px 0; padding: 14px 20px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); border: 1px solid #c7d7f5; border-radius: var(--radius);
+    box-shadow: var(--shadow); }
+  .sd-divider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.15em; flex-shrink: 0; }
+  .sd-divider-title { font-weight: 700; font-size: 1.05em; color: var(--text); }
+  .sd-divider-sub { font-size: 0.82em; color: var(--text-muted); margin-top: 1px; }
+
   .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
 
   .alloc-bar-wrap { margin: 0 0 8px 0; }
@@ -38,11 +125,26 @@
 
   .section-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
 
-  .pivot-tabs { display: inline-flex; flex-wrap: wrap; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px; }
-  .pivot-tab { padding: 7px 18px; border-radius: 6px; font-size: 0.88em; font-weight: 600; cursor: pointer;
-    border: none; background: transparent; color: var(--text-muted); transition: all 0.2s; }
+  /* ---- Main tab bar — underline style ---- */
+  .pivot-tabs { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 18px; border-bottom: 2px solid var(--border);
+    padding: 0; background: none; border-radius: 0; }
+  .pivot-tab { position: relative; padding: 10px 22px 12px; font-size: 0.88em; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted); transition: color 0.25s; letter-spacing: -0.01em; }
+  .pivot-tab::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -2px; height: 2.5px;
+    background: var(--primary); border-radius: 2px 2px 0 0; transform: scaleX(0); transition: transform 0.25s cubic-bezier(.4,0,.2,1); }
   .pivot-tab:hover { color: var(--text); }
-  .pivot-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+  .pivot-tab:hover::after { transform: scaleX(0.5); background: #94a3b8; }
+  .pivot-tab.active { color: var(--primary); }
+  .pivot-tab.active::after { transform: scaleX(1); }
+
+  /* ---- Sub-pivot bar — compact segmented control ---- */
+  .sub-pivot-wrap { display: inline-flex; background: linear-gradient(135deg, #f1f5f9 0%, #e8edf4 100%);
+    border-radius: 10px; padding: 3px; gap: 2px; border: 1px solid var(--border); }
+  .sub-pivot-tab { padding: 6px 18px; border-radius: 8px; font-size: 0.82em; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted); transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    letter-spacing: -0.01em; position: relative; }
+  .sub-pivot-tab:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+  .sub-pivot-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
 
   .category-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
     margin-bottom: 10px; box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s; }
@@ -142,7 +244,8 @@
   .sugg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.82em; }
   .sugg-bar-label { width: 220px; font-weight: 600; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
   .sugg-bar-track { flex: 1; height: 22px; background: #f1f5f9; border-radius: 4px; overflow: visible; display: flex; position: relative; }
-  .sugg-bar-seg { height: 100%; transition: width 0.3s; position: relative; overflow: visible; }
+  .sugg-bar-seg { height: 100%; transition: width 0.3s; position: relative; overflow: visible; display: flex; align-items: center; justify-content: center; }
+  .sugg-bar-seg .sugg-bar-inner { font-size: 0.68em; font-weight: 600; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,0.4); white-space: nowrap; pointer-events: none; }
   .sugg-bar-seg .stip { display: none; position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
     background: #1e293b; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; white-space: nowrap; z-index: 5; }
   .sugg-bar-seg:hover .stip { display: block; }
@@ -321,6 +424,19 @@
   .sugg-actions button { padding:10px 24px; border-radius:6px; font-weight:600; font-size:0.9em; cursor:pointer; transition:all 0.15s; }
   @media (max-width:900px) { .sugg-scenario-grid { grid-template-columns:1fr; } }
 
+  /* ---- Tax-loss harvesting summary metric cards ---- */
+  .tl-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .tl-metric { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; position: relative; overflow: hidden; transition: box-shadow 0.2s; }
+  .tl-metric:hover { box-shadow: var(--shadow-lg); }
+  .tl-metric::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+  .tl-metric.red::before { background: #dc2626; }
+  .tl-metric.green::before { background: #16a34a; }
+  .tl-metric.blue::before { background: #2563eb; }
+  .tl-metric-label { color: var(--text-muted); font-size: 0.82em; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.01em; }
+  .tl-metric-value { font-size: 1.65em; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
+  .tl-metric-sub { color: var(--text-muted); font-size: 0.78em; }
+
   /* Print styles */
   @media print {
     body { background: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -328,12 +444,12 @@
     .header h1 { font-size: 1.3em !important; }
     .header .subtitle, .header .total-label { font-size: 0.75em !important; }
     .header .total { font-size: 1.4em !important; }
-    .pivot-tabs, #allocOverview, .export-pdf-btn, .wd-btn, .wd-panel input, .wd-panel select,
+    .pivot-tabs, #holdingsSubPivot, #allocOverview, .export-pdf-btn, .wd-btn, .wd-panel input, .wd-panel select,
     .wd-panel button, #wdSpouseToggle, .mc-hist-wrap, .acct-selector, .wd-inputs,
-    .spend-phase-add, .spend-phase-del, .sugg-overlay, .sugg-btn-wrap { display: none !important; }
+    .spend-phase-add, .spend-phase-del, .sugg-overlay, .sugg-btn-wrap, .settings-menu-wrap { display: none !important; }
     .container { padding: 0 12px !important; max-width: 100% !important; }
     #drilldown { break-inside: auto; }
-    .sugg-section, .wd-summary-cards, .wd-notes, .roth-opt-table { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px !important; }
+    .sugg-section, .wd-summary-cards, .tl-metrics, .wd-notes, .roth-opt-table { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px !important; }
     .sugg-section { padding: 10px !important; }
     .sugg-h2 { font-size: 1em !important; }
     table { font-size: 0.72em !important; }
@@ -348,6 +464,8 @@
     #wd-print-params span { display: block; padding: 1px 0; }
     #scenGrid { display: none !important; }
     #scenResults { display: block !important; }
+    .sd-toolbar button, .sd-upload-zone { display: none !important; }
+    .sd-toolbar { margin-bottom: 8px !important; }
     .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
@@ -362,27 +480,47 @@
 <div class="header">
   <div class="header-inner">
     <div>
-      <h1>Portfolio Allocation Report</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 04:48 PM</div>
+      <h1>Portfolio Analysis &amp; Insights</h1>
+      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 06:44 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
-      <div class="total">$4,999,999.97</div>
+      <div class="total">$3,000,000.03</div>
+    </div>
+    <div class="settings-menu-wrap">
+      <button class="settings-gear-btn" id="settingsGearBtn" title="Settings">&#9881;</button>
+      <div class="settings-dropdown" id="settingsDropdown">
+        <button class="settings-dropdown-item" id="saveSettingsBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          Save Settings to File
+        </button>
+        <div class="settings-dropdown-sep"></div>
+        <button class="settings-dropdown-item" id="loadSettingsBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          Load Settings from File
+        </button>
+      </div>
+      <input type="file" id="settingsFileInput" accept=".json" style="display:none">
     </div>
   </div>
 </div>
 
 <div class="container">
 
-<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-  <div class="pivot-tabs" style="margin-top:18px">
-    <button class="pivot-tab active" data-pivot="acctName">By Account</button>
-    <button class="pivot-tab" data-pivot="acctType">By Account Type</button>
-    <button class="pivot-tab" data-pivot="category">By Investment Category</button>
-    <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
-    <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
-    <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
-    <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
+<div class="pivot-tabs" style="margin-top:18px">
+  <button class="pivot-tab active" data-pivot="holdings">Holdings</button>
+  <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
+  <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
+  <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
+  <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
+  <button class="pivot-tab" data-pivot="snapshot">Snapshot Diff</button>
+</div>
+
+<div id="holdingsSubPivot" style="margin-bottom:14px">
+  <div class="sub-pivot-wrap">
+    <button class="sub-pivot-tab active" data-sub="acctName">By Account</button>
+    <button class="sub-pivot-tab" data-sub="acctType">By Account Type</button>
+    <button class="sub-pivot-tab" data-sub="category">By Investment Category</button>
   </div>
 </div>
 
@@ -406,7 +544,8 @@
 </div>
 
 <div class="footer">
-  Generated Mar 12, 2026
+  Generated on Mar 12, 2026<br>
+  Source: 3-Million-Portfolio.csv
 </div>
 
 <script>
@@ -428,353 +567,353 @@ const BADGE_CLS = {
   '529 College Savings':'badge-529','Custodial (UTMA)':'badge-utma',
   'Investment':'badge-inv','Retirement':'badge-ret','Health Savings':'badge-hsa'
 };
-const GRAND = 4999999.97;
+const GRAND = 3000000.03;
 const DATA = [
-  {cat:'Cash / Money Market',total:1266101.46,accounts:[
-    {num:'53482',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:973225.49,tickers:[
-      {sym:'BROKERAGELINK',name:'BrokerageLink Cash',val:973225.49,risk:'',gl:0,glPct:0,cb:973225.49},]},
-    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:223292.65,tickers:[
-      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:222889.48,risk:'',gl:null,glPct:null,cb:null},
-      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:403.17,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:66257.12,tickers:[
-      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:57211.87,risk:'',gl:null,glPct:null,cb:null},
-      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:9045.25,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:1397.24,tickers:[
-      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:1397.24,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:764.99,tickers:[
-      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:764.99,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:706.17,tickers:[
-      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:703,risk:'',gl:null,glPct:null,cb:null},
-      {sym:'CORE**',name:'FDIC-Insured Deposit Sweep',val:3.17,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:229.96,tickers:[
-      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:229.96,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:169.41,tickers:[
-      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:169.41,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'961437285',type:'HSA',name:'Health Savings Account',val:56.67,tickers:[
-      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:56.67,risk:'',gl:null,glPct:null,cb:null},]},
-    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:1.76,tickers:[
-      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:1.76,risk:'',gl:null,glPct:null,cb:null},]},]},
-  {cat:'Individual Stocks',total:1143251.48,accounts:[
-    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:523399.25,tickers:[
-      {sym:'MSFT',name:'MICROSOFT CORP',val:523399.25,risk:'Growth',gl:null,glPct:null,cb:null},]},
-    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:434497.11,tickers:[
-      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:34748.91,risk:'High Risk / Speculative',gl:9697.46,glPct:38.71,cb:25051.45},
-      {sym:'AAPL',name:'APPLE INC',val:31004.74,risk:'Growth',gl:4559.01,glPct:17.24,cb:26445.72},
-      {sym:'AMZN',name:'AMAZON.COM INC',val:14949.22,risk:'Blue Chip / Core',gl:1268.87,glPct:9.28,cb:13680.35},
-      {sym:'GOOGL',name:'ALPHABET INC CAP STK CL A',val:13791.37,risk:'Growth',gl:6262.36,glPct:83.18,cb:7529},
-      {sym:'AVGO',name:'BROADCOM INC COM',val:11812.47,risk:'Growth',gl:5193.41,glPct:78.46,cb:6619.06},
-      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:11280.34,risk:'Growth',gl:1086.23,glPct:10.66,cb:10194.11},
-      {sym:'GOOG',name:'ALPHABET INC CAP STK CL C',val:11135.07,risk:'Growth',gl:5027.89,glPct:82.33,cb:6107.19},
-      {sym:'BRKB',name:'BERKSHIRE HATHAWAY INC COM USD0.0033 CLASS B',val:6514.95,risk:'Blue Chip / Core',gl:268.67,glPct:4.3,cb:6246.28},
-      {sym:'JNJ',name:'JOHNSON \u0026JOHNSON COM',val:6487.14,risk:'Dividend / Value',gl:2720.04,glPct:72.21,cb:3767.1},
-      {sym:'LLY',name:'ELI LILLY \u0026CO COM',val:6243.34,risk:'Blue Chip / Core',gl:1601.53,glPct:34.5,cb:4641.81},
-      {sym:'JPM',name:'JPMORGAN CHASE \u0026CO. COM',val:6066.74,risk:'Blue Chip / Core',gl:1484.58,glPct:32.4,cb:4582.16},
-      {sym:'V',name:'VISA INC',val:4790.53,risk:'Blue Chip / Core',gl:395.5,glPct:9,cb:4395.03},
-      {sym:'WMT',name:'WALMART INC COM',val:4516.55,risk:'Blue Chip / Core',gl:1565.86,glPct:53.07,cb:2950.69},
-      {sym:'AMAT',name:'APPLIED MATERIALS INC COM USD0.01',val:4288.86,risk:'Blue Chip / Core',gl:2636.2,glPct:159.51,cb:1652.66},
-      {sym:'XOM',name:'EXXON MOBIL CORP COM',val:4107.91,risk:'Blue Chip / Core',gl:1216.84,glPct:42.09,cb:2891.06},
-      {sym:'MA',name:'MASTERCARD INCORPORATED CL A',val:3760.16,risk:'Blue Chip / Core',gl:52.27,glPct:1.41,cb:3707.89},
-      {sym:'KO',name:'COCA-COLA CO',val:3573.76,risk:'Blue Chip / Core',gl:834.41,glPct:30.46,cb:2739.35},
-      {sym:'COST',name:'COSTCO WHOLESALE CORP COM',val:3479.5,risk:'Blue Chip / Core',gl:343.84,glPct:10.97,cb:3135.67},
-      {sym:'ABBV',name:'ABBVIE INC COM USD0.01',val:3416.4,risk:'Blue Chip / Core',gl:779.07,glPct:29.54,cb:2637.32},
-      {sym:'APH',name:'AMPHENOL CORP CLASS A COM USD0.001',val:3415.61,risk:'Growth',gl:1771.11,glPct:107.7,cb:1644.5},
-      {sym:'GE',name:'GE AEROSPACE COM NEW',val:3413.11,risk:'Growth',gl:1712.42,glPct:100.69,cb:1700.69},
-      {sym:'MU',name:'MICRON TECHNOLOGY INC',val:3216.1,risk:'Growth',gl:2474.93,glPct:333.92,cb:741.17},
-      {sym:'CAT',name:'CATERPILLAR INC COM',val:3178.8,risk:'Growth',gl:1837.59,glPct:137.01,cb:1341.21},
-      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:2994.12,risk:'High Risk / Speculative',gl:1508.29,glPct:101.51,cb:1485.83},
-      {sym:'NFLX',name:'NETFLIX INC',val:2991.41,risk:'Growth',gl:744.53,glPct:33.14,cb:2246.89},
-      {sym:'HD',name:'HOME DEPOT INC',val:2704.7,risk:'Blue Chip / Core',gl:43.07,glPct:1.62,cb:2661.63},
-      {sym:'MRK',name:'MERCK \u0026CO. INC COM',val:2646.86,risk:'Dividend / Value',gl:858.22,glPct:47.98,cb:1788.64},
-      {sym:'WFC',name:'WELLS FARGO CO NEW COM',val:2587.35,risk:'Blue Chip / Core',gl:555.13,glPct:27.32,cb:2032.22},
-      {sym:'PLTR',name:'PALANTIR TECHNOLOGIES INC CL A',val:2508.71,risk:'High Risk / Speculative',gl:1698.24,glPct:209.54,cb:810.47},
-      {sym:'PM',name:'PHILIP MORRIS INTERNATIONAL INC COM NPV',val:2425.81,risk:'Dividend / Value',gl:612.86,glPct:33.8,cb:1812.95},
-      {sym:'GEV',name:'GE VERNOVA INC COM',val:2373.12,risk:'Blue Chip / Core',gl:1599.57,glPct:206.79,cb:773.54},
-      {sym:'RTX',name:'RTX CORPORATION COM USD1.00',val:2321.7,risk:'Blue Chip / Core',gl:965.56,glPct:71.2,cb:1356.15},
-      {sym:'GS',name:'GOLDMAN SACHS GROUP INC COM USD0.01',val:2298.59,risk:'Growth',gl:907.93,glPct:65.29,cb:1390.66},
-      {sym:'PG',name:'PROCTER AND GAMBLE CO COM',val:2274.33,risk:'Dividend / Value',gl:129.76,glPct:6.05,cb:2144.58},
-      {sym:'PEP',name:'PEPSICO INC',val:2236.1,risk:'Blue Chip / Core',gl:462.25,glPct:26.06,cb:1773.85},
-      {sym:'GILD',name:'GILEAD SCIENCES INC COM USD0.001',val:2194.41,risk:'Dividend / Value',gl:883.69,glPct:67.42,cb:1310.72},
-      {sym:'CSCO',name:'CISCO SYSTEMS INC',val:2156.16,risk:'Blue Chip / Core',gl:667.16,glPct:44.81,cb:1489},
-      {sym:'KLAC',name:'KLA CORP COM NEW',val:2148.79,risk:'Blue Chip / Core',gl:1197.44,glPct:125.87,cb:951.35},
-      {sym:'ETN',name:'EATON CORPORATION PLC',val:2114.91,risk:'Blue Chip / Core',gl:605.69,glPct:40.13,cb:1509.22},
-      {sym:'IBM',name:'INTERNATIONAL BUS MACH CORP COM USD0.20',val:2070.85,risk:'Dividend / Value',gl:186.74,glPct:9.91,cb:1884.1},
-      {sym:'MCD',name:'MCDONALD S CORP',val:2010.62,risk:'Blue Chip / Core',gl:246.13,glPct:13.95,cb:1764.49},
-      {sym:'BAC',name:'BANK AMERICA CORP COM',val:1980.69,risk:'Blue Chip / Core',gl:191.86,glPct:10.73,cb:1788.83},
-      {sym:'TMO',name:'THERMO FISHER SCIENTIFIC INC',val:1960.07,risk:'Blue Chip / Core',gl:296.81,glPct:17.85,cb:1663.26},
-      {sym:'CVX',name:'CHEVRON CORP NEW COM',val:1899.23,risk:'Blue Chip / Core',gl:440.58,glPct:30.2,cb:1458.64},
-      {sym:'AMGN',name:'AMGEN INC',val:1879.93,risk:'Blue Chip / Core',gl:611.11,glPct:48.16,cb:1268.82},
-      {sym:'COF',name:'CAPITAL ONE FINANCIAL CORP COM USD0.01',val:1861.25,risk:'Growth',gl:317.26,glPct:20.55,cb:1543.99},
-      {sym:'COP',name:'CONOCOPHILLIPS COM',val:1822.79,risk:'Dividend / Value',gl:546.34,glPct:42.8,cb:1276.46},
-      {sym:'STX',name:'SEAGATE TECHNOLOGY HLDGS PUB LTD CO SEAGATE TECHNOLOGY HOLDINGS PLC ORDINARY SHARES ISIN #IE00BKVD2N49',val:1801.21,risk:'Growth',gl:1404.16,glPct:353.65,cb:397.05},
-      {sym:'C',name:'CITIGROUP INC',val:1696.71,risk:'Blue Chip / Core',gl:713.01,glPct:72.48,cb:983.7},
-      {sym:'CRM',name:'SALESFORCE INC COM',val:1695.61,risk:'Blue Chip / Core',gl:18.74,glPct:1.12,cb:1676.87},
-      {sym:'T',name:'AT\u0026T INC COM USD1',val:1647.47,risk:'Dividend / Value',gl:354,glPct:27.37,cb:1293.48},
-      {sym:'MDT',name:'MEDTRONIC PLC',val:1645.04,risk:'Dividend / Value',gl:286.59,glPct:21.1,cb:1358.44},
-      {sym:'TJX',name:'TJX COMPANIES INC',val:1638.98,risk:'Blue Chip / Core',gl:452.42,glPct:38.13,cb:1186.56},
-      {sym:'CMCSA',name:'COMCAST CORP',val:1623.33,risk:'Dividend / Value',gl:261.35,glPct:19.19,cb:1361.98},
-      {sym:'ORCL',name:'ORACLE CORP',val:1623.08,risk:'Growth',gl:-122.71,glPct:-7.03,cb:1745.79},
-      {sym:'HWM',name:'HOWMET AEROSPACE INC COM',val:1549.01,risk:'Blue Chip / Core',gl:818.21,glPct:111.96,cb:730.8},
-      {sym:'NEM',name:'NEWMONT CORP COM ISIN #US6516391066 SEDOL #BJYKTV2',val:1547.72,risk:'Dividend / Value',gl:1091.33,glPct:239.12,cb:456.39},
-      {sym:'ANET',name:'ARISTA NETWORKS INC COM SHS',val:1542.43,risk:'Growth',gl:667.43,glPct:76.28,cb:875},
-      {sym:'HAL',name:'HALLIBURTON CO COM USD2.50',val:1533.97,risk:'Blue Chip / Core',gl:674.66,glPct:78.51,cb:859.32},
-      {sym:'PWR',name:'QUANTA SERVICES COM USD0.00001',val:1527.57,risk:'Growth',gl:891.75,glPct:140.25,cb:635.82},
-      {sym:'BLK',name:'BLACKROCK INC COM',val:1513.77,risk:'Growth',gl:216.68,glPct:16.71,cb:1297.09},
-      {sym:'CME',name:'CME GROUP INC COM',val:1508.98,risk:'Blue Chip / Core',gl:455.94,glPct:43.3,cb:1053.04},
-      {sym:'PNC',name:'PNC FINANCIAL SERVICES GROUP COM USD5',val:1506.83,risk:'Dividend / Value',gl:420.42,glPct:38.7,cb:1086.41},
-      {sym:'WELL',name:'WELLTOWER INC COM',val:1502.42,risk:'High Risk / Speculative',gl:516.54,glPct:52.39,cb:985.88},
-      {sym:'INTC',name:'INTEL CORP COM USD0.001',val:1491.99,risk:'High Risk / Speculative',gl:844.52,glPct:130.43,cb:647.48},
-      {sym:'SCHW',name:'SCHWAB CHARLES CORP COM',val:1460.67,risk:'Dividend / Value',gl:343.32,glPct:30.73,cb:1117.34},
-      {sym:'USB',name:'US BANCORP',val:1445.6,risk:'Blue Chip / Core',gl:442.73,glPct:44.15,cb:1002.88},
-      {sym:'AEP',name:'AMERICAN ELEC PWR CO INC COM',val:1442.12,risk:'Dividend / Value',gl:458.42,glPct:46.6,cb:983.7},
-      {sym:'NOW',name:'SERVICENOW INC COM USD0.001',val:1437.91,risk:'Growth',gl:57.53,glPct:4.17,cb:1380.38},
-      {sym:'LOW',name:'LOWES COMPANIES INC COM USD0.50',val:1424.69,risk:'Blue Chip / Core',gl:181.37,glPct:14.59,cb:1243.31},
-      {sym:'CSX',name:'CSX CORP COM USD1',val:1415.04,risk:'Blue Chip / Core',gl:497.05,glPct:54.15,cb:917.99},
-      {sym:'MS',name:'MORGAN STANLEY COM USD0.01',val:1408.41,risk:'Blue Chip / Core',gl:443.95,glPct:46.03,cb:964.46},
-      {sym:'LHX',name:'L3HARRIS TECHNOLOGIES INC COM',val:1406.98,risk:'Blue Chip / Core',gl:636.78,glPct:82.68,cb:770.2},
-      {sym:'KEYS',name:'KEYSIGHT TECHNOLOGIES INC COM USD0.01 WD',val:1398.54,risk:'Growth',gl:742.28,glPct:113.11,cb:656.26},
-      {sym:'NOC',name:'NORTHROP GRUMMAN CORP COM USD1',val:1396.39,risk:'Blue Chip / Core',gl:559.53,glPct:66.86,cb:836.86},
-      {sym:'TT',name:'TRANE TECHNOLOGIES PLC COM USD1',val:1372.84,risk:'Blue Chip / Core',gl:395.76,glPct:40.5,cb:977.07},
-      {sym:'O',name:'REALTY INCOME CORP COM',val:1362.72,risk:'Blue Chip / Core',gl:310.94,glPct:29.56,cb:1051.78},
-      {sym:'LIN',name:'LINDE PLC COM EUR0.001',val:1349.97,risk:'Blue Chip / Core',gl:221.88,glPct:19.67,cb:1128.1},
-      {sym:'BA',name:'BOEING CO',val:1339.4,risk:'Growth',gl:451.46,glPct:50.84,cb:887.94},
-      {sym:'PFE',name:'PFIZER INC',val:1321.8,risk:'Dividend / Value',gl:157.12,glPct:13.49,cb:1164.68},
-      {sym:'PLD',name:'PROLOGIS INC. COM',val:1318.76,risk:'Blue Chip / Core',gl:359.63,glPct:37.5,cb:959.14},
-      {sym:'VRT',name:'VERTIV HOLDINGS CO COM CL A',val:1302.49,risk:'High Risk / Speculative',gl:942.3,glPct:261.61,cb:360.19},
-      {sym:'TFC',name:'TRUIST FINL CORP COM',val:1293.2,risk:'Dividend / Value',gl:368,glPct:39.78,cb:925.2},
-      {sym:'SYK',name:'STRYKER CORPORATION COM',val:1291.71,risk:'Blue Chip / Core',gl:71.79,glPct:5.88,cb:1219.92},
-      {sym:'JCI',name:'JOHNSON CONTROLS INTERNATIONAL PLC COM USD1.00',val:1283.24,risk:'Blue Chip / Core',gl:604.5,glPct:89.06,cb:678.74},
-      {sym:'HCA',name:'HCA HEALTHCARE INC COM',val:1248.7,risk:'Blue Chip / Core',gl:543.19,glPct:76.99,cb:705.52},
-      {sym:'DUK',name:'DUKE ENERGY CORP NEW COM NEW ISIN #US26441C2044 SEDOL #B7JZSK0',val:1244.94,risk:'Dividend / Value',gl:167.74,glPct:15.57,cb:1077.21},
-      {sym:'MO',name:'ALTRIA GROUP INC',val:1219.88,risk:'Dividend / Value',gl:268.72,glPct:28.25,cb:951.16},
-      {sym:'UBER',name:'UBER TECHNOLOGIES INC COM',val:1216.88,risk:'Growth',gl:149.82,glPct:14.04,cb:1067.05},
-      {sym:'ITW',name:'ILLINOIS TOOL WORKS INC COM',val:1215.38,risk:'Blue Chip / Core',gl:262.92,glPct:27.6,cb:952.45},
-      {sym:'ED',name:'CONSOLIDATED EDISON INC COM USD0.10',val:1209.07,risk:'Dividend / Value',gl:254.24,glPct:26.63,cb:954.83},
-      {sym:'ABT',name:'ABBOTT LABORATORIES',val:1203.05,risk:'Blue Chip / Core',gl:-11.65,glPct:-0.96,cb:1214.7},
-      {sym:'DE',name:'DEERE \u0026 CO',val:1198.21,risk:'Blue Chip / Core',gl:425.08,glPct:54.98,cb:773.12},
-      {sym:'MCK',name:'MCKESSON CORP',val:1154.62,risk:'Blue Chip / Core',gl:560.05,glPct:94.19,cb:594.57},
-      {sym:'PGR',name:'PROGRESSIVE CORP COM',val:1154.03,risk:'Dividend / Value',gl:62.6,glPct:5.74,cb:1091.43},
-      {sym:'CVS',name:'CVS HEALTH CORPORATION COM USD0.01',val:1148.74,risk:'Blue Chip / Core',gl:489.26,glPct:74.19,cb:659.48},
-      {sym:'UNP',name:'UNION PAC CORP COM',val:1148.54,risk:'Dividend / Value',gl:212.38,glPct:22.69,cb:936.17},
-      {sym:'SBUX',name:'STARBUCKS CORP COM USD0.001',val:1148.06,risk:'Blue Chip / Core',gl:146.78,glPct:14.66,cb:1001.28},
-      {sym:'ISRG',name:'INTUITIVE SURGICAL INC',val:1126.78,risk:'Growth',gl:138.01,glPct:13.96,cb:988.77},
-      {sym:'RSG',name:'REPUBLIC SERVICES INC',val:1124.8,risk:'Blue Chip / Core',gl:143.85,glPct:14.66,cb:980.96},
-      {sym:'TXN',name:'TEXAS INSTRUMENTS INC COM USD1.00',val:1119.39,risk:'Blue Chip / Core',gl:173.78,glPct:18.38,cb:945.61},
-      {sym:'HIG',name:'THE HARTFORD INSURANCE GROUP, INC. COMMON STOCK',val:1117.68,risk:'Dividend / Value',gl:248.28,glPct:28.56,cb:869.4},
-      {sym:'FCX',name:'FREEPORT-MCMORAN INC COM USD0.10',val:1110.76,risk:'Blue Chip / Core',gl:538.64,glPct:94.15,cb:572.13},
-      {sym:'MLM',name:'MARTIN MARIETTA MATERIALS INC COM USD0.01',val:1087.61,risk:'Blue Chip / Core',gl:312.12,glPct:40.25,cb:775.49},
-      {sym:'BX',name:'BLACKSTONE INC',val:1087.33,risk:'Growth',gl:-122.57,glPct:-10.13,cb:1209.9},
-      {sym:'PSX',name:'PHILLIPS 66',val:1080.85,risk:'Blue Chip / Core',gl:369.13,glPct:51.86,cb:711.72},
-      {sym:'DTE',name:'DTE ENERGY CO',val:1071.92,risk:'Blue Chip / Core',gl:191.89,glPct:21.8,cb:880.03},
-      {sym:'INTU',name:'INTUIT INC',val:1069.55,risk:'Growth',gl:69.4,glPct:6.94,cb:1000.15},
-      {sym:'FANG',name:'DIAMONDBACK ENERGY INC COM USD0.01',val:1067.8,risk:'Blue Chip / Core',gl:298.9,glPct:38.87,cb:768.9},
-      {sym:'MMM',name:'3M CO',val:1066.06,risk:'Blue Chip / Core',gl:199.34,glPct:23,cb:866.72},
-      {sym:'EXC',name:'EXELON CORP COM NPV',val:1065.24,risk:'Dividend / Value',gl:248.15,glPct:30.37,cb:817.09},
-      {sym:'CAH',name:'CARDINAL HEALTH INC COM NPV',val:1064.52,risk:'Blue Chip / Core',gl:499.08,glPct:88.26,cb:565.44},
-      {sym:'NSC',name:'NORFOLK SOUTHN CORP COM',val:1063.64,risk:'Blue Chip / Core',gl:335.27,glPct:46.03,cb:728.37},
-      {sym:'WMB',name:'WILLIAMS COS INC COM',val:1061.38,risk:'Blue Chip / Core',gl:335.88,glPct:46.3,cb:725.5},
-      {sym:'FDX',name:'FEDEX CORP COM USD0.10',val:1057.78,risk:'Blue Chip / Core',gl:436.84,glPct:70.35,cb:620.94},
-      {sym:'RCL',name:'ROYAL CARIBBEAN GROUP COM USD0.01',val:1051.58,risk:'High Risk / Speculative',gl:336.72,glPct:47.1,cb:714.87},
-      {sym:'HON',name:'HONEYWELL INTERNATIONAL INC COM USD1',val:1050.17,risk:'Blue Chip / Core',gl:240.69,glPct:29.73,cb:809.47},
-      {sym:'ADBE',name:'ADOBE INC COM',val:1041.06,risk:'Blue Chip / Core',gl:13.06,glPct:1.27,cb:1028},
-      {sym:'OVV',name:'OVINTIV INC COM ISIN #US69047Q1022 SEDOL #BL3GRC2',val:1033.62,risk:'Dividend / Value',gl:348.79,glPct:50.93,cb:684.83},
-      {sym:'ADI',name:'ANALOG DEVICES INC COM',val:1030.3,risk:'Growth',gl:257.58,glPct:33.33,cb:772.72},
-      {sym:'CEG',name:'CONSTELLATION ENERGY CORP COM',val:1020.71,risk:'Blue Chip / Core',gl:369.44,glPct:56.73,cb:651.26},
-      {sym:'ROK',name:'ROCKWELL AUTOMATION INC COM USD1',val:1016.73,risk:'Blue Chip / Core',gl:391.18,glPct:62.53,cb:625.56},
-      {sym:'CDNS',name:'CADENCE DESIGN SYSTEMS INC COM USD0.01',val:989.18,risk:'Blue Chip / Core',gl:171.14,glPct:20.92,cb:818.04},
-      {sym:'COR',name:'CENCORA INC COM',val:979.73,risk:'Blue Chip / Core',gl:248.7,glPct:34.02,cb:731.03},
-      {sym:'TDY',name:'TELEDYNE TECHNOLOGIES INC',val:978.65,risk:'Blue Chip / Core',gl:320.88,glPct:48.78,cb:657.78},
-      {sym:'GD',name:'GENERAL DYNAMICS CORP COM',val:976.17,risk:'Blue Chip / Core',gl:249.77,glPct:34.39,cb:726.39},
-      {sym:'VMC',name:'VULCAN MATERIALS CO',val:969.69,risk:'Blue Chip / Core',gl:243.2,glPct:33.48,cb:726.5},
-      {sym:'ELV',name:'ELEVANCE HEALTH INC COM',val:955.13,risk:'Blue Chip / Core',gl:2.16,glPct:0.23,cb:952.97},
-      {sym:'APP',name:'APPLOVIN CORP COM CL A',val:951.7,risk:'High Risk / Speculative',gl:354.51,glPct:59.36,cb:597.19},
-      {sym:'CRWD',name:'CROWDSTRIKE HLDGS INC CL A',val:949.41,risk:'High Risk / Speculative',gl:153.03,glPct:19.22,cb:796.38},
-      {sym:'LRCX',name:'LAM RESEARCH CORP COM NEW',val:942.53,risk:'Growth',gl:175.96,glPct:22.95,cb:766.57},
-      {sym:'DIS',name:'DISNEY WALT CO COM',val:936.87,risk:'Blue Chip / Core',gl:43.93,glPct:4.92,cb:892.94},
-      {sym:'KR',name:'KROGER CO COM USD1.00',val:917.71,risk:'Blue Chip / Core',gl:112.17,glPct:13.92,cb:805.54},
-      {sym:'ECL',name:'ECOLAB INC',val:915.68,risk:'Blue Chip / Core',gl:210.15,glPct:29.79,cb:705.54},
-      {sym:'MPC',name:'MARATHON PETROLEUM CORP COM USD0.01',val:915.22,risk:'Blue Chip / Core',gl:376.26,glPct:69.81,cb:538.96},
-      {sym:'UPS',name:'UNITED PARCEL SERVICE INC CL B',val:914.18,risk:'Blue Chip / Core',gl:240.56,glPct:35.71,cb:673.62},
-      {sym:'SRE',name:'SEMPRA COM',val:894.63,risk:'Blue Chip / Core',gl:253.88,glPct:39.62,cb:640.74},
-      {sym:'EVRG',name:'EVERGY INC COM',val:889.21,risk:'Dividend / Value',gl:248.4,glPct:38.76,cb:640.81},
-      {sym:'EBAY',name:'EBAY INC. COM',val:884.38,risk:'Blue Chip / Core',gl:259.2,glPct:41.46,cb:625.19},
-      {sym:'DHR',name:'DANAHER CORPORATION COM',val:883.61,risk:'Blue Chip / Core',gl:-10.77,glPct:-1.2,cb:894.37},
-      {sym:'KEY',name:'KEYCORP COM',val:878.43,risk:'Growth',gl:299.13,glPct:51.64,cb:579.3},
-      {sym:'AZO',name:'AUTOZONE INC COM USD0.01',val:878.23,risk:'Blue Chip / Core',gl:174.33,glPct:24.77,cb:703.9},
-      {sym:'IQV',name:'IQVIA HLDGS INC COM',val:876.92,risk:'Blue Chip / Core',gl:137.71,glPct:18.63,cb:739.22},
-      {sym:'AXP',name:'AMERICAN EXPRESS CO COM USD0.20',val:872.55,risk:'Blue Chip / Core',gl:53.53,glPct:6.54,cb:819.02},
-      {sym:'MKL',name:'MARKEL GROUP INC COM NPV',val:861.44,risk:'Dividend / Value',gl:143.3,glPct:19.95,cb:718.14},
-      {sym:'DELL',name:'DELL TECHNOLOGIES INC CL C',val:855.23,risk:'Growth',gl:405.6,glPct:90.21,cb:449.63},
-      {sym:'MRSH',name:'MARSH COMMON STOCK',val:840.24,risk:'Dividend / Value',gl:23.82,glPct:2.92,cb:816.42},
-      {sym:'ATO',name:'ATMOS ENERGY CORP COM NPV',val:834.34,risk:'Dividend / Value',gl:204.61,glPct:32.49,cb:629.73},
-      {sym:'REGN',name:'REGENERON PHARMACEUTICALS INC',val:826.92,risk:'Dividend / Value',gl:232.66,glPct:39.15,cb:594.26},
-      {sym:'NEE',name:'NEXTERA ENERGY INC COM USD0.01',val:811.95,risk:'Blue Chip / Core',gl:171.33,glPct:26.74,cb:640.62},
-      {sym:'CL',name:'COLGATE-PALMOLIVE CO COM',val:811.45,risk:'Blue Chip / Core',gl:158.12,glPct:24.2,cb:653.33},
-      {sym:'BIIB',name:'BIOGEN INC COM USD0.0005',val:809.02,risk:'Dividend / Value',gl:240.09,glPct:42.2,cb:568.93},
-      {sym:'FAST',name:'FASTENAL COM STK USD0.01',val:804.39,risk:'Blue Chip / Core',gl:141.77,glPct:21.4,cb:662.62},
-      {sym:'DLR',name:'DIGITAL REALTY TRUST INC',val:799.26,risk:'Growth',gl:152.4,glPct:23.56,cb:646.86},
-      {sym:'TRV',name:'TRAVELERS COMPANIES INC COM STK NPV',val:796.89,risk:'Dividend / Value',gl:166.46,glPct:26.4,cb:630.43},
-      {sym:'TMUS',name:'T-MOBILE US INC COM',val:789.54,risk:'Dividend / Value',gl:110.26,glPct:16.23,cb:679.28},
-      {sym:'ORLY',name:'OREILLY AUTOMOTIVE INC COM',val:778.73,risk:'Blue Chip / Core',gl:129.92,glPct:20.02,cb:648.81},
-      {sym:'CTAS',name:'CINTAS CORP',val:770.09,risk:'Blue Chip / Core',gl:62.39,glPct:8.82,cb:707.7},
-      {sym:'VRTX',name:'VERTEX PHARMACEUTICALS INC',val:765.45,risk:'Blue Chip / Core',gl:124.31,glPct:19.39,cb:641.14},
-      {sym:'FTNT',name:'FORTINET INC COM USD0.001',val:745.5,risk:'Blue Chip / Core',gl:23.64,glPct:3.27,cb:721.85},
-      {sym:'DAL',name:'DELTA AIR LINES INC',val:729.97,risk:'Blue Chip / Core',gl:267.68,glPct:57.9,cb:462.29},
-      {sym:'MAR',name:'MARRIOTT INTERNATIONAL INC COM USD0.01 CLASS A',val:724.97,risk:'Blue Chip / Core',gl:100.52,glPct:16.1,cb:624.45},
-      {sym:'DOW',name:'DOW INC COM',val:724.31,risk:'High Risk / Speculative',gl:211.45,glPct:41.23,cb:512.87},
-      {sym:'FTV',name:'FORTIVE CORP COM',val:724.06,risk:'Blue Chip / Core',gl:122.36,glPct:20.34,cb:601.69},
-      {sym:'SNOW',name:'SNOWFLAKE INC. COMMON STOCK',val:724.06,risk:'High Risk / Speculative',gl:183.39,glPct:33.92,cb:540.67},
-      {sym:'NXPI',name:'NXP SEMICONDUCTORS NV',val:720.41,risk:'Blue Chip / Core',gl:130.61,glPct:22.14,cb:589.8},
-      {sym:'PTC',name:'PTC INC',val:717.37,risk:'Blue Chip / Core',gl:61.13,glPct:9.32,cb:656.25},
-      {sym:'NKE',name:'NIKE INC CLASS B COM NPV',val:716.33,risk:'Blue Chip / Core',gl:49.89,glPct:7.49,cb:666.44},
-      {sym:'IFF',name:'INTERNATIONAL FLAVORS \u0026FRAGRANCES COM USD0.125',val:712.03,risk:'High Risk / Speculative',gl:159.16,glPct:28.79,cb:552.87},
-      {sym:'WM',name:'WASTE MANAGEMENT INC',val:708.56,risk:'Blue Chip / Core',gl:96.43,glPct:15.75,cb:612.13},
-      {sym:'MNST',name:'MONSTER BEVERAGE CORP NEW COM',val:704.04,risk:'Blue Chip / Core',gl:195.86,glPct:38.54,cb:508.18},
-      {sym:'EW',name:'EDWARDS LIFESCIENCES CORP',val:702.49,risk:'Blue Chip / Core',gl:147.53,glPct:26.58,cb:554.96},
-      {sym:'URI',name:'UNITED RENTALS INC',val:700.45,risk:'Blue Chip / Core',gl:146.04,glPct:26.34,cb:554.41},
-      {sym:'PRU',name:'PRUDENTIAL FINANCIAL INC',val:693.2,risk:'Blue Chip / Core',gl:-4.55,glPct:-0.65,cb:697.75},
-      {sym:'F',name:'FORD MTR CO DEL COM',val:686.53,risk:'High Risk / Speculative',gl:175.29,glPct:34.29,cb:511.24},
-      {sym:'BMY',name:'BRISTOL-MYERS SQUIBB CO COM',val:685.39,risk:'Dividend / Value',gl:162.47,glPct:31.07,cb:522.92},
-      {sym:'RJF',name:'RAYMOND JAMES FINL INC COM',val:683.45,risk:'Blue Chip / Core',gl:95.24,glPct:16.19,cb:588.2},
-      {sym:'DHI',name:'DR HORTON INC COM STK USD0.01',val:680.06,risk:'Blue Chip / Core',gl:122.25,glPct:21.92,cb:557.81},
-      {sym:'TROW',name:'PRICE T ROWE GROUPS COM USD0.20',val:676.95,risk:'Blue Chip / Core',gl:60.69,glPct:9.85,cb:616.26},
-      {sym:'SHW',name:'SHERWIN-WILLIAMS CO',val:673.29,risk:'Blue Chip / Core',gl:60.7,glPct:9.91,cb:612.59},
-      {sym:'EA',name:'ELECTRONIC ARTS INC',val:672.77,risk:'Blue Chip / Core',gl:211.95,glPct:45.99,cb:460.83},
-      {sym:'HPE',name:'HEWLETT PACKARD ENTERPRISE CO COM',val:668.43,risk:'High Risk / Speculative',gl:244.39,glPct:57.63,cb:424.04},
-      {sym:'DASH',name:'DOORDASH INC CL A',val:662.57,risk:'High Risk / Speculative',gl:61.24,glPct:10.18,cb:601.33},
-      {sym:'ON',name:'ON SEMICONDUCTOR CORP COM USD0.01',val:660.54,risk:'High Risk / Speculative',gl:261.35,glPct:65.47,cb:399.19},
-      {sym:'NET',name:'CLOUDFLARE INC CL A COM',val:658.25,risk:'High Risk / Speculative',gl:251.02,glPct:61.64,cb:407.23},
-      {sym:'ILMN',name:'ILLUMINA INC COM USD0.01',val:652.25,risk:'Blue Chip / Core',gl:266.88,glPct:69.25,cb:385.37},
-      {sym:'LNG',name:'CHENIERE ENERGY INC COM USD0.003',val:649.15,risk:'Dividend / Value',gl:160.17,glPct:32.76,cb:488.97},
-      {sym:'VST',name:'VISTRA CORP COM',val:646.1,risk:'Blue Chip / Core',gl:198.79,glPct:44.44,cb:447.31},
-      {sym:'MDLZ',name:'MONDELEZ INTL INC COM NPV',val:633.03,risk:'Blue Chip / Core',gl:33.56,glPct:5.6,cb:599.47},
-      {sym:'EQIX',name:'EQUINIX INC COM',val:630.87,risk:'Blue Chip / Core',gl:33.67,glPct:5.64,cb:597.2},
-      {sym:'ULTA',name:'ULTA BEAUTY INC COM',val:629.9,risk:'Blue Chip / Core',gl:299.35,glPct:90.56,cb:330.55},
-      {sym:'ROST',name:'ROSS STORES INC',val:628.57,risk:'Blue Chip / Core',gl:132.06,glPct:26.6,cb:496.51},
-      {sym:'ACGL',name:'ARCH CAPITAL GROUP COM STK USD0.01',val:628.44,risk:'Dividend / Value',gl:63.67,glPct:11.27,cb:564.76},
-      {sym:'ABNB',name:'AIRBNB INC COM CL A',val:617.1,risk:'Blue Chip / Core',gl:62.74,glPct:11.32,cb:554.36},
-      {sym:'AMT',name:'AMERICAN TOWER CORP NEW COM',val:608.02,risk:'Blue Chip / Core',gl:53.38,glPct:9.62,cb:554.63},
-      {sym:'NVR',name:'NVR INC COM USD0.01',val:601.36,risk:'Blue Chip / Core',gl:15.53,glPct:2.65,cb:585.83},
-      {sym:'SO',name:'SOUTHERN CO',val:599.23,risk:'Dividend / Value',gl:63.94,glPct:11.94,cb:535.29},
-      {sym:'XYZ',name:'BLOCK INC CL A',val:596.91,risk:'High Risk / Speculative',gl:104.81,glPct:21.3,cb:492.09},
-      {sym:'VZ',name:'VERIZON COMMUNICATIONS INC',val:591.31,risk:'Dividend / Value',gl:120.44,glPct:25.58,cb:470.87},
-      {sym:'MPWR',name:'MONOLITHIC POWER SYSTEMS INC',val:585.18,risk:'Growth',gl:276.26,glPct:89.42,cb:308.93},
-      {sym:'TGT',name:'TARGET CORP',val:567.53,risk:'Blue Chip / Core',gl:111.2,glPct:24.37,cb:456.33},
-      {sym:'TTWO',name:'TAKE-TWO INTERACTIVE SOFTWARE INC',val:559.57,risk:'High Risk / Speculative',gl:28.8,glPct:5.43,cb:530.77},
-      {sym:'CLX',name:'CLOROX CO COM USD1.00',val:558.54,risk:'Dividend / Value',gl:115.05,glPct:25.94,cb:443.49},
-      {sym:'CHD',name:'CHURCH \u0026DWIGHT CO INC COM',val:552.35,risk:'Blue Chip / Core',gl:111.37,glPct:25.26,cb:440.98},
-      {sym:'SLB',name:'SLB LIMITED TRADING',val:550.55,risk:'Blue Chip / Core',gl:200.64,glPct:57.34,cb:349.91},
-      {sym:'ALL',name:'ALLSTATE CORP COM USD0.01',val:548.47,risk:'Dividend / Value',gl:54.98,glPct:11.14,cb:493.49},
-      {sym:'SNPS',name:'SYNOPSYS INC',val:547.36,risk:'Growth',gl:55.77,glPct:11.34,cb:491.59},
-      {sym:'WY',name:'WEYERHAEUSER CO MTN BE COM NEW',val:528.12,risk:'Blue Chip / Core',gl:68.43,glPct:14.89,cb:459.69},
-      {sym:'KDP',name:'KEURIG DR PEPPER INC COM',val:522.01,risk:'Dividend / Value',gl:49.98,glPct:10.59,cb:472.03},
-      {sym:'AVB',name:'AVALONBAY COMMUNITIES INC COM USD0.01',val:521.82,risk:'Dividend / Value',gl:3.52,glPct:0.68,cb:518.3},
-      {sym:'HOOD',name:'ROBINHOOD MKTS INC COM CL A',val:518.13,risk:'High Risk / Speculative',gl:208.77,glPct:67.48,cb:309.37},
-      {sym:'FISV',name:'FISERV INC COM STK USD0.01',val:517.39,risk:'Blue Chip / Core',gl:-1.01,glPct:-0.19,cb:518.41},
-      {sym:'LMT',name:'LOCKHEED MARTIN CORP COM USD1.00',val:514.09,risk:'Blue Chip / Core',gl:72.06,glPct:16.3,cb:442.03},
-      {sym:'VRSK',name:'VERISK ANALYTICS INC COM',val:506.95,risk:'Blue Chip / Core',gl:70.92,glPct:16.27,cb:436.02},
-      {sym:'CMG',name:'CHIPOTLE MEXICAN GRILL INC',val:505.17,risk:'Blue Chip / Core',gl:-15.32,glPct:-2.94,cb:520.49},
-      {sym:'RBLX',name:'ROBLOX CORP CL A',val:485.29,risk:'High Risk / Speculative',gl:83.04,glPct:20.64,cb:402.25},
-      {sym:'CI',name:'THE CIGNA GROUP COM',val:482.88,risk:'Blue Chip / Core',gl:13.36,glPct:2.85,cb:469.52},
-      {sym:'QRVO',name:'QORVO INC',val:476.9,risk:'Blue Chip / Core',gl:142.29,glPct:42.52,cb:334.61},
-      {sym:'PYPL',name:'PAYPAL HLDGS INC COM',val:474.79,risk:'Blue Chip / Core',gl:31.34,glPct:7.07,cb:443.45},
-      {sym:'DDOG',name:'DATADOG INC CL A COM',val:473.74,risk:'High Risk / Speculative',gl:54.57,glPct:13.02,cb:419.17},
-      {sym:'ICE',name:'INTERCONTINENTAL EXCHANGE INC COM USD0.01',val:464.16,risk:'Blue Chip / Core',gl:26.79,glPct:6.13,cb:437.38},
-      {sym:'LULU',name:'LULULEMON ATHLETICA INC COM USD0.005',val:463.92,risk:'Blue Chip / Core',gl:29.81,glPct:6.87,cb:434.11},
-      {sym:'ROP',name:'ROPER TECHNOLOGIES INC',val:463.75,risk:'Dividend / Value',gl:21.58,glPct:4.88,cb:442.17},
-      {sym:'EFX',name:'EQUIFAX INC COM USD1.25',val:462.58,risk:'Blue Chip / Core',gl:24.47,glPct:5.59,cb:438.11},
-      {sym:'LYB',name:'LYONDELLBASELL INDUSTRIES N V COM EUR0.04 CLASS A',val:454.54,risk:'High Risk / Speculative',gl:115.28,glPct:33.98,cb:339.26},
-      {sym:'DOCU',name:'DOCUSIGN INC COM',val:454.3,risk:'Blue Chip / Core',gl:5.57,glPct:1.24,cb:448.74},
-      {sym:'AON',name:'AON PLC SHS CL A COM USD0.01',val:452.7,risk:'Dividend / Value',gl:16.38,glPct:3.75,cb:436.32},
-      {sym:'MCO',name:'MOODYS CORP COM USD0.01',val:451.57,risk:'Blue Chip / Core',gl:13.92,glPct:3.18,cb:437.65},
-      {sym:'FICO',name:'FAIR ISAAC CORP',val:450.55,risk:'Growth',gl:8.5,glPct:1.92,cb:442.05},
-      {sym:'WBD',name:'WARNER BROS DISCOVERY INC COM SER A',val:447.14,risk:'Blue Chip / Core',gl:82.05,glPct:22.47,cb:365.09},
-      {sym:'TRU',name:'TRANSUNION COM',val:446.86,risk:'Blue Chip / Core',gl:9.13,glPct:2.09,cb:437.73},
-      {sym:'DXCM',name:'DEXCOM INC',val:443.37,risk:'Blue Chip / Core',gl:7.51,glPct:1.72,cb:435.86},
-      {sym:'IRM',name:'IRON MTN INC DEL COM',val:443.1,risk:'High Risk / Speculative',gl:8.75,glPct:2.01,cb:434.35},
-      {sym:'UAL',name:'UNITED AIRLS HLDGS INC COM',val:440.5,risk:'Blue Chip / Core',gl:159.62,glPct:56.83,cb:280.88},
-      {sym:'CHTR',name:'CHARTER COMMUNICATIONS INC NEW CL A',val:437.18,risk:'Blue Chip / Core',gl:-1.37,glPct:-0.31,cb:438.55},
-      {sym:'AMP',name:'AMERIPRISE FINANCIAL INC COM USD0.01',val:436.17,risk:'Blue Chip / Core',gl:6.61,glPct:1.54,cb:429.56},
-      {sym:'KVUE',name:'KENVUE INC COM',val:433.99,risk:'Blue Chip / Core',gl:56.29,glPct:14.9,cb:377.7},
-      {sym:'CNC',name:'CENTENE CORP',val:422.2,risk:'High Risk / Speculative',gl:80.71,glPct:23.63,cb:341.49},
-      {sym:'GEHC',name:'GE HEALTHCARE TECHNOLOGIES INC COMMON STOCK',val:419.44,risk:'Blue Chip / Core',gl:-28.96,glPct:-6.46,cb:448.41},
-      {sym:'TTD',name:'THE TRADE DESK INC COM CL A',val:418.41,risk:'Blue Chip / Core',gl:-28.74,glPct:-6.43,cb:447.14},
-      {sym:'OMC',name:'OMNICOM GROUP INC COM USD0.15',val:411.31,risk:'High Risk / Speculative',gl:49.44,glPct:13.66,cb:361.87},
-      {sym:'CARR',name:'CARRIER GLOBAL CORPORATION COM',val:404.07,risk:'Blue Chip / Core',gl:72.34,glPct:21.81,cb:331.73},
-      {sym:'TEAM',name:'ATLASSIAN CORPORATION CL A',val:399.39,risk:'High Risk / Speculative',gl:-35.12,glPct:-8.08,cb:434.51},
-      {sym:'ZM',name:'ZOOM COMMUNICATIONS INC CLASS A COMMON',val:396.03,risk:'Dividend / Value',gl:14.92,glPct:3.91,cb:381.11},
-      {sym:'CVNA',name:'CARVANA CO CL A',val:388.89,risk:'High Risk / Speculative',gl:86.38,glPct:28.55,cb:302.51},
-      {sym:'MDB',name:'MONGODB INC CL A',val:382.85,risk:'High Risk / Speculative',gl:142.73,glPct:59.44,cb:240.12},
-      {sym:'UNH',name:'UNITEDHEALTH GROUP INC',val:382.66,risk:'Blue Chip / Core',gl:-9.84,glPct:-2.51,cb:392.5},
-      {sym:'FLUT',name:'FLUTTER ENTERTAINMENT PLC ORD EUR0.09 (DI)',val:377.14,risk:'High Risk / Speculative',gl:-62.11,glPct:-14.14,cb:439.25},
-      {sym:'DD',name:'DUPONT DE NEMOURS INC COM',val:367.58,risk:'High Risk / Speculative',gl:142.94,glPct:63.63,cb:224.64},
-      {sym:'ARE',name:'ALEXANDRIA REAL ESTATE EQUITIES COM USD0.01',val:317.17,risk:'High Risk / Speculative',gl:25.13,glPct:8.6,cb:292.04},
-      {sym:'EL',name:'ESTEE LAUDER COMPANIES INC COM USD0.01 CLASS A',val:307.02,risk:'High Risk / Speculative',gl:95.89,glPct:45.42,cb:211.13},
-      {sym:'QCOM',name:'QUALCOMM INC',val:166.73,risk:'Blue Chip / Core',gl:3.16,glPct:1.93,cb:163.57},]},
-    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:135037.68,tickers:[
-      {sym:'MSFT',name:'MICROSOFT CORP',val:64989.18,risk:'Growth',gl:23401.71,glPct:56.27,cb:41587.47},
-      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:39858.24,risk:'High Risk / Speculative',gl:21866.63,glPct:121.54,cb:17991.61},
-      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:18903.98,risk:'High Risk / Speculative',gl:6673.5,glPct:54.56,cb:12230.48},
-      {sym:'AAPL',name:'APPLE INC',val:7004.93,risk:'Growth',gl:2760.49,glPct:65.04,cb:4244.44},
-      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:4171.27,risk:'Growth',gl:2037.34,glPct:95.47,cb:2133.92},
-      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:94.18,risk:'High Risk / Speculative',gl:-4134.04,glPct:-97.77,cb:4228.22},
-      {sym:'CWBHF',name:'CHARLOTTES WEB HOLDINGS INC COM NPV',val:15.9,risk:'High Risk / Speculative',gl:-134.83,glPct:-89.45,cb:150.73},]},
-    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:48606.88,tickers:[
-      {sym:'MSFT',name:'MICROSOFT CORP',val:48138.75,risk:'Growth',gl:15924.51,glPct:49.43,cb:32214.24},
-      {sym:'PSNY',name:'POLESTAR AUTOMOTIVE HOLDING UK PLC SPON ADS CL A EACH REP 30 CL A (P/S)',val:296.9,risk:'High Risk / Speculative',gl:-5994.16,glPct:-95.28,cb:6291.06},
-      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:171.23,risk:'High Risk / Speculative',gl:-6122.38,glPct:-97.28,cb:6293.61},]},
-    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:937.5,tickers:[
-      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:937.5,risk:'High Risk / Speculative',gl:-36703.13,glPct:-97.51,cb:37640.63},]},
-    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:477.69,tickers:[
-      {sym:'NIO',name:'NIO INC SPON ADS EACH REP 1 ORD SHS CLASS A',val:302.18,risk:'High Risk / Speculative',gl:-2514.08,glPct:-89.27,cb:2816.26},
-      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:175.51,risk:'High Risk / Speculative',gl:-6514.3,glPct:-97.38,cb:6689.81},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:295.37,tickers:[
-      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:295.37,risk:'High Risk / Speculative',gl:-12160.77,glPct:-97.63,cb:12456.15},]},]},
-  {cat:'US Index Funds',total:1107045.18,accounts:[
-    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:604438.41,tickers:[
-      {sym:'SCHD',name:'Schwab US Dividend Equity ETF',val:431404.93,risk:'',gl:4603.82,glPct:1.08,cb:426801.11},
-      {sym:'FSKAX',name:'Fidelity Total Market Index',val:173033.48,risk:'',gl:-806.88,glPct:-0.46,cb:173840.36},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:222851.77,tickers:[
-      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:222851.77,risk:'',gl:3623.35,glPct:1.65,cb:219228.45},]},
-    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:203042.15,tickers:[
-      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:203042.15,risk:'',gl:4923.63,glPct:2.49,cb:198118.52},]},
-    {num:'961437285',type:'HSA',name:'Health Savings Account',val:70898.63,tickers:[
-      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:70898.63,risk:'',gl:23971.68,glPct:51.08,cb:46926.95},]},
-    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:3058.36,tickers:[
-      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:3058.36,risk:'',gl:392.13,glPct:14.71,cb:2666.23},]},
-    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:2755.86,tickers:[
-      {sym:'59515R401',name:'Vanguard 500 Index Trust (401k)',val:1102.3,risk:'',gl:-0.04,glPct:-0,cb:1102.34},
-      {sym:'31617E471',name:'Fidelity Growth Company Pool Cl S (401k)',val:918.67,risk:'',gl:0.04,glPct:0,cb:918.63},
-      {sym:'SMID CAP GROWTH ACCT',name:'SMID Cap Growth Account (401k)',val:734.89,risk:'',gl:-0.01,glPct:-0,cb:734.9},]},]},
-  {cat:'International Funds',total:987878.6,accounts:[
-    {num:'62917',type:'Tax-Deferred DCP',name:'EMPLOYER DCP',val:379990.72,tickers:[
-      {sym:'VFWSX',name:'Vanguard FTSE All-World ex-US',val:379990.72,risk:'',gl:2615.78,glPct:0.69,cb:377374.93},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:262496.88,tickers:[
-      {sym:'FZILX',name:'Fidelity ZERO International Index',val:262496.88,risk:'',gl:38572.11,glPct:17.23,cb:223924.77},]},
-    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:198207.61,tickers:[
-      {sym:'FZILX',name:'Fidelity ZERO International Index',val:198207.61,risk:'',gl:30216.12,glPct:17.99,cb:167991.48},]},
-    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:146264.77,tickers:[
-      {sym:'FTIHX',name:'Fidelity Total International Index',val:146264.77,risk:'',gl:17918.34,glPct:13.96,cb:128346.44},]},
-    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:918.62,tickers:[
-      {sym:'INTL GROWTH ACCOUNT',name:'International Growth Account (401k)',val:918.62,risk:'',gl:-0.01,glPct:-0,cb:918.63},]},]},
-  {cat:'Bond Funds',total:342232.8,accounts:[
-    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:171628.73,tickers:[
-      {sym:'FXNAX',name:'Fidelity US Bond Index',val:171628.73,risk:'',gl:908.28,glPct:0.53,cb:170720.45},]},
-    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:170604.07,tickers:[
-      {sym:'FXNAX',name:'Fidelity US Bond Index',val:170604.07,risk:'',gl:902.87,glPct:0.53,cb:169701.21},]},]},
-  {cat:'Tech Sector Fund',total:143427.95,accounts:[
-    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:128556.07,tickers:[
-      {sym:'FSPTX',name:'Fidelity Select Technology',val:128556.07,risk:'',gl:21349.33,glPct:19.91,cb:107206.74},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:14871.88,tickers:[
-      {sym:'FSPTX',name:'Fidelity Select Technology',val:14871.88,risk:'',gl:4313.25,glPct:40.85,cb:10558.63},]},]},
-  {cat:'Growth / Leveraged ETFs',total:10062.5,accounts:[
-    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:6066.64,tickers:[
-      {sym:'TQQQ',name:'ProShares UltraPro QQQ (3x Nasdaq)',val:6066.64,risk:'',gl:2593.58,glPct:74.68,cb:3473.06},]},
-    {num:'845612973',type:'Roth',name:'ROTH IRA',val:3995.86,tickers:[
-      {sym:'VOOG',name:'Vanguard S\u0026P 500 Growth ETF',val:3872.48,risk:'',gl:557.72,glPct:16.83,cb:3314.76},
-      {sym:'PBW',name:'Invesco WilderHill Clean Energy ETF',val:123.38,risk:'',gl:-283.21,glPct:-69.65,cb:406.59},]},]},];
+  {cat:'Cash / Money Market',total:759660.87,accounts:[
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:583935.3,tickers:[
+      {sym:'BROKERAGELINK',name:'BrokerageLink Cash',val:583935.3,risk:'',gl:0,glPct:0,cb:583935.3},]},
+    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:133975.59,tickers:[
+      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:133733.69,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:241.9,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:39754.26,tickers:[
+      {sym:'FZDXX',name:'Fidelity Money Market Premium Class',val:34327.12,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:5427.14,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:838.35,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:838.35,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:458.99,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:458.99,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:423.7,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:421.8,risk:'',gl:null,glPct:null,cb:null},
+      {sym:'CORE**',name:'FDIC-Insured Deposit Sweep',val:1.9,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:137.98,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:137.98,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:101.65,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:101.65,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'961437285',type:'HSA',name:'Health Savings Account',val:34,tickers:[
+      {sym:'FDRXX**',name:'Fidelity Government Money Market',val:34,risk:'',gl:null,glPct:null,cb:null},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:1.05,tickers:[
+      {sym:'SPAXX**',name:'Fidelity Government Money Market',val:1.05,risk:'',gl:null,glPct:null,cb:null},]},]},
+  {cat:'Individual Stocks',total:685950.94,accounts:[
+    {num:'X41385276',type:'Taxable Investment',name:'INDIVIDUAL',val:314039.55,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:314039.55,risk:'Growth',gl:null,glPct:null,cb:null},]},
+    {num:'Y39614827',type:'Taxable Investment',name:'Joint WROS - TOD',val:260698.3,tickers:[
+      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:20849.35,risk:'High Risk / Speculative',gl:5818.48,glPct:38.71,cb:15030.87},
+      {sym:'AAPL',name:'APPLE INC',val:18602.84,risk:'Growth',gl:2735.41,glPct:17.24,cb:15867.43},
+      {sym:'AMZN',name:'AMAZON.COM INC',val:8969.53,risk:'Blue Chip / Core',gl:761.32,glPct:9.28,cb:8208.21},
+      {sym:'GOOGL',name:'ALPHABET INC CAP STK CL A',val:8274.82,risk:'Growth',gl:3757.42,glPct:83.18,cb:4517.4},
+      {sym:'AVGO',name:'BROADCOM INC COM',val:7087.48,risk:'Growth',gl:3116.05,glPct:78.46,cb:3971.43},
+      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:6768.2,risk:'Growth',gl:651.74,glPct:10.66,cb:6116.47},
+      {sym:'GOOG',name:'ALPHABET INC CAP STK CL C',val:6681.04,risk:'Growth',gl:3016.73,glPct:82.33,cb:3664.31},
+      {sym:'BRKB',name:'BERKSHIRE HATHAWAY INC COM USD0.0033 CLASS B',val:3908.97,risk:'Blue Chip / Core',gl:161.2,glPct:4.3,cb:3747.77},
+      {sym:'JNJ',name:'JOHNSON \u0026JOHNSON COM',val:3892.28,risk:'Dividend / Value',gl:1632.02,glPct:72.2,cb:2260.26},
+      {sym:'LLY',name:'ELI LILLY \u0026CO COM',val:3746,risk:'Blue Chip / Core',gl:960.92,glPct:34.5,cb:2785.09},
+      {sym:'JPM',name:'JPMORGAN CHASE \u0026CO. COM',val:3640.04,risk:'Blue Chip / Core',gl:890.75,glPct:32.4,cb:2749.29},
+      {sym:'V',name:'VISA INC',val:2874.32,risk:'Blue Chip / Core',gl:237.3,glPct:9,cb:2637.02},
+      {sym:'WMT',name:'WALMART INC COM',val:2709.93,risk:'Blue Chip / Core',gl:939.52,glPct:53.07,cb:1770.42},
+      {sym:'AMAT',name:'APPLIED MATERIALS INC COM USD0.01',val:2573.32,risk:'Blue Chip / Core',gl:1581.72,glPct:159.51,cb:991.6},
+      {sym:'XOM',name:'EXXON MOBIL CORP COM',val:2464.74,risk:'Blue Chip / Core',gl:730.11,glPct:42.09,cb:1734.64},
+      {sym:'MA',name:'MASTERCARD INCORPORATED CL A',val:2256.1,risk:'Blue Chip / Core',gl:31.36,glPct:1.41,cb:2224.74},
+      {sym:'KO',name:'COCA-COLA CO',val:2144.26,risk:'Blue Chip / Core',gl:500.65,glPct:30.46,cb:1643.61},
+      {sym:'COST',name:'COSTCO WHOLESALE CORP COM',val:2087.7,risk:'Blue Chip / Core',gl:206.3,glPct:10.97,cb:1881.4},
+      {sym:'ABBV',name:'ABBVIE INC COM USD0.01',val:2049.84,risk:'Blue Chip / Core',gl:467.44,glPct:29.54,cb:1582.39},
+      {sym:'APH',name:'AMPHENOL CORP CLASS A COM USD0.001',val:2049.37,risk:'Growth',gl:1062.67,glPct:107.7,cb:986.7},
+      {sym:'GE',name:'GE AEROSPACE COM NEW',val:2047.87,risk:'Growth',gl:1027.45,glPct:100.69,cb:1020.41},
+      {sym:'MU',name:'MICRON TECHNOLOGY INC',val:1929.66,risk:'Growth',gl:1484.96,glPct:333.92,cb:444.7},
+      {sym:'CAT',name:'CATERPILLAR INC COM',val:1907.28,risk:'Growth',gl:1102.56,glPct:137.01,cb:804.72},
+      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:1796.47,risk:'High Risk / Speculative',gl:904.97,glPct:101.51,cb:891.5},
+      {sym:'NFLX',name:'NETFLIX INC',val:1794.85,risk:'Growth',gl:446.72,glPct:33.14,cb:1348.13},
+      {sym:'HD',name:'HOME DEPOT INC',val:1622.82,risk:'Blue Chip / Core',gl:25.84,glPct:1.62,cb:1596.98},
+      {sym:'MRK',name:'MERCK \u0026CO. INC COM',val:1588.11,risk:'Dividend / Value',gl:514.93,glPct:47.98,cb:1073.19},
+      {sym:'WFC',name:'WELLS FARGO CO NEW COM',val:1552.41,risk:'Blue Chip / Core',gl:333.08,glPct:27.32,cb:1219.33},
+      {sym:'PLTR',name:'PALANTIR TECHNOLOGIES INC CL A',val:1505.22,risk:'High Risk / Speculative',gl:1018.94,glPct:209.54,cb:486.28},
+      {sym:'PM',name:'PHILIP MORRIS INTERNATIONAL INC COM NPV',val:1455.49,risk:'Dividend / Value',gl:367.72,glPct:33.8,cb:1087.77},
+      {sym:'GEV',name:'GE VERNOVA INC COM',val:1423.87,risk:'Blue Chip / Core',gl:959.74,glPct:206.78,cb:464.13},
+      {sym:'RTX',name:'RTX CORPORATION COM USD1.00',val:1393.02,risk:'Blue Chip / Core',gl:579.33,glPct:71.2,cb:813.69},
+      {sym:'GS',name:'GOLDMAN SACHS GROUP INC COM USD0.01',val:1379.15,risk:'Growth',gl:544.76,glPct:65.29,cb:834.4},
+      {sym:'PG',name:'PROCTER AND GAMBLE CO COM',val:1364.6,risk:'Dividend / Value',gl:77.85,glPct:6.05,cb:1286.75},
+      {sym:'PEP',name:'PEPSICO INC',val:1341.66,risk:'Blue Chip / Core',gl:277.35,glPct:26.06,cb:1064.31},
+      {sym:'GILD',name:'GILEAD SCIENCES INC COM USD0.001',val:1316.64,risk:'Dividend / Value',gl:530.21,glPct:67.42,cb:786.43},
+      {sym:'CSCO',name:'CISCO SYSTEMS INC',val:1293.69,risk:'Blue Chip / Core',gl:400.3,glPct:44.81,cb:893.4},
+      {sym:'KLAC',name:'KLA CORP COM NEW',val:1289.27,risk:'Blue Chip / Core',gl:718.46,glPct:125.87,cb:570.81},
+      {sym:'ETN',name:'EATON CORPORATION PLC',val:1268.95,risk:'Blue Chip / Core',gl:363.41,glPct:40.13,cb:905.53},
+      {sym:'IBM',name:'INTERNATIONAL BUS MACH CORP COM USD0.20',val:1242.51,risk:'Dividend / Value',gl:112.05,glPct:9.91,cb:1130.46},
+      {sym:'MCD',name:'MCDONALD S CORP',val:1206.37,risk:'Blue Chip / Core',gl:147.68,glPct:13.95,cb:1058.7},
+      {sym:'BAC',name:'BANK AMERICA CORP COM',val:1188.42,risk:'Blue Chip / Core',gl:115.12,glPct:10.73,cb:1073.3},
+      {sym:'TMO',name:'THERMO FISHER SCIENTIFIC INC',val:1176.04,risk:'Blue Chip / Core',gl:178.09,glPct:17.85,cb:997.96},
+      {sym:'CVX',name:'CHEVRON CORP NEW COM',val:1139.54,risk:'Blue Chip / Core',gl:264.35,glPct:30.2,cb:875.19},
+      {sym:'AMGN',name:'AMGEN INC',val:1127.96,risk:'Blue Chip / Core',gl:366.67,glPct:48.16,cb:761.29},
+      {sym:'COF',name:'CAPITAL ONE FINANCIAL CORP COM USD0.01',val:1116.75,risk:'Growth',gl:190.36,glPct:20.55,cb:926.39},
+      {sym:'COP',name:'CONOCOPHILLIPS COM',val:1093.67,risk:'Dividend / Value',gl:327.8,glPct:42.8,cb:765.87},
+      {sym:'STX',name:'SEAGATE TECHNOLOGY HLDGS PUB LTD CO SEAGATE TECHNOLOGY HOLDINGS PLC ORDINARY SHARES ISIN #IE00BKVD2N49',val:1080.73,risk:'Growth',gl:842.5,glPct:353.65,cb:238.23},
+      {sym:'C',name:'CITIGROUP INC',val:1018.03,risk:'Blue Chip / Core',gl:427.81,glPct:72.48,cb:590.22},
+      {sym:'CRM',name:'SALESFORCE INC COM',val:1017.37,risk:'Blue Chip / Core',gl:11.24,glPct:1.12,cb:1006.12},
+      {sym:'T',name:'AT\u0026T INC COM USD1',val:988.48,risk:'Dividend / Value',gl:212.4,glPct:27.37,cb:776.09},
+      {sym:'MDT',name:'MEDTRONIC PLC',val:987.02,risk:'Dividend / Value',gl:171.96,glPct:21.1,cb:815.07},
+      {sym:'TJX',name:'TJX COMPANIES INC',val:983.39,risk:'Blue Chip / Core',gl:271.45,glPct:38.13,cb:711.94},
+      {sym:'CMCSA',name:'COMCAST CORP',val:974,risk:'Dividend / Value',gl:156.81,glPct:19.19,cb:817.19},
+      {sym:'ORCL',name:'ORACLE CORP',val:973.85,risk:'Growth',gl:-73.63,glPct:-7.03,cb:1047.47},
+      {sym:'HWM',name:'HOWMET AEROSPACE INC COM',val:929.41,risk:'Blue Chip / Core',gl:490.92,glPct:111.96,cb:438.48},
+      {sym:'NEM',name:'NEWMONT CORP COM ISIN #US6516391066 SEDOL #BJYKTV2',val:928.63,risk:'Dividend / Value',gl:654.8,glPct:239.13,cb:273.83},
+      {sym:'ANET',name:'ARISTA NETWORKS INC COM SHS',val:925.46,risk:'Growth',gl:400.46,glPct:76.28,cb:525},
+      {sym:'HAL',name:'HALLIBURTON CO COM USD2.50',val:920.38,risk:'Blue Chip / Core',gl:404.79,glPct:78.51,cb:515.59},
+      {sym:'PWR',name:'QUANTA SERVICES COM USD0.00001',val:916.54,risk:'Growth',gl:535.05,glPct:140.25,cb:381.49},
+      {sym:'BLK',name:'BLACKROCK INC COM',val:908.26,risk:'Growth',gl:130.01,glPct:16.71,cb:778.25},
+      {sym:'CME',name:'CME GROUP INC COM',val:905.39,risk:'Blue Chip / Core',gl:273.57,glPct:43.3,cb:631.82},
+      {sym:'PNC',name:'PNC FINANCIAL SERVICES GROUP COM USD5',val:904.1,risk:'Dividend / Value',gl:252.25,glPct:38.7,cb:651.84},
+      {sym:'WELL',name:'WELLTOWER INC COM',val:901.45,risk:'High Risk / Speculative',gl:309.92,glPct:52.39,cb:591.53},
+      {sym:'INTC',name:'INTEL CORP COM USD0.001',val:895.2,risk:'High Risk / Speculative',gl:506.71,glPct:130.43,cb:388.49},
+      {sym:'SCHW',name:'SCHWAB CHARLES CORP COM',val:876.4,risk:'Dividend / Value',gl:205.99,glPct:30.73,cb:670.41},
+      {sym:'USB',name:'US BANCORP',val:867.36,risk:'Blue Chip / Core',gl:265.64,glPct:44.15,cb:601.73},
+      {sym:'AEP',name:'AMERICAN ELEC PWR CO INC COM',val:865.27,risk:'Dividend / Value',gl:275.05,glPct:46.6,cb:590.22},
+      {sym:'NOW',name:'SERVICENOW INC COM USD0.001',val:862.75,risk:'Growth',gl:34.52,glPct:4.17,cb:828.23},
+      {sym:'LOW',name:'LOWES COMPANIES INC COM USD0.50',val:854.81,risk:'Blue Chip / Core',gl:108.82,glPct:14.59,cb:745.99},
+      {sym:'CSX',name:'CSX CORP COM USD1',val:849.02,risk:'Blue Chip / Core',gl:298.23,glPct:54.15,cb:550.79},
+      {sym:'MS',name:'MORGAN STANLEY COM USD0.01',val:845.05,risk:'Blue Chip / Core',gl:266.37,glPct:46.03,cb:578.68},
+      {sym:'LHX',name:'L3HARRIS TECHNOLOGIES INC COM',val:844.19,risk:'Blue Chip / Core',gl:382.07,glPct:82.68,cb:462.12},
+      {sym:'KEYS',name:'KEYSIGHT TECHNOLOGIES INC COM USD0.01 WD',val:839.13,risk:'Growth',gl:445.37,glPct:113.11,cb:393.75},
+      {sym:'NOC',name:'NORTHROP GRUMMAN CORP COM USD1',val:837.83,risk:'Blue Chip / Core',gl:335.72,glPct:66.86,cb:502.12},
+      {sym:'TT',name:'TRANE TECHNOLOGIES PLC COM USD1',val:823.7,risk:'Blue Chip / Core',gl:237.46,glPct:40.51,cb:586.24},
+      {sym:'O',name:'REALTY INCOME CORP COM',val:817.63,risk:'Blue Chip / Core',gl:186.57,glPct:29.56,cb:631.07},
+      {sym:'LIN',name:'LINDE PLC COM EUR0.001',val:809.98,risk:'Blue Chip / Core',gl:133.13,glPct:19.67,cb:676.86},
+      {sym:'BA',name:'BOEING CO',val:803.64,risk:'Growth',gl:270.88,glPct:50.84,cb:532.77},
+      {sym:'PFE',name:'PFIZER INC',val:793.08,risk:'Dividend / Value',gl:94.27,glPct:13.49,cb:698.81},
+      {sym:'PLD',name:'PROLOGIS INC. COM',val:791.26,risk:'Blue Chip / Core',gl:215.78,glPct:37.5,cb:575.48},
+      {sym:'VRT',name:'VERTIV HOLDINGS CO COM CL A',val:781.5,risk:'High Risk / Speculative',gl:565.38,glPct:261.6,cb:216.12},
+      {sym:'TFC',name:'TRUIST FINL CORP COM',val:775.92,risk:'Dividend / Value',gl:220.8,glPct:39.78,cb:555.12},
+      {sym:'SYK',name:'STRYKER CORPORATION COM',val:775.03,risk:'Blue Chip / Core',gl:43.08,glPct:5.89,cb:731.95},
+      {sym:'JCI',name:'JOHNSON CONTROLS INTERNATIONAL PLC COM USD1.00',val:769.94,risk:'Blue Chip / Core',gl:362.7,glPct:89.06,cb:407.24},
+      {sym:'HCA',name:'HCA HEALTHCARE INC COM',val:749.22,risk:'Blue Chip / Core',gl:325.91,glPct:76.99,cb:423.31},
+      {sym:'DUK',name:'DUKE ENERGY CORP NEW COM NEW ISIN #US26441C2044 SEDOL #B7JZSK0',val:746.97,risk:'Dividend / Value',gl:100.64,glPct:15.57,cb:646.32},
+      {sym:'MO',name:'ALTRIA GROUP INC',val:731.93,risk:'Dividend / Value',gl:161.23,glPct:28.25,cb:570.69},
+      {sym:'UBER',name:'UBER TECHNOLOGIES INC COM',val:730.13,risk:'Growth',gl:89.89,glPct:14.04,cb:640.23},
+      {sym:'ITW',name:'ILLINOIS TOOL WORKS INC COM',val:729.23,risk:'Blue Chip / Core',gl:157.75,glPct:27.6,cb:571.47},
+      {sym:'ED',name:'CONSOLIDATED EDISON INC COM USD0.10',val:725.44,risk:'Dividend / Value',gl:152.54,glPct:26.63,cb:572.9},
+      {sym:'ABT',name:'ABBOTT LABORATORIES',val:721.83,risk:'Blue Chip / Core',gl:-6.99,glPct:-0.96,cb:728.82},
+      {sym:'DE',name:'DEERE \u0026 CO',val:718.92,risk:'Blue Chip / Core',gl:255.05,glPct:54.98,cb:463.87},
+      {sym:'MCK',name:'MCKESSON CORP',val:692.77,risk:'Blue Chip / Core',gl:336.03,glPct:94.19,cb:356.74},
+      {sym:'PGR',name:'PROGRESSIVE CORP COM',val:692.42,risk:'Dividend / Value',gl:37.56,glPct:5.74,cb:654.86},
+      {sym:'CVS',name:'CVS HEALTH CORPORATION COM USD0.01',val:689.24,risk:'Blue Chip / Core',gl:293.56,glPct:74.19,cb:395.69},
+      {sym:'UNP',name:'UNION PAC CORP COM',val:689.13,risk:'Dividend / Value',gl:127.43,glPct:22.69,cb:561.7},
+      {sym:'SBUX',name:'STARBUCKS CORP COM USD0.001',val:688.84,risk:'Blue Chip / Core',gl:88.07,glPct:14.66,cb:600.77},
+      {sym:'ISRG',name:'INTUITIVE SURGICAL INC',val:676.07,risk:'Growth',gl:82.8,glPct:13.96,cb:593.26},
+      {sym:'RSG',name:'REPUBLIC SERVICES INC',val:674.88,risk:'Blue Chip / Core',gl:86.31,glPct:14.66,cb:588.57},
+      {sym:'TXN',name:'TEXAS INSTRUMENTS INC COM USD1.00',val:671.64,risk:'Blue Chip / Core',gl:104.27,glPct:18.38,cb:567.37},
+      {sym:'HIG',name:'THE HARTFORD INSURANCE GROUP, INC. COMMON STOCK',val:670.61,risk:'Dividend / Value',gl:148.97,glPct:28.56,cb:521.64},
+      {sym:'FCX',name:'FREEPORT-MCMORAN INC COM USD0.10',val:666.46,risk:'Blue Chip / Core',gl:323.18,glPct:94.14,cb:343.28},
+      {sym:'MLM',name:'MARTIN MARIETTA MATERIALS INC COM USD0.01',val:652.57,risk:'Blue Chip / Core',gl:187.27,glPct:40.25,cb:465.29},
+      {sym:'BX',name:'BLACKSTONE INC',val:652.4,risk:'Growth',gl:-73.54,glPct:-10.13,cb:725.94},
+      {sym:'PSX',name:'PHILLIPS 66',val:648.51,risk:'Blue Chip / Core',gl:221.48,glPct:51.87,cb:427.03},
+      {sym:'DTE',name:'DTE ENERGY CO',val:643.15,risk:'Blue Chip / Core',gl:115.14,glPct:21.81,cb:528.02},
+      {sym:'INTU',name:'INTUIT INC',val:641.73,risk:'Growth',gl:41.64,glPct:6.94,cb:600.09},
+      {sym:'FANG',name:'DIAMONDBACK ENERGY INC COM USD0.01',val:640.68,risk:'Blue Chip / Core',gl:179.34,glPct:38.87,cb:461.34},
+      {sym:'MMM',name:'3M CO',val:639.63,risk:'Blue Chip / Core',gl:119.6,glPct:23,cb:520.03},
+      {sym:'EXC',name:'EXELON CORP COM NPV',val:639.14,risk:'Dividend / Value',gl:148.89,glPct:30.37,cb:490.25},
+      {sym:'CAH',name:'CARDINAL HEALTH INC COM NPV',val:638.71,risk:'Blue Chip / Core',gl:299.45,glPct:88.26,cb:339.27},
+      {sym:'NSC',name:'NORFOLK SOUTHN CORP COM',val:638.19,risk:'Blue Chip / Core',gl:201.16,glPct:46.03,cb:437.02},
+      {sym:'WMB',name:'WILLIAMS COS INC COM',val:636.83,risk:'Blue Chip / Core',gl:201.53,glPct:46.3,cb:435.3},
+      {sym:'FDX',name:'FEDEX CORP COM USD0.10',val:634.67,risk:'Blue Chip / Core',gl:262.1,glPct:70.35,cb:372.57},
+      {sym:'RCL',name:'ROYAL CARIBBEAN GROUP COM USD0.01',val:630.95,risk:'High Risk / Speculative',gl:202.03,glPct:47.1,cb:428.92},
+      {sym:'HON',name:'HONEYWELL INTERNATIONAL INC COM USD1',val:630.1,risk:'Blue Chip / Core',gl:144.42,glPct:29.74,cb:485.68},
+      {sym:'ADBE',name:'ADOBE INC COM',val:624.64,risk:'Blue Chip / Core',gl:7.84,glPct:1.27,cb:616.8},
+      {sym:'OVV',name:'OVINTIV INC COM ISIN #US69047Q1022 SEDOL #BL3GRC2',val:620.17,risk:'Dividend / Value',gl:209.27,glPct:50.93,cb:410.9},
+      {sym:'ADI',name:'ANALOG DEVICES INC COM',val:618.18,risk:'Growth',gl:154.55,glPct:33.33,cb:463.63},
+      {sym:'CEG',name:'CONSTELLATION ENERGY CORP COM',val:612.42,risk:'Blue Chip / Core',gl:221.67,glPct:56.73,cb:390.76},
+      {sym:'ROK',name:'ROCKWELL AUTOMATION INC COM USD1',val:610.04,risk:'Blue Chip / Core',gl:234.71,glPct:62.53,cb:375.33},
+      {sym:'CDNS',name:'CADENCE DESIGN SYSTEMS INC COM USD0.01',val:593.51,risk:'Blue Chip / Core',gl:102.69,glPct:20.92,cb:490.82},
+      {sym:'COR',name:'CENCORA INC COM',val:587.84,risk:'Blue Chip / Core',gl:149.22,glPct:34.02,cb:438.62},
+      {sym:'TDY',name:'TELEDYNE TECHNOLOGIES INC',val:587.19,risk:'Blue Chip / Core',gl:192.53,glPct:48.78,cb:394.67},
+      {sym:'GD',name:'GENERAL DYNAMICS CORP COM',val:585.7,risk:'Blue Chip / Core',gl:149.86,glPct:34.38,cb:435.84},
+      {sym:'VMC',name:'VULCAN MATERIALS CO',val:581.82,risk:'Blue Chip / Core',gl:145.92,glPct:33.48,cb:435.9},
+      {sym:'ELV',name:'ELEVANCE HEALTH INC COM',val:573.08,risk:'Blue Chip / Core',gl:1.29,glPct:0.23,cb:571.78},
+      {sym:'APP',name:'APPLOVIN CORP COM CL A',val:571.02,risk:'High Risk / Speculative',gl:212.71,glPct:59.36,cb:358.31},
+      {sym:'CRWD',name:'CROWDSTRIKE HLDGS INC CL A',val:569.65,risk:'High Risk / Speculative',gl:91.82,glPct:19.22,cb:477.83},
+      {sym:'LRCX',name:'LAM RESEARCH CORP COM NEW',val:565.52,risk:'Growth',gl:105.58,glPct:22.96,cb:459.94},
+      {sym:'DIS',name:'DISNEY WALT CO COM',val:562.12,risk:'Blue Chip / Core',gl:26.36,glPct:4.92,cb:535.77},
+      {sym:'KR',name:'KROGER CO COM USD1.00',val:550.63,risk:'Blue Chip / Core',gl:67.3,glPct:13.92,cb:483.32},
+      {sym:'ECL',name:'ECOLAB INC',val:549.41,risk:'Blue Chip / Core',gl:126.09,glPct:29.79,cb:423.32},
+      {sym:'MPC',name:'MARATHON PETROLEUM CORP COM USD0.01',val:549.13,risk:'Blue Chip / Core',gl:225.75,glPct:69.81,cb:323.38},
+      {sym:'UPS',name:'UNITED PARCEL SERVICE INC CL B',val:548.51,risk:'Blue Chip / Core',gl:144.34,glPct:35.71,cb:404.17},
+      {sym:'SRE',name:'SEMPRA COM',val:536.78,risk:'Blue Chip / Core',gl:152.33,glPct:39.62,cb:384.45},
+      {sym:'EVRG',name:'EVERGY INC COM',val:533.53,risk:'Dividend / Value',gl:149.04,glPct:38.76,cb:384.49},
+      {sym:'EBAY',name:'EBAY INC. COM',val:530.63,risk:'Blue Chip / Core',gl:155.52,glPct:41.46,cb:375.11},
+      {sym:'DHR',name:'DANAHER CORPORATION COM',val:530.16,risk:'Blue Chip / Core',gl:-6.46,glPct:-1.2,cb:536.62},
+      {sym:'KEY',name:'KEYCORP COM',val:527.06,risk:'Growth',gl:179.48,glPct:51.64,cb:347.58},
+      {sym:'AZO',name:'AUTOZONE INC COM USD0.01',val:526.94,risk:'Blue Chip / Core',gl:104.6,glPct:24.77,cb:422.34},
+      {sym:'IQV',name:'IQVIA HLDGS INC COM',val:526.15,risk:'Blue Chip / Core',gl:82.62,glPct:18.63,cb:443.53},
+      {sym:'AXP',name:'AMERICAN EXPRESS CO COM USD0.20',val:523.53,risk:'Blue Chip / Core',gl:32.12,glPct:6.54,cb:491.41},
+      {sym:'MKL',name:'MARKEL GROUP INC COM NPV',val:516.87,risk:'Dividend / Value',gl:85.98,glPct:19.95,cb:430.89},
+      {sym:'DELL',name:'DELL TECHNOLOGIES INC CL C',val:513.14,risk:'Growth',gl:243.36,glPct:90.21,cb:269.78},
+      {sym:'MRSH',name:'MARSH COMMON STOCK',val:504.15,risk:'Dividend / Value',gl:14.29,glPct:2.92,cb:489.85},
+      {sym:'ATO',name:'ATMOS ENERGY CORP COM NPV',val:500.61,risk:'Dividend / Value',gl:122.77,glPct:32.49,cb:377.84},
+      {sym:'REGN',name:'REGENERON PHARMACEUTICALS INC',val:496.15,risk:'Dividend / Value',gl:139.59,glPct:39.15,cb:356.56},
+      {sym:'NEE',name:'NEXTERA ENERGY INC COM USD0.01',val:487.17,risk:'Blue Chip / Core',gl:102.8,glPct:26.75,cb:384.37},
+      {sym:'CL',name:'COLGATE-PALMOLIVE CO COM',val:486.87,risk:'Blue Chip / Core',gl:94.87,glPct:24.2,cb:392},
+      {sym:'BIIB',name:'BIOGEN INC COM USD0.0005',val:485.41,risk:'Dividend / Value',gl:144.05,glPct:42.2,cb:341.36},
+      {sym:'FAST',name:'FASTENAL COM STK USD0.01',val:482.64,risk:'Blue Chip / Core',gl:85.06,glPct:21.39,cb:397.57},
+      {sym:'DLR',name:'DIGITAL REALTY TRUST INC',val:479.55,risk:'Growth',gl:91.44,glPct:23.56,cb:388.11},
+      {sym:'TRV',name:'TRAVELERS COMPANIES INC COM STK NPV',val:478.13,risk:'Dividend / Value',gl:99.88,glPct:26.41,cb:378.26},
+      {sym:'TMUS',name:'T-MOBILE US INC COM',val:473.72,risk:'Dividend / Value',gl:66.16,glPct:16.23,cb:407.57},
+      {sym:'ORLY',name:'OREILLY AUTOMOTIVE INC COM',val:467.24,risk:'Blue Chip / Core',gl:77.95,glPct:20.02,cb:389.28},
+      {sym:'CTAS',name:'CINTAS CORP',val:462.05,risk:'Blue Chip / Core',gl:37.43,glPct:8.81,cb:424.62},
+      {sym:'VRTX',name:'VERTEX PHARMACEUTICALS INC',val:459.27,risk:'Blue Chip / Core',gl:74.59,glPct:19.39,cb:384.68},
+      {sym:'FTNT',name:'FORTINET INC COM USD0.001',val:447.3,risk:'Blue Chip / Core',gl:14.19,glPct:3.28,cb:433.11},
+      {sym:'DAL',name:'DELTA AIR LINES INC',val:437.98,risk:'Blue Chip / Core',gl:160.61,glPct:57.9,cb:277.37},
+      {sym:'MAR',name:'MARRIOTT INTERNATIONAL INC COM USD0.01 CLASS A',val:434.98,risk:'Blue Chip / Core',gl:60.31,glPct:16.1,cb:374.67},
+      {sym:'DOW',name:'DOW INC COM',val:434.59,risk:'High Risk / Speculative',gl:126.87,glPct:41.23,cb:307.72},
+      {sym:'SNOW',name:'SNOWFLAKE INC. COMMON STOCK',val:434.44,risk:'High Risk / Speculative',gl:110.03,glPct:33.92,cb:324.4},
+      {sym:'FTV',name:'FORTIVE CORP COM',val:434.43,risk:'Blue Chip / Core',gl:73.42,glPct:20.34,cb:361.01},
+      {sym:'NXPI',name:'NXP SEMICONDUCTORS NV',val:432.25,risk:'Blue Chip / Core',gl:78.37,glPct:22.15,cb:353.88},
+      {sym:'PTC',name:'PTC INC',val:430.42,risk:'Blue Chip / Core',gl:36.68,glPct:9.32,cb:393.75},
+      {sym:'NKE',name:'NIKE INC CLASS B COM NPV',val:429.8,risk:'Blue Chip / Core',gl:29.94,glPct:7.49,cb:399.86},
+      {sym:'IFF',name:'INTERNATIONAL FLAVORS \u0026FRAGRANCES COM USD0.125',val:427.22,risk:'High Risk / Speculative',gl:95.5,glPct:28.79,cb:331.72},
+      {sym:'WM',name:'WASTE MANAGEMENT INC',val:425.13,risk:'Blue Chip / Core',gl:57.86,glPct:15.75,cb:367.28},
+      {sym:'MNST',name:'MONSTER BEVERAGE CORP NEW COM',val:422.42,risk:'Blue Chip / Core',gl:117.52,glPct:38.54,cb:304.91},
+      {sym:'EW',name:'EDWARDS LIFESCIENCES CORP',val:421.5,risk:'Blue Chip / Core',gl:88.52,glPct:26.58,cb:332.98},
+      {sym:'URI',name:'UNITED RENTALS INC',val:420.27,risk:'Blue Chip / Core',gl:87.62,glPct:26.34,cb:332.65},
+      {sym:'PRU',name:'PRUDENTIAL FINANCIAL INC',val:415.92,risk:'Blue Chip / Core',gl:-2.73,glPct:-0.65,cb:418.65},
+      {sym:'F',name:'FORD MTR CO DEL COM',val:411.92,risk:'High Risk / Speculative',gl:105.17,glPct:34.29,cb:306.74},
+      {sym:'BMY',name:'BRISTOL-MYERS SQUIBB CO COM',val:411.23,risk:'Dividend / Value',gl:97.48,glPct:31.07,cb:313.75},
+      {sym:'RJF',name:'RAYMOND JAMES FINL INC COM',val:410.07,risk:'Blue Chip / Core',gl:57.15,glPct:16.19,cb:352.92},
+      {sym:'DHI',name:'DR HORTON INC COM STK USD0.01',val:408.04,risk:'Blue Chip / Core',gl:73.35,glPct:21.92,cb:334.69},
+      {sym:'TROW',name:'PRICE T ROWE GROUPS COM USD0.20',val:406.17,risk:'Blue Chip / Core',gl:36.41,glPct:9.85,cb:369.76},
+      {sym:'SHW',name:'SHERWIN-WILLIAMS CO',val:403.97,risk:'Blue Chip / Core',gl:36.42,glPct:9.91,cb:367.56},
+      {sym:'EA',name:'ELECTRONIC ARTS INC',val:403.66,risk:'Blue Chip / Core',gl:127.17,glPct:45.99,cb:276.5},
+      {sym:'HPE',name:'HEWLETT PACKARD ENTERPRISE CO COM',val:401.06,risk:'High Risk / Speculative',gl:146.63,glPct:57.63,cb:254.43},
+      {sym:'DASH',name:'DOORDASH INC CL A',val:397.54,risk:'High Risk / Speculative',gl:36.74,glPct:10.18,cb:360.8},
+      {sym:'ON',name:'ON SEMICONDUCTOR CORP COM USD0.01',val:396.32,risk:'High Risk / Speculative',gl:156.81,glPct:65.47,cb:239.51},
+      {sym:'NET',name:'CLOUDFLARE INC CL A COM',val:394.95,risk:'High Risk / Speculative',gl:150.61,glPct:61.64,cb:244.34},
+      {sym:'ILMN',name:'ILLUMINA INC COM USD0.01',val:391.35,risk:'Blue Chip / Core',gl:160.13,glPct:69.25,cb:231.22},
+      {sym:'LNG',name:'CHENIERE ENERGY INC COM USD0.003',val:389.49,risk:'Dividend / Value',gl:96.1,glPct:32.76,cb:293.38},
+      {sym:'VST',name:'VISTRA CORP COM',val:387.66,risk:'Blue Chip / Core',gl:119.27,glPct:44.44,cb:268.39},
+      {sym:'MDLZ',name:'MONDELEZ INTL INC COM NPV',val:379.82,risk:'Blue Chip / Core',gl:20.14,glPct:5.6,cb:359.68},
+      {sym:'EQIX',name:'EQUINIX INC COM',val:378.52,risk:'Blue Chip / Core',gl:20.2,glPct:5.64,cb:358.32},
+      {sym:'ULTA',name:'ULTA BEAUTY INC COM',val:377.94,risk:'Blue Chip / Core',gl:179.61,glPct:90.56,cb:198.33},
+      {sym:'ROST',name:'ROSS STORES INC',val:377.14,risk:'Blue Chip / Core',gl:79.24,glPct:26.6,cb:297.9},
+      {sym:'ACGL',name:'ARCH CAPITAL GROUP COM STK USD0.01',val:377.06,risk:'Dividend / Value',gl:38.2,glPct:11.27,cb:338.86},
+      {sym:'ABNB',name:'AIRBNB INC COM CL A',val:370.26,risk:'Blue Chip / Core',gl:37.64,glPct:11.32,cb:332.62},
+      {sym:'AMT',name:'AMERICAN TOWER CORP NEW COM',val:364.81,risk:'Blue Chip / Core',gl:32.03,glPct:9.62,cb:332.78},
+      {sym:'NVR',name:'NVR INC COM USD0.01',val:360.82,risk:'Blue Chip / Core',gl:9.32,glPct:2.65,cb:351.5},
+      {sym:'SO',name:'SOUTHERN CO',val:359.54,risk:'Dividend / Value',gl:38.36,glPct:11.94,cb:321.17},
+      {sym:'XYZ',name:'BLOCK INC CL A',val:358.14,risk:'High Risk / Speculative',gl:62.89,glPct:21.3,cb:295.26},
+      {sym:'VZ',name:'VERIZON COMMUNICATIONS INC',val:354.78,risk:'Dividend / Value',gl:72.26,glPct:25.58,cb:282.52},
+      {sym:'MPWR',name:'MONOLITHIC POWER SYSTEMS INC',val:351.11,risk:'Growth',gl:165.75,glPct:89.42,cb:185.36},
+      {sym:'TGT',name:'TARGET CORP',val:340.52,risk:'Blue Chip / Core',gl:66.72,glPct:24.37,cb:273.8},
+      {sym:'TTWO',name:'TAKE-TWO INTERACTIVE SOFTWARE INC',val:335.74,risk:'High Risk / Speculative',gl:17.28,glPct:5.43,cb:318.46},
+      {sym:'CLX',name:'CLOROX CO COM USD1.00',val:335.13,risk:'Dividend / Value',gl:69.03,glPct:25.94,cb:266.1},
+      {sym:'CHD',name:'CHURCH \u0026DWIGHT CO INC COM',val:331.41,risk:'Blue Chip / Core',gl:66.82,glPct:25.25,cb:264.59},
+      {sym:'SLB',name:'SLB LIMITED TRADING',val:330.33,risk:'Blue Chip / Core',gl:120.39,glPct:57.34,cb:209.95},
+      {sym:'ALL',name:'ALLSTATE CORP COM USD0.01',val:329.08,risk:'Dividend / Value',gl:32.99,glPct:11.14,cb:296.1},
+      {sym:'SNPS',name:'SYNOPSYS INC',val:328.42,risk:'Growth',gl:33.46,glPct:11.34,cb:294.95},
+      {sym:'WY',name:'WEYERHAEUSER CO MTN BE COM NEW',val:316.87,risk:'Blue Chip / Core',gl:41.06,glPct:14.89,cb:275.82},
+      {sym:'KDP',name:'KEURIG DR PEPPER INC COM',val:313.2,risk:'Dividend / Value',gl:29.99,glPct:10.59,cb:283.22},
+      {sym:'AVB',name:'AVALONBAY COMMUNITIES INC COM USD0.01',val:313.09,risk:'Dividend / Value',gl:2.11,glPct:0.68,cb:310.98},
+      {sym:'HOOD',name:'ROBINHOOD MKTS INC COM CL A',val:310.88,risk:'High Risk / Speculative',gl:125.26,glPct:67.48,cb:185.62},
+      {sym:'FISV',name:'FISERV INC COM STK USD0.01',val:310.44,risk:'Blue Chip / Core',gl:-0.61,glPct:-0.2,cb:311.04},
+      {sym:'LMT',name:'LOCKHEED MARTIN CORP COM USD1.00',val:308.45,risk:'Blue Chip / Core',gl:43.23,glPct:16.3,cb:265.22},
+      {sym:'VRSK',name:'VERISK ANALYTICS INC COM',val:304.17,risk:'Blue Chip / Core',gl:42.55,glPct:16.26,cb:261.61},
+      {sym:'CMG',name:'CHIPOTLE MEXICAN GRILL INC',val:303.1,risk:'Blue Chip / Core',gl:-9.19,glPct:-2.94,cb:312.29},
+      {sym:'RBLX',name:'ROBLOX CORP CL A',val:291.17,risk:'High Risk / Speculative',gl:49.82,glPct:20.64,cb:241.35},
+      {sym:'CI',name:'THE CIGNA GROUP COM',val:289.73,risk:'Blue Chip / Core',gl:8.02,glPct:2.85,cb:281.71},
+      {sym:'QRVO',name:'QORVO INC',val:286.14,risk:'Blue Chip / Core',gl:85.37,glPct:42.52,cb:200.76},
+      {sym:'PYPL',name:'PAYPAL HLDGS INC COM',val:284.88,risk:'Blue Chip / Core',gl:18.81,glPct:7.07,cb:266.07},
+      {sym:'DDOG',name:'DATADOG INC CL A COM',val:284.24,risk:'High Risk / Speculative',gl:32.74,glPct:13.02,cb:251.5},
+      {sym:'ICE',name:'INTERCONTINENTAL EXCHANGE INC COM USD0.01',val:278.5,risk:'Blue Chip / Core',gl:16.07,glPct:6.12,cb:262.43},
+      {sym:'LULU',name:'LULULEMON ATHLETICA INC COM USD0.005',val:278.35,risk:'Blue Chip / Core',gl:17.88,glPct:6.86,cb:260.46},
+      {sym:'ROP',name:'ROPER TECHNOLOGIES INC',val:278.25,risk:'Dividend / Value',gl:12.95,glPct:4.88,cb:265.3},
+      {sym:'EFX',name:'EQUIFAX INC COM USD1.25',val:277.55,risk:'Blue Chip / Core',gl:14.68,glPct:5.58,cb:262.87},
+      {sym:'LYB',name:'LYONDELLBASELL INDUSTRIES N V COM EUR0.04 CLASS A',val:272.72,risk:'High Risk / Speculative',gl:69.17,glPct:33.98,cb:203.55},
+      {sym:'DOCU',name:'DOCUSIGN INC COM',val:272.58,risk:'Blue Chip / Core',gl:3.34,glPct:1.24,cb:269.24},
+      {sym:'AON',name:'AON PLC SHS CL A COM USD0.01',val:271.62,risk:'Dividend / Value',gl:9.83,glPct:3.75,cb:261.79},
+      {sym:'MCO',name:'MOODYS CORP COM USD0.01',val:270.94,risk:'Blue Chip / Core',gl:8.35,glPct:3.18,cb:262.59},
+      {sym:'FICO',name:'FAIR ISAAC CORP',val:270.33,risk:'Growth',gl:5.1,glPct:1.92,cb:265.23},
+      {sym:'WBD',name:'WARNER BROS DISCOVERY INC COM SER A',val:268.29,risk:'Blue Chip / Core',gl:49.23,glPct:22.47,cb:219.05},
+      {sym:'TRU',name:'TRANSUNION COM',val:268.12,risk:'Blue Chip / Core',gl:5.48,glPct:2.09,cb:262.64},
+      {sym:'DXCM',name:'DEXCOM INC',val:266.02,risk:'Blue Chip / Core',gl:4.51,glPct:1.72,cb:261.51},
+      {sym:'IRM',name:'IRON MTN INC DEL COM',val:265.86,risk:'High Risk / Speculative',gl:5.25,glPct:2.01,cb:260.61},
+      {sym:'UAL',name:'UNITED AIRLS HLDGS INC COM',val:264.3,risk:'Blue Chip / Core',gl:95.77,glPct:56.83,cb:168.53},
+      {sym:'CHTR',name:'CHARTER COMMUNICATIONS INC NEW CL A',val:262.31,risk:'Blue Chip / Core',gl:-0.82,glPct:-0.31,cb:263.13},
+      {sym:'AMP',name:'AMERIPRISE FINANCIAL INC COM USD0.01',val:261.7,risk:'Blue Chip / Core',gl:3.97,glPct:1.54,cb:257.73},
+      {sym:'KVUE',name:'KENVUE INC COM',val:260.39,risk:'Blue Chip / Core',gl:33.77,glPct:14.9,cb:226.62},
+      {sym:'CNC',name:'CENTENE CORP',val:253.32,risk:'High Risk / Speculative',gl:48.42,glPct:23.63,cb:204.9},
+      {sym:'GEHC',name:'GE HEALTHCARE TECHNOLOGIES INC COMMON STOCK',val:251.67,risk:'Blue Chip / Core',gl:-17.38,glPct:-6.46,cb:269.04},
+      {sym:'TTD',name:'THE TRADE DESK INC COM CL A',val:251.04,risk:'Blue Chip / Core',gl:-17.24,glPct:-6.43,cb:268.29},
+      {sym:'OMC',name:'OMNICOM GROUP INC COM USD0.15',val:246.79,risk:'High Risk / Speculative',gl:29.66,glPct:13.66,cb:217.12},
+      {sym:'CARR',name:'CARRIER GLOBAL CORPORATION COM',val:242.44,risk:'Blue Chip / Core',gl:43.41,glPct:21.81,cb:199.04},
+      {sym:'TEAM',name:'ATLASSIAN CORPORATION CL A',val:239.64,risk:'High Risk / Speculative',gl:-21.07,glPct:-8.08,cb:260.71},
+      {sym:'ZM',name:'ZOOM COMMUNICATIONS INC CLASS A COMMON',val:237.62,risk:'Dividend / Value',gl:8.95,glPct:3.91,cb:228.66},
+      {sym:'CVNA',name:'CARVANA CO CL A',val:233.33,risk:'High Risk / Speculative',gl:51.83,glPct:28.56,cb:181.5},
+      {sym:'MDB',name:'MONGODB INC CL A',val:229.71,risk:'High Risk / Speculative',gl:85.64,glPct:59.44,cb:144.07},
+      {sym:'UNH',name:'UNITEDHEALTH GROUP INC',val:229.6,risk:'Blue Chip / Core',gl:-5.91,glPct:-2.51,cb:235.5},
+      {sym:'FLUT',name:'FLUTTER ENTERTAINMENT PLC ORD EUR0.09 (DI)',val:226.28,risk:'High Risk / Speculative',gl:-37.27,glPct:-14.14,cb:263.55},
+      {sym:'DD',name:'DUPONT DE NEMOURS INC COM',val:220.55,risk:'High Risk / Speculative',gl:85.77,glPct:63.64,cb:134.78},
+      {sym:'ARE',name:'ALEXANDRIA REAL ESTATE EQUITIES COM USD0.01',val:190.3,risk:'High Risk / Speculative',gl:15.08,glPct:8.61,cb:175.22},
+      {sym:'EL',name:'ESTEE LAUDER COMPANIES INC COM USD0.01 CLASS A',val:184.21,risk:'High Risk / Speculative',gl:57.53,glPct:45.41,cb:126.68},
+      {sym:'QCOM',name:'QUALCOMM INC',val:100.04,risk:'Blue Chip / Core',gl:1.89,glPct:1.93,cb:98.14},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:81022.61,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:38993.51,risk:'Growth',gl:14041.02,glPct:56.27,cb:24952.48},
+      {sym:'NVDA',name:'NVIDIA CORPORATION COM',val:23914.94,risk:'High Risk / Speculative',gl:13119.98,glPct:121.54,cb:10794.97},
+      {sym:'AMD',name:'ADVANCED MICRO DEVICES INC',val:11342.39,risk:'High Risk / Speculative',gl:4004.1,glPct:54.56,cb:7338.29},
+      {sym:'AAPL',name:'APPLE INC',val:4202.96,risk:'Growth',gl:1656.29,glPct:65.04,cb:2546.67},
+      {sym:'META',name:'META PLATFORMS INC CLASS A COMMON STOCK',val:2502.76,risk:'Growth',gl:1222.41,glPct:95.47,cb:1280.35},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:56.51,risk:'High Risk / Speculative',gl:-2480.43,glPct:-97.77,cb:2536.93},
+      {sym:'CWBHF',name:'CHARLOTTES WEB HOLDINGS INC COM NPV',val:9.54,risk:'High Risk / Speculative',gl:-80.9,glPct:-89.45,cb:90.44},]},
+    {num:'Z58273491',type:'Custodial (UTMA)',name:'Uniform Transfers to Minors (UTMA)',val:29164.13,tickers:[
+      {sym:'MSFT',name:'MICROSOFT CORP',val:28883.25,risk:'Growth',gl:9554.71,glPct:49.43,cb:19328.54},
+      {sym:'PSNY',name:'POLESTAR AUTOMOTIVE HOLDING UK PLC SPON ADS CL A EACH REP 30 CL A (P/S)',val:178.14,risk:'High Risk / Speculative',gl:-3596.49,glPct:-95.28,cb:3774.63},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:102.74,risk:'High Risk / Speculative',gl:-3673.43,glPct:-97.28,cb:3776.17},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:562.5,tickers:[
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:562.5,risk:'High Risk / Speculative',gl:-22021.88,glPct:-97.51,cb:22584.38},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:286.62,tickers:[
+      {sym:'NIO',name:'NIO INC SPON ADS EACH REP 1 ORD SHS CLASS A',val:181.31,risk:'High Risk / Speculative',gl:-1508.45,glPct:-89.27,cb:1689.75},
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:105.31,risk:'High Risk / Speculative',gl:-3908.58,glPct:-97.38,cb:4013.89},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:177.23,tickers:[
+      {sym:'LCID',name:'LUCID GROUP INC COM NEW',val:177.23,risk:'High Risk / Speculative',gl:-7296.46,glPct:-97.63,cb:7473.68},]},]},
+  {cat:'US Index Funds',total:664227.11,accounts:[
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:362663.05,tickers:[
+      {sym:'SCHD',name:'Schwab US Dividend Equity ETF',val:258842.96,risk:'',gl:2762.29,glPct:1.08,cb:256080.67},
+      {sym:'FSKAX',name:'Fidelity Total Market Index',val:103820.09,risk:'',gl:-484.13,glPct:-0.46,cb:104304.22},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:133711.06,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:133711.06,risk:'',gl:2174.01,glPct:1.65,cb:131537.06},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:121825.29,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:121825.29,risk:'',gl:2954.18,glPct:2.49,cb:118871.11},]},
+    {num:'961437285',type:'HSA',name:'Health Savings Account',val:42539.18,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:42539.18,risk:'',gl:14383.01,glPct:51.08,cb:28156.17},]},
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:1835.02,tickers:[
+      {sym:'FXAIX',name:'Fidelity 500 Index (S\u0026P 500)',val:1835.02,risk:'',gl:235.28,glPct:14.71,cb:1599.74},]},
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:1653.51,tickers:[
+      {sym:'59515R401',name:'Vanguard 500 Index Trust (plan-specific)',val:661.38,risk:'',gl:-0.03,glPct:-0,cb:661.41},
+      {sym:'31617E471',name:'Fidelity Growth Company Pool Cl S (plan-specific)',val:551.2,risk:'',gl:0.03,glPct:0.01,cb:551.18},
+      {sym:'SMID CAP GROWTH ACCT',name:'SMID Cap Growth Account (plan-specific)',val:440.93,risk:'',gl:-0.01,glPct:-0,cb:440.94},]},]},
+  {cat:'International Funds',total:592727.16,accounts:[
+    {num:'62917',type:'Tax-Deferred DCP',name:'EMPLOYER DCP',val:227994.43,tickers:[
+      {sym:'VFWSX',name:'Vanguard FTSE All-World ex-US',val:227994.43,risk:'',gl:1569.47,glPct:0.69,cb:226424.96},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:157498.14,tickers:[
+      {sym:'FZILX',name:'Fidelity ZERO International Index',val:157498.14,risk:'',gl:23143.27,glPct:17.23,cb:134354.86},]},
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:118924.56,tickers:[
+      {sym:'FZILX',name:'Fidelity ZERO International Index',val:118924.56,risk:'',gl:18129.67,glPct:17.99,cb:100794.89},]},
+    {num:'527864391',type:'Tax-Deferred 401(k)',name:'Self-Employed 401K',val:87758.86,tickers:[
+      {sym:'FTIHX',name:'Fidelity Total International Index',val:87758.86,risk:'',gl:10751,glPct:13.96,cb:77007.86},]},
+    {num:'53482',type:'Tax-Deferred 401(k)',name:'EMPLOYER 401K PLAN',val:551.17,tickers:[
+      {sym:'INTL GROWTH ACCOUNT',name:'International Growth Account (plan-specific)',val:551.17,risk:'',gl:-0.01,glPct:-0,cb:551.18},]},]},
+  {cat:'Bond Funds',total:205339.68,accounts:[
+    {num:'394718562',type:'Tax-Deferred 401(k)',name:'BrokerageLink to EMPLOYER 401K',val:102977.24,tickers:[
+      {sym:'FXNAX',name:'Fidelity US Bond Index',val:102977.24,risk:'',gl:544.97,glPct:0.53,cb:102432.27},]},
+    {num:'738294156',type:'Tax-Deferred IRA',name:'Rollover IRA',val:102362.44,tickers:[
+      {sym:'FXNAX',name:'Fidelity US Bond Index',val:102362.44,risk:'',gl:541.72,glPct:0.53,cb:101820.72},]},]},
+  {cat:'Tech Sector Fund',total:86056.77,accounts:[
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:77133.64,tickers:[
+      {sym:'FSPTX',name:'Fidelity Select Technology',val:77133.64,risk:'',gl:12809.6,glPct:19.91,cb:64324.04},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:8923.13,tickers:[
+      {sym:'FSPTX',name:'Fidelity Select Technology',val:8923.13,risk:'',gl:2587.95,glPct:40.85,cb:6335.18},]},]},
+  {cat:'Growth / Leveraged ETFs',total:6037.5,accounts:[
+    {num:'X72956143',type:'Taxable Investment',name:'Individual - TOD',val:3639.98,tickers:[
+      {sym:'TQQQ',name:'ProShares UltraPro QQQ (3x Nasdaq)',val:3639.98,risk:'',gl:1556.15,glPct:74.68,cb:2083.84},]},
+    {num:'845612973',type:'Roth',name:'ROTH IRA',val:2397.52,tickers:[
+      {sym:'VOOG',name:'Vanguard S\u0026P 500 Growth ETF',val:2323.49,risk:'',gl:334.63,glPct:16.83,cb:1988.85},
+      {sym:'PBW',name:'Invesco WilderHill Clean Energy ETF',val:74.03,risk:'',gl:-169.93,glPct:-69.66,cb:243.95},]},]},];
 const SUGG_METRICS = {
   "_meta": {
-    "fetched": "03/12/2026 16:43:33",
+    "fetched": "03/12/2026 16:59:38",
     "source": "yfinance",
     "fund_count": 33
   },
@@ -1224,15 +1363,7 @@ function _renderChart(cid){
     ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
   }
   svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'#7c3aed':'#64748b'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
-  /* Draw target ending balance line on Total Balance chart (index 0) */
-  if(activeIdx===0 && c.targetLine!==undefined){
-    const tVal=usePV?c.targetLinePV:c.targetLine;
-    const tY=yS(Math.max(0,tVal));
-    svg+=`<line x1="${P.l}" y1="${tY.toFixed(1)}" x2="${W-P.r}" y2="${tY.toFixed(1)}" stroke="#dc2626" stroke-width="2" stroke-dasharray="8,5"/>`;
-    const tLabel=tVal===0?'🎯 Target: $0':'🎯 Target: '+fK(tVal);
-    const labelY=tVal===0?tY-8:tY-6;
-    svg+=`<text x="${P.l+8}" y="${labelY.toFixed(1)}" font-size="11" fill="#dc2626" font-weight="700">${tLabel}</text>`;
-  }
+  /* Draw target ending balance line — REMOVED (redundant with the balance trajectory) */
   svg+=`</svg>`;
   document.getElementById(cid+'-container').innerHTML=svg;
   document.querySelectorAll('.'+cid+'-tab').forEach((b,i)=>{
@@ -1567,7 +1698,7 @@ function computeCurrentAlloc(){
 
 function allocBar(items,total){
   let h='<div class="sugg-bar-track">';
-  items.forEach(i=>{const p=total>0?i.val/total*100:0;if(p>0.3)h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span></div>`;});
+  items.forEach(i=>{const p=total>0?i.val/total*100:0;if(p>0.3){const lbl=p>=5?`<span class="sugg-bar-inner">${p.toFixed(0)}%</span>`:'';h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span>${lbl}</div>`;}});
   h+='</div>';return h;
 }
 
@@ -2100,6 +2231,7 @@ function saveSettings(){
       if(el) s[f.id]=f.type==='checkbox'?el.checked:el.value;
     });
     s._activeTab=_activeTab;
+    s._activeSubPivot=_activeSubPivot;
     const phases=getSpendPhases();
     if(phases.length>0||document.getElementById('spendPhasesContainer')) s._spendPhases=phases;
     /* Save selected accounts */
@@ -2188,7 +2320,727 @@ function loadSettings(){
         onAcctSelChange();
       }
     }
+    /* Restore holdings sub-pivot */
+    if(s._activeSubPivot){
+      _activeSubPivot=s._activeSubPivot;
+      const subBtn=document.querySelector(`.sub-pivot-tab[data-sub="${_activeSubPivot}"]`);
+      if(subBtn){
+        document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+        subBtn.classList.add('active');
+      }
+    }
   }catch(e){}
+}
+
+/* ---- Settings File Export / Import ---- */
+function exportSettingsToFile(){
+  /* Ensure current DOM state is flushed to localStorage first */
+  saveSettings();
+  const raw=localStorage.getItem(SETTINGS_KEY);
+  const data=raw?JSON.parse(raw):{};
+  data._exportedAt=new Date().toISOString();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const ts=new Date().toISOString().replace(/[:T]/g,'-').replace(/\..*/,'');
+  a.download=`portfolio-settings-${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importSettingsFromFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(typeof data!=='object'||data===null) throw new Error('Invalid settings file');
+      /* Write to localStorage */
+      localStorage.setItem(SETTINGS_KEY,JSON.stringify(data));
+      /* Apply to current UI */
+      loadSettings();
+      /* Re-render current tab to pick up restored settings */
+      const activeBtn=document.querySelector('.pivot-tab.active');
+      if(activeBtn) activeBtn.click();
+    }catch(err){
+      alert('Failed to load settings: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* Wire up gear menu */
+document.addEventListener('DOMContentLoaded',function(){
+  const gearBtn=document.getElementById('settingsGearBtn');
+  const dropdown=document.getElementById('settingsDropdown');
+  const saveBtn=document.getElementById('saveSettingsBtn');
+  const loadBtn=document.getElementById('loadSettingsBtn');
+  const fileInput=document.getElementById('settingsFileInput');
+
+  if(gearBtn&&dropdown){
+    gearBtn.addEventListener('click',function(e){
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+    document.addEventListener('click',function(){ dropdown.classList.remove('open'); });
+    dropdown.addEventListener('click',function(e){ e.stopPropagation(); });
+  }
+  if(saveBtn) saveBtn.addEventListener('click',function(){
+    dropdown.classList.remove('open');
+    exportSettingsToFile();
+  });
+  if(loadBtn) loadBtn.addEventListener('click',function(){
+    dropdown.classList.remove('open');
+    fileInput.click();
+  });
+  if(fileInput) fileInput.addEventListener('change',function(){
+    if(fileInput.files.length>0){
+      importSettingsFromFile(fileInput.files[0]);
+      fileInput.value=''; /* reset so same file can be re-selected */
+    }
+  });
+});
+
+/* ==== Snapshot Diff ==== */
+const SD_STORAGE_KEY='portfolioSnapshotCSV';
+
+/* --- CSV Parser (RFC 4180 compliant) --- */
+function _sdParseCSVLine(line){
+  const result=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(inQ){
+      if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;}
+      else if(ch==='"') inQ=false;
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){result.push(cur);cur='';}
+      else cur+=ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function _sdParseCSVText(text){
+  const lines=text.split(/\r?\n/);
+  if(lines.length<2) return [];
+  const headers=_sdParseCSVLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(!line) continue;
+    const vals=_sdParseCSVLine(line);
+    if(vals.length<headers.length) continue;
+    const row={};
+    headers.forEach((h,idx)=>{ row[h.trim()]=vals[idx]||''; });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function _sdParseCurrency(str){
+  if(!str) return null;
+  str=str.trim();
+  if(!str||str==='N/A'||str==='n/a'||str==='--') return null;
+  const neg=/^\(/.test(str)||/^-/.test(str)||/^\$-/.test(str)||/^-\$/.test(str);
+  const v=parseFloat(str.replace(/[$,() +\-]/g,''));
+  if(isNaN(v)) return null;
+  return neg?-v:v;
+}
+
+/* Category classification — mirrors main.ps1 $CategoryMap.
+   Plan-specific symbols (e.g. 59515R401) may not exist in your portfolio;
+   unknown symbols fall through to heuristic classification. */
+const _SD_CAT_MAP={
+  'FXAIX':'US Index Funds','FSKAX':'US Index Funds','SCHD':'US Index Funds',
+  'FTIHX':'International Funds','FZILX':'International Funds','VFWSX':'International Funds',
+  'FXNAX':'Bond Funds','FSPTX':'Tech Sector Fund',
+  'TQQQ':'Growth / Leveraged ETFs','VOOG':'Growth / Leveraged ETFs','PBW':'Growth / Leveraged ETFs',
+  'SPAXX**':'Cash / Money Market','FDRXX**':'Cash / Money Market','CORE**':'Cash / Money Market','FZDXX':'Cash / Money Market',
+  'NHFSMKX98':'US Index Funds','59515R401':'US Index Funds','31617E471':'US Index Funds',
+  'INTL GROWTH ACCOUNT':'International Funds','SMID CAP GROWTH ACCT':'US Index Funds',
+  'Various':'Unspecified'
+};
+function _sdClassify(sym,desc){
+  if(_SD_CAT_MAP[sym]) return _SD_CAT_MAP[sym];
+  if(/^BROKERAGELINK/i.test(sym)) return 'Cash / Money Market';
+  if(/certificate.of.deposit|^CD\b|\bCD$|brokered\s*cd/i.test(desc||'')) return 'Cash / Money Market';
+  if(/^[A-Z]{1,5}$/.test(sym)&&!/\*/.test(sym)) return 'Individual Stocks';
+  return 'Other';
+}
+
+/* Account type inference — mirrors main.ps1 Get-AccountType */
+function _sdInferAcctType(name){
+  const n=(name||'').trim();
+  if(/roth/i.test(n)) return 'Roth';
+  if(/health\s*savings|^HSA/i.test(n)) return 'HSA';
+  if(/college\s*savings|529/i.test(n)) return '529 College Savings';
+  if(/UTMA|Uniform\s*Transfers?\s*to\s*Minor/i.test(n)) return 'Custodial (UTMA)';
+  if(/403\s*\(?b\)?/i.test(n)) return 'Tax-Deferred 403(b)';
+  if(/457\s*\(?b\)?/i.test(n)) return 'Tax-Deferred 457(b)';
+  if(/\bTSP\b|thrift\s*savings/i.test(n)) return 'Tax-Deferred TSP';
+  if(/401[Kk]/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/brokeragelink/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/DCP|deferred\s*comp/i.test(n)) return 'Tax-Deferred DCP';
+  if(/rollover\s*ira|traditional\s*ira|sep\s*ira|simple\s*ira/i.test(n)) return 'Tax-Deferred IRA';
+  if(/self.employed\s*401/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/\bira\b/i.test(n)) return 'Tax-Deferred IRA';
+  if(/individual|joint|wros|trust|living\s*trust|revocable/i.test(n)) return 'Taxable Investment';
+  return 'Other';
+}
+
+/* Parse a Fidelity CSV export text into {holdings[], total} */
+function sdParseFidelityCSV(text){
+  const rows=_sdParseCSVText(text);
+  if(!rows.length) return {holdings:[],total:0};
+  const hasAcctType=Object.prototype.hasOwnProperty.call(rows[0],'Account Type');
+  const map=new Map();
+  for(const row of rows){
+    let sym=(row['Symbol']||'').trim();
+    const acctNum=(row['Account Number']||'').trim();
+    const acctName=(row['Account Name']||'').trim();
+    const desc=(row['Description']||'').trim();
+    const valStr=(row['Current Value']||'').trim();
+    if(!acctNum||!valStr||valStr==='N/A'||valStr==='n/a'||valStr==='--') continue;
+    if(!sym&&!desc) continue;
+    if(/pending\s*activity/i.test(desc)||/pending\s*activity/i.test(sym)) continue;
+    if(/(401K|403B|457B?|TSP)\s*PLAN$/i.test(acctName)&&/BROKERAGELINK/i.test(desc)) continue;
+    const val=_sdParseCurrency(valStr);
+    if(val===null) continue;
+    if(!sym) sym=desc;
+    const acctType=hasAcctType?((row['Account Type']||'').trim()||_sdInferAcctType(acctName)):_sdInferAcctType(acctName);
+    const gl=_sdParseCurrency(row['Total Gain/Loss Dollar']);
+    const cb=_sdParseCurrency(row['Cost Basis Total']);
+    const cat=_sdClassify(sym,desc);
+    const key=acctNum+'|'+sym;
+    if(map.has(key)){
+      const e=map.get(key);
+      e.value+=val;
+      if(e.gainLoss!==null&&gl!==null) e.gainLoss+=gl;
+      else if(gl!==null) e.gainLoss=gl;
+      if(e.costBasis!==null&&cb!==null) e.costBasis+=cb;
+      else if(cb!==null) e.costBasis=cb;
+    } else {
+      map.set(key,{accountNumber:acctNum,accountName:acctName,accountType:acctType,
+        symbol:sym,description:desc,value:val,category:cat,gainLoss:gl,costBasis:cb});
+    }
+  }
+  const holdings=Array.from(map.values());
+  holdings.forEach(h=>{
+    h.gainLossPct=(h.costBasis&&h.costBasis>0&&h.gainLoss!==null)?Math.round(h.gainLoss/h.costBasis*10000)/100:null;
+  });
+  return {holdings,total:holdings.reduce((s,h)=>s+h.value,0)};
+}
+
+/* Flatten the baked-in DATA into the same format for comparison */
+function sdFlattenCurrentData(){
+  const holdings=[];
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      a.tickers.forEach(t=>{
+        holdings.push({accountNumber:a.num,accountName:a.name,accountType:a.type,
+          symbol:t.sym,description:t.name,value:t.val,category:d.cat,
+          gainLoss:t.gl,gainLossPct:t.glPct,costBasis:t.cb});
+      });
+    });
+  });
+  return {holdings,total:GRAND};
+}
+
+/* Compute the full diff between two parsed snapshots */
+function sdComputeDiff(before,after){
+  const bMap=new Map(),aMap=new Map();
+  before.holdings.forEach(h=>bMap.set(h.accountNumber+'|'+h.symbol,h));
+  after.holdings.forEach(h=>aMap.set(h.accountNumber+'|'+h.symbol,h));
+
+  const newPos=[],closedPos=[],changed=[];
+  aMap.forEach((aH,key)=>{
+    if(!bMap.has(key)){newPos.push(aH);}
+    else{
+      const bH=bMap.get(key);
+      const chg=aH.value-bH.value;
+      const chgPct=bH.value!==0?(chg/Math.abs(bH.value)*100):(chg!==0?100:0);
+      changed.push({...aH,beforeValue:bH.value,change:chg,changePct:chgPct,
+        beforeGainLoss:bH.gainLoss,beforeCostBasis:bH.costBasis});
+    }
+  });
+  bMap.forEach((bH,key)=>{if(!aMap.has(key)) closedPos.push(bH);});
+
+  /* Category-level diff */
+  const bByCat={},aByCat={};
+  before.holdings.forEach(h=>{bByCat[h.category]=(bByCat[h.category]||0)+h.value;});
+  after.holdings.forEach(h=>{aByCat[h.category]=(aByCat[h.category]||0)+h.value;});
+  const allCats=new Set([...Object.keys(bByCat),...Object.keys(aByCat)]);
+  const catDiff=[];
+  allCats.forEach(cat=>{
+    const bv=bByCat[cat]||0,av=aByCat[cat]||0;
+    const bPct=before.total>0?bv/before.total*100:0;
+    const aPct=after.total>0?av/after.total*100:0;
+    catDiff.push({category:cat,beforeValue:bv,afterValue:av,beforePct:bPct,afterPct:aPct,
+      change:av-bv,drift:aPct-bPct});
+  });
+  catDiff.sort((a,b)=>Math.abs(b.drift)-Math.abs(a.drift));
+
+  /* Account-level diff */
+  const bByAcct={},aByAcct={};
+  before.holdings.forEach(h=>{
+    if(!bByAcct[h.accountNumber]) bByAcct[h.accountNumber]={name:h.accountName,type:h.accountType,value:0};
+    bByAcct[h.accountNumber].value+=h.value;
+  });
+  after.holdings.forEach(h=>{
+    if(!aByAcct[h.accountNumber]) aByAcct[h.accountNumber]={name:h.accountName,type:h.accountType,value:0};
+    aByAcct[h.accountNumber].value+=h.value;
+  });
+  const allAccts=new Set([...Object.keys(bByAcct),...Object.keys(aByAcct)]);
+  const acctDiff=[];
+  allAccts.forEach(num=>{
+    const b=bByAcct[num]||{name:'',type:'',value:0};
+    const a=aByAcct[num]||{name:'',type:'',value:0};
+    acctDiff.push({accountNumber:num,accountName:a.name||b.name,accountType:a.type||b.type,
+      beforeValue:b.value,afterValue:a.value,change:a.value-b.value,
+      changePct:b.value!==0?((a.value-b.value)/Math.abs(b.value)*100):(a.value!==0?100:0)});
+  });
+  acctDiff.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  /* Build hierarchical data: Category → Account → Holdings (mirrors renderCards pattern) */
+  /* Merge ALL holdings (new, closed, changed) into one unified list with status flags */
+  const allHoldings=[];
+  newPos.forEach(h=>allHoldings.push({...h,status:'new',beforeValue:0,change:h.value,changePct:100}));
+  closedPos.forEach(h=>allHoldings.push({...h,status:'closed',afterValue:0,change:-h.value,changePct:-100,
+    value:0,beforeValue:h.value}));
+  changed.forEach(h=>allHoldings.push({...h,status:'changed'}));
+
+  /* Group by category, then by account within category */
+  const catMap=new Map();
+  allHoldings.forEach(h=>{
+    const cat=h.category||'Other';
+    if(!catMap.has(cat)) catMap.set(cat,new Map());
+    const acctMap=catMap.get(cat);
+    const acctKey=h.accountNumber;
+    if(!acctMap.has(acctKey)) acctMap.set(acctKey,{name:h.accountName,type:h.accountType,num:h.accountNumber,holdings:[]});
+    acctMap.get(acctKey).holdings.push(h);
+  });
+
+  const hierarchy=[];
+  catMap.forEach((acctMap,cat)=>{
+    const accounts=[];
+    let catBefore=0,catAfter=0,catNewCount=0,catClosedCount=0;
+    acctMap.forEach(acctData=>{
+      let acctBefore=0,acctAfter=0;
+      acctData.holdings.forEach(h=>{
+        acctBefore+=(h.beforeValue||0);
+        acctAfter+=(h.status==='closed'?0:h.value);
+      });
+      acctData.holdings.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+      accounts.push({...acctData,beforeValue:acctBefore,afterValue:acctAfter,
+        change:acctAfter-acctBefore});
+      catBefore+=acctBefore;catAfter+=acctAfter;
+      acctData.holdings.forEach(h=>{
+        if(h.status==='new') catNewCount++;
+        if(h.status==='closed') catClosedCount++;
+      });
+    });
+    accounts.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+    const bPct=before.total>0?catBefore/before.total*100:0;
+    const aPct=after.total>0?catAfter/after.total*100:0;
+    hierarchy.push({category:cat,accounts,beforeValue:catBefore,afterValue:catAfter,
+      change:catAfter-catBefore,beforePct:bPct,afterPct:aPct,drift:aPct-bPct,
+      newCount:catNewCount,closedCount:catClosedCount});
+  });
+  hierarchy.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  /* Build account-level hierarchy: Account → Holdings (for the Account Summary drilldown) */
+  const acctHierMap=new Map();
+  allHoldings.forEach(h=>{
+    const key=h.accountNumber;
+    if(!acctHierMap.has(key)) acctHierMap.set(key,{name:h.accountName,type:h.accountType,num:h.accountNumber,holdings:[]});
+    acctHierMap.get(key).holdings.push(h);
+  });
+  const accountHierarchy=[];
+  acctHierMap.forEach(acctData=>{
+    let bv=0,av=0,nc=0,cc=0;
+    acctData.holdings.forEach(h=>{
+      bv+=(h.beforeValue||0);
+      av+=(h.status==='closed'?0:h.value);
+      if(h.status==='new') nc++;
+      if(h.status==='closed') cc++;
+    });
+    acctData.holdings.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+    accountHierarchy.push({...acctData,beforeValue:bv,afterValue:av,
+      change:av-bv,changePct:bv!==0?((av-bv)/Math.abs(bv)*100):(av!==0?100:0),
+      newCount:nc,closedCount:cc});
+  });
+  accountHierarchy.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  return {
+    totalBefore:before.total,totalAfter:after.total,
+    totalChange:after.total-before.total,
+    totalChangePct:before.total>0?((after.total-before.total)/before.total*100):0,
+    newPositions:newPos.sort((a,b)=>b.value-a.value),
+    closedPositions:closedPos.sort((a,b)=>b.value-a.value),
+    changedPositions:changed.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change)),
+    categoryDiff:catDiff,accountDiff:acctDiff,hierarchy,accountHierarchy
+  };
+}
+
+/* Extract date from Fidelity CSV filename */
+function sdExtractDate(filename){
+  const m=(filename||'').match(/(\w{3})-(\d{1,2})-(\d{4})/);
+  return m?m[1]+' '+m[2]+', '+m[3]:null;
+}
+
+/* Compute day span between two date strings like "Mar 12, 2026" */
+function sdDaySpan(d1,d2){
+  try{
+    const a=new Date(d1),b=new Date(d2);
+    if(isNaN(a)||isNaN(b)) return null;
+    return Math.round(Math.abs(b-a)/(1000*60*60*24));
+  }catch(e){return null;}
+}
+
+/* Helper: format change value with sign and color */
+function _sdFmtChg(v){
+  if(v==null) return '';
+  const cls=v>0?'sd-pos':v<0?'sd-neg':'';
+  const sign=v>0?'+':'';
+  return `<span class="${cls}">${sign}${fmt(v)}</span>`;
+}
+function _sdFmtChgPct(v){
+  if(v==null) return '';
+  const cls=v>0?'sd-pos':v<0?'sd-neg':'';
+  const sign=v>0?'+':'';
+  return `<span class="${cls}">${sign}${v.toFixed(2)}%</span>`;
+}
+
+/* ---------- Main render function ---------- */
+function renderSnapshotDiff(){
+  const el=document.getElementById('drilldown');
+  const allocEl=document.getElementById('allocOverview');
+  const insEl=document.querySelector('.insights');
+  allocEl.style.display='none';
+  if(insEl) insEl.style.display='none';
+
+  /* Check if we have a cached snapshot */
+  let cachedCSV=null,cachedName=null;
+  try{
+    const raw=localStorage.getItem(SD_STORAGE_KEY);
+    if(raw){const parsed=JSON.parse(raw);cachedCSV=parsed.csv;cachedName=parsed.name;}
+  }catch(e){}
+
+  if(!cachedCSV){
+    /* Show upload zone */
+    el.innerHTML=`
+      <div style="max-width:600px;margin:40px auto">
+        <div class="sd-upload-zone" id="sdUploadZone">
+          <div class="sd-upload-icon">&#128202;</div>
+          <div class="sd-upload-title">Upload a Previous Portfolio CSV</div>
+          <div class="sd-upload-sub">Drop a Fidelity <code>Portfolio_Positions_*.csv</code> file here, or click to browse.<br>
+            The current report will be compared against this earlier snapshot.</div>
+          <input type="file" id="sdFileInput" accept=".csv" style="display:none">
+        </div>
+      </div>`;
+    const zone=document.getElementById('sdUploadZone');
+    const inp=document.getElementById('sdFileInput');
+    zone.addEventListener('click',()=>inp.click());
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('dragover');
+      if(e.dataTransfer.files.length>0) _sdHandleFile(e.dataTransfer.files[0]);
+    });
+    inp.addEventListener('change',()=>{if(inp.files.length>0) _sdHandleFile(inp.files[0]);});
+    return;
+  }
+
+  /* We have CSV data — parse and render diff */
+  _sdRenderResults(cachedCSV,cachedName);
+}
+
+function _sdHandleFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;
+    /* Validate it looks like a Fidelity CSV */
+    const firstLine=(text.split(/\r?\n/)[0]||'');
+    if(!/Account Number/i.test(firstLine)||!/Current Value/i.test(firstLine)){
+      alert('This does not appear to be a Fidelity Portfolio Positions CSV.\nExpected columns: Account Number, Current Value, Symbol, etc.');
+      return;
+    }
+    /* Store in localStorage */
+    try{
+      localStorage.setItem(SD_STORAGE_KEY,JSON.stringify({csv:text,name:file.name}));
+    }catch(err){
+      alert('File too large to store in browser storage. Try a smaller CSV.');
+      return;
+    }
+    _sdRenderResults(text,file.name);
+  };
+  reader.readAsText(file);
+}
+
+function _sdRenderResults(csvText,fileName){
+  const el=document.getElementById('drilldown');
+  const before=sdParseFidelityCSV(csvText);
+  const after=sdFlattenCurrentData();
+
+  if(before.holdings.length===0){
+    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-muted)">No valid holdings found in the uploaded CSV.</div>';
+    return;
+  }
+
+  const diff=sdComputeDiff(before,after);
+  const beforeDate=sdExtractDate(fileName)||'Previous';
+  const currentDateEl=document.querySelector('.header .subtitle');
+  let currentDate='Current';
+  if(currentDateEl){
+    const dm=currentDateEl.textContent.match(/·\s*([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
+    if(dm) currentDate=dm[1].replace(',','');
+  }
+  const days=sdDaySpan(beforeDate,currentDate);
+  const chgCls=diff.totalChange>=0?'sd-pos':'sd-neg';
+  const chgBgCls=diff.totalChange>=0?'sd-pos-bg':'sd-neg-bg';
+
+  let html='';
+
+  /* Toolbar */
+  html+=`<div class="sd-toolbar">
+    <div style="font-size:0.85em;color:var(--text-muted)">Comparing <strong>${esc(fileName)}</strong> against current report</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="sd-clear-btn" onclick="_sdClear()">✕ Clear Comparison</button>
+      <button class="export-pdf-btn" onclick="exportTabToPDF('snapshot')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button>
+    </div>
+  </div>`;
+
+  /* Get current report source filename from footer */
+  let currentFileName='Current Report';
+  const footerEl=document.querySelector('.footer');
+  if(footerEl){
+    const srcMatch=footerEl.textContent.match(/Source:\s*(.+)/);
+    if(srcMatch) currentFileName=srcMatch[1].trim();
+  }
+
+  /* ① Summary Banner */
+  html+=`<div class="sd-summary">
+    <div class="sd-snap-card">
+      <div class="sd-snap-label">Previous Snapshot</div>
+      <div class="sd-snap-date">${esc(beforeDate)}</div>
+      <div class="sd-snap-total">${fmt(diff.totalBefore)}</div>
+      <div style="font-size:0.82em;color:var(--text-muted);margin-top:4px">${before.holdings.length} holdings</div>
+      <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;word-break:break-all" title="${esc(fileName)}">${esc(fileName)}</div>
+    </div>
+    <div class="sd-arrow">→</div>
+    <div class="sd-snap-card">
+      <div class="sd-snap-label">Current Report</div>
+      <div class="sd-snap-date">${esc(currentDate)}</div>
+      <div class="sd-snap-total">${fmt(diff.totalAfter)}</div>
+      <div style="font-size:0.82em;color:var(--text-muted);margin-top:4px">${after.holdings.length} holdings</div>
+      <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;word-break:break-all" title="${esc(currentFileName)}">${esc(currentFileName)}</div>
+    </div>
+  </div>`;
+
+  /* Change banner */
+  html+=`<div class="sd-change-banner">
+    <div class="sd-change-val ${chgCls}">${diff.totalChange>=0?'+':''}${fmt(diff.totalChange)}</div>
+    <div class="sd-change-pct ${chgBgCls}">${diff.totalChangePct>=0?'+':''}${diff.totalChangePct.toFixed(2)}%</div>
+    ${days!==null?`<div class="sd-change-days">${days} day${days!==1?'s':''} between snapshots</div>`:''}
+  </div>`;
+
+  /* ② Allocation Drift — dual stacked bars */
+  html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-bottom:24px;box-shadow:var(--shadow)">
+    <div style="font-weight:700;font-size:0.95em;margin-bottom:12px">Allocation Drift</div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:0.78em;color:var(--text-muted);margin-bottom:3px;font-weight:600">BEFORE</div>
+      <div class="sd-drift-row">`;
+  diff.categoryDiff.forEach(c=>{
+    if(c.beforePct<0.3) return;
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    const label=c.beforePct>=5?`<span class="sd-drift-label">${c.beforePct.toFixed(1)}%</span>`:'';
+    html+=`<div class="sd-drift-seg" style="width:${c.beforePct.toFixed(2)}%;background:${color}" title="${esc(c.category)}: ${c.beforePct.toFixed(1)}%">${label}</div>`;
+  });
+  html+=`</div>
+      <div style="font-size:0.78em;color:var(--text-muted);margin:8px 0 3px 0;font-weight:600">AFTER</div>
+      <div class="sd-drift-row">`;
+  diff.categoryDiff.forEach(c=>{
+    if(c.afterPct<0.3) return;
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    const label=c.afterPct>=5?`<span class="sd-drift-label">${c.afterPct.toFixed(1)}%</span>`:'';
+    html+=`<div class="sd-drift-seg" style="width:${c.afterPct.toFixed(2)}%;background:${color}" title="${esc(c.category)}: ${c.afterPct.toFixed(1)}%">${label}</div>`;
+  });
+  html+=`</div>
+      <div class="sd-drift-legend" style="margin-top:8px;flex-wrap:wrap;gap:12px">`;
+  diff.categoryDiff.forEach(c=>{
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    html+=`<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${esc(c.category)}</span>`;
+  });
+  html+=`</div></div></div>`;
+
+  /* ③ Section divider — By Category */
+  html+=`<div class="sd-divider">
+    <div class="sd-divider-icon" style="background:#2563eb">📂</div>
+    <div class="sd-divider-text">
+      <div class="sd-divider-title">By Category</div>
+      <div class="sd-divider-sub">Holdings grouped by investment category, then by account</div>
+    </div>
+  </div>`;
+
+  /* Drilldown Cards — Category → Account → Holdings */
+  diff.hierarchy.forEach((cat,ci)=>{
+    const color=CATEGORY_COLORS[cat.category]||'#a3a3a3';
+    const chg=cat.change;
+    const driftAbs=Math.abs(cat.drift);
+    const warn=driftAbs>=2?' <span class="sd-badge-warn">⚠ '+cat.drift.toFixed(1)+'%</span>':'';
+    /* Build badges for new/closed counts */
+    let badges='';
+    if(cat.newCount>0) badges+=` <span class="sd-badge-new">+${cat.newCount} new</span>`;
+    if(cat.closedCount>0) badges+=` <span class="sd-badge-closed">${cat.closedCount} closed</span>`;
+
+    /* Account rows inside this category */
+    let acctHtml='';
+    cat.accounts.forEach((acct,ai)=>{
+      const ac=ACCT_TYPE_COLORS[acct.type]||'#64748b';
+      /* Ticker rows inside this account */
+      let tickerHtml='';
+      acct.holdings.forEach(h=>{
+        let statusBadge='';
+        if(h.status==='new') statusBadge='<span class="sd-badge-new" style="margin-left:6px">NEW</span>';
+        else if(h.status==='closed') statusBadge='<span class="sd-badge-closed" style="margin-left:6px">CLOSED</span>';
+        const symDisplay=ylink(h.symbol)+statusBadge;
+        const bVal=h.status==='new'?'—':fmt(h.beforeValue);
+        const aVal=h.status==='closed'?'—':fmt(h.value);
+        const chgVal=_sdFmtChg(h.change);
+        const pctVal=(h.status==='new'||h.status==='closed')?'':_sdFmtChgPct(h.changePct);
+        tickerHtml+=`<div class="sd-ticker-row">
+          <span class="sd-ticker-sym">${symDisplay}</span>
+          <span class="sd-ticker-name">${esc(h.description)}</span>
+          <span class="sd-ticker-val sd-ticker-before">${bVal}</span>
+          <span class="sd-ticker-val sd-ticker-after">${aVal}</span>
+          <span class="sd-ticker-val sd-ticker-chg">${chgVal}</span>
+          <span class="sd-ticker-val sd-ticker-pct">${pctVal}</span>
+        </div>`;
+      });
+
+      const acctChg=acct.change;
+      acctHtml+=`
+        <div class="acct-row" onclick="toggleAcct(this,event)" data-id="sd${ci}a${ai}">
+          <div class="acct-icon" style="background:${ac}">${(acct.type||'O').charAt(0)}</div>
+          <div class="acct-info">
+            <div class="acct-name">${esc(acct.name)} <span class="badge ${BADGE_CLS[acct.type]||''}">${esc(acct.type)}</span></div>
+            <div class="acct-num">${acct.num?'#'+esc(acct.num):''} · ${acct.holdings.length} holding${acct.holdings.length!==1?'s':''}</div>
+          </div>
+          <div class="acct-value">
+            <div class="amount">${_sdFmtChg(acctChg)}</div>
+            <div class="pct">${fmt(acct.beforeValue)} → ${fmt(acct.afterValue)}</div>
+          </div>
+          <div class="acct-chevron">&#9654;</div>
+        </div>
+        <div class="ticker-body" id="tb-sd${ci}a${ai}">
+          <div class="sd-ticker-header">
+            <span class="sd-ticker-sym" style="font-weight:600;color:var(--text-muted)">Symbol</span>
+            <span class="sd-ticker-name" style="font-weight:600;color:var(--text-muted)">Description</span>
+            <span class="sd-ticker-val sd-ticker-before" style="font-weight:600;color:var(--text-muted)">Before</span>
+            <span class="sd-ticker-val sd-ticker-after" style="font-weight:600;color:var(--text-muted)">After</span>
+            <span class="sd-ticker-val sd-ticker-chg" style="font-weight:600;color:var(--text-muted)">Change</span>
+            <span class="sd-ticker-val sd-ticker-pct" style="font-weight:600;color:var(--text-muted)">%</span>
+          </div>
+          ${tickerHtml}
+        </div>`;
+    });
+
+    html+=`
+      <div class="category-card">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <div class="cat-color" style="background:${color}"></div>
+          <div class="cat-info">
+            <div class="cat-name">${esc(cat.category)}${badges}${warn}</div>
+            <div class="cat-meta">${cat.accounts.length} account${cat.accounts.length!==1?'s':''} · Alloc ${cat.beforePct.toFixed(1)}% → ${cat.afterPct.toFixed(1)}%</div>
+          </div>
+          <div class="cat-value">
+            <div class="amount">${_sdFmtChg(chg)}</div>
+            <div class="pct">${fmt(cat.beforeValue)} → ${fmt(cat.afterValue)}</div>
+          </div>
+          <div class="cat-chevron">&#9654;</div>
+        </div>
+        <div class="cat-body">${acctHtml}</div>
+      </div>`;
+  });
+
+  /* ④ Section divider — By Account */
+  if(diff.accountHierarchy.length>0){
+    html+=`<div class="sd-divider">
+      <div class="sd-divider-icon" style="background:#6366f1">🏦</div>
+      <div class="sd-divider-text">
+        <div class="sd-divider-title">By Account</div>
+        <div class="sd-divider-sub">Holdings grouped by brokerage account</div>
+      </div>
+    </div>`;
+    diff.accountHierarchy.forEach((acct,ai)=>{
+      const ac=ACCT_TYPE_COLORS[acct.type]||'#64748b';
+      let badges='';
+      if(acct.newCount>0) badges+=` <span class="sd-badge-new">+${acct.newCount} new</span>`;
+      if(acct.closedCount>0) badges+=` <span class="sd-badge-closed">${acct.closedCount} closed</span>`;
+
+      let tickerHtml='';
+      acct.holdings.forEach(h=>{
+        let statusBadge='';
+        if(h.status==='new') statusBadge='<span class="sd-badge-new" style="margin-left:6px">NEW</span>';
+        else if(h.status==='closed') statusBadge='<span class="sd-badge-closed" style="margin-left:6px">CLOSED</span>';
+        const symDisplay=ylink(h.symbol)+statusBadge;
+        const bVal=h.status==='new'?'—':fmt(h.beforeValue);
+        const aVal=h.status==='closed'?'—':fmt(h.value);
+        const chgVal=_sdFmtChg(h.change);
+        const pctVal=(h.status==='new'||h.status==='closed')?'':_sdFmtChgPct(h.changePct);
+        const catColor=CATEGORY_COLORS[h.category]||'#a3a3a3';
+        tickerHtml+=`<div class="sd-ticker-row">
+          <span class="sd-ticker-sym">${symDisplay}</span>
+          <span class="sd-ticker-name">${esc(h.description)}</span>
+          <span class="sd-ticker-cat"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${catColor};margin-right:4px;vertical-align:middle"></span>${esc(h.category)}</span>
+          <span class="sd-ticker-val sd-ticker-before">${bVal}</span>
+          <span class="sd-ticker-val sd-ticker-after">${aVal}</span>
+          <span class="sd-ticker-val sd-ticker-chg">${chgVal}</span>
+          <span class="sd-ticker-val sd-ticker-pct">${pctVal}</span>
+        </div>`;
+      });
+
+      html+=`
+        <div class="category-card">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <div class="cat-color" style="background:${ac}"></div>
+            <div class="cat-info">
+              <div class="cat-name">${esc(acct.name)}${badges}</div>
+              <div class="cat-meta">${acct.num?'#'+esc(acct.num)+' · ':''}<span class="badge ${BADGE_CLS[acct.type]||''}">${esc(acct.type)}</span> · ${acct.holdings.length} holding${acct.holdings.length!==1?'s':''}</div>
+            </div>
+            <div class="cat-value">
+              <div class="amount">${_sdFmtChg(acct.change)}</div>
+              <div class="pct">${fmt(acct.beforeValue)} → ${fmt(acct.afterValue)}</div>
+            </div>
+            <div class="cat-chevron">&#9654;</div>
+          </div>
+          <div class="cat-body" style="padding:8px 16px">
+            <div class="sd-ticker-header sd-ticker-header-acct">
+              <span class="sd-ticker-sym" style="font-weight:600;color:var(--text-muted)">Symbol</span>
+              <span class="sd-ticker-name" style="font-weight:600;color:var(--text-muted)">Description</span>
+              <span class="sd-ticker-cat" style="font-weight:600;color:var(--text-muted)">Category</span>
+              <span class="sd-ticker-val sd-ticker-before" style="font-weight:600;color:var(--text-muted)">Before</span>
+              <span class="sd-ticker-val sd-ticker-after" style="font-weight:600;color:var(--text-muted)">After</span>
+              <span class="sd-ticker-val sd-ticker-chg" style="font-weight:600;color:var(--text-muted)">Change</span>
+              <span class="sd-ticker-val sd-ticker-pct" style="font-weight:600;color:var(--text-muted)">%</span>
+            </div>
+            ${tickerHtml}
+          </div>
+        </div>`;
+    });
+  }
+
+  el.innerHTML=html;
+}
+
+function _sdClear(){
+  try{localStorage.removeItem(SD_STORAGE_KEY);}catch(e){}
+  renderSnapshotDiff();
 }
 
 /* ---- Spending Phases (age-based, tied to primary participant) ---- */
@@ -2967,6 +3819,12 @@ function computeWithdrawalPlan(){
   html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CA} Retirement Metrics Charts</div>`;
   html+=`<p class="wd-desc">Explore key retirement metrics over time. Toggle between Future Value (nominal dollars) and Present Value (today's purchasing power discounted at ${inflPct*100}% inflation).</p>`;
   const wdChartSeries=[
+    {type:'stacked',label:'Account Balances',stack:[
+      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
+      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
+      {key:'bRoth',label:'Roth',color:'#10b981'},
+      {key:'bHSA',label:'HSA',color:'#ec4899'},
+    ]},
     {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
     {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
     {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
@@ -2977,12 +3835,6 @@ function computeWithdrawalPlan(){
       {key:'deferredW',label:'Deferred',color:'#3b82f6'},
       {key:'rothW',label:'Roth',color:'#10b981'},
       {key:'hsaW',label:'HSA',color:'#ec4899'},
-    ]},
-    {type:'stacked',label:'Account Balances',stack:[
-      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
-      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
-      {key:'bRoth',label:'Roth',color:'#10b981'},
-      {key:'bHSA',label:'HSA',color:'#ec4899'},
     ]},
   ];
   if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
@@ -3650,16 +4502,17 @@ function renderTaxLoss(){
   const totalSavings=ordSavings+ltcgSavings;
   const carryover=Math.max(0,netLossAfterGains-ORD_OFFSET);
 
-  let html=`<div class="wd-panel" style="padding:24px">`;
+  let html=`<div style="text-align:right;margin:0 0 10px"><button class="export-pdf-btn" onclick="exportTabToPDF('taxloss')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button></div>`;
+  html+=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F4C9} Tax-Loss Harvesting Analysis</h2>`;
   html+=`<p style="color:#64748b;margin-bottom:20px">Identify unrealized losses in taxable accounts that can be harvested to reduce your tax bill. Only <strong>taxable accounts</strong> benefit from tax-loss harvesting — losses in tax-advantaged accounts (IRA, 401k, Roth) have no tax impact.</p>`;
 
-  // Summary cards
-  html+=`<div class="wd-summary-cards" style="margin-bottom:24px">`;
-  html+=`<div style="border-left:4px solid #dc2626"><div style="color:#64748b;font-size:0.8em">Harvestable Losses</div><div style="font-size:1.5em;font-weight:700;color:#dc2626">${fmt2(Math.abs(totalTaxableLoss))}</div><div style="color:#64748b;font-size:0.8em">${taxableLosses.length} positions in taxable accounts</div></div>`;
-  html+=`<div style="border-left:4px solid #16a34a"><div style="color:#64748b;font-size:0.8em">Unrealized Gains (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:#16a34a">${fmt2(totalTaxableGain)}</div><div style="color:#64748b;font-size:0.8em">${taxableGains.length} positions</div></div>`;
-  html+=`<div style="border-left:4px solid ${netTaxable>=0?'#16a34a':'#dc2626'}"><div style="color:#64748b;font-size:0.8em">Net Gain/Loss (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:${netTaxable>=0?'#16a34a':'#dc2626'}">${netTaxable>=0?'+':''}${fmt2(netTaxable)}</div></div>`;
-  html+=`<div style="border-left:4px solid #2563eb"><div style="color:#64748b;font-size:0.8em">Est. Tax Savings</div><div style="font-size:1.5em;font-weight:700;color:#2563eb">${fmt2(totalSavings)}</div><div style="color:#64748b;font-size:0.8em">at ${(ORD_RATE*100)}% ord / ${(LTCG_RATE*100)}% LTCG</div></div>`;
+  // Summary metric cards
+  html+=`<div class="tl-metrics">`;
+  html+=`<div class="tl-metric red"><div class="tl-metric-label">Harvestable Losses</div><div class="tl-metric-value" style="color:#dc2626">${fmt2(Math.abs(totalTaxableLoss))}</div><div class="tl-metric-sub">${taxableLosses.length} positions in taxable accounts</div></div>`;
+  html+=`<div class="tl-metric green"><div class="tl-metric-label">Unrealized Gains (Taxable)</div><div class="tl-metric-value" style="color:#16a34a">${fmt2(totalTaxableGain)}</div><div class="tl-metric-sub">${taxableGains.length} positions</div></div>`;
+  html+=`<div class="tl-metric ${netTaxable>=0?'green':'red'}"><div class="tl-metric-label">Net Gain/Loss (Taxable)</div><div class="tl-metric-value" style="color:${netTaxable>=0?'#16a34a':'#dc2626'}">${netTaxable>=0?'+':''}${fmt2(netTaxable)}</div></div>`;
+  html+=`<div class="tl-metric blue"><div class="tl-metric-label">Est. Tax Savings</div><div class="tl-metric-value" style="color:#2563eb">${fmt2(totalSavings)}</div><div class="tl-metric-sub">at ${(ORD_RATE*100)}% ord / ${(LTCG_RATE*100)}% LTCG</div></div>`;
   html+=`</div>`;
 
   // Tax savings breakdown
@@ -4785,7 +5638,7 @@ function runScenarioComparison(){
     const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
     if(validResults.length>0){
       /* Global vs Individual chart control toggle */
-      const chartLabels=['Total Balance','Annual Taxes','After-Tax Income','Account Balances'];
+      const chartLabels=['Account Balances','Total Balance','Annual Taxes','After-Tax Income'];
       out+=`<h3 style="margin:24px 0 8px">\u{1F4CA} Chart Controls</h3>`;
       out+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">`;
       out+=`<button id="sc-global-btn" onclick="_scToggleGlobalCharts(true)" style="padding:4px 14px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.82em;font-weight:600;cursor:pointer;background:#1e40af;color:white">Apply to All</button>`;
@@ -4808,15 +5661,15 @@ function runScenarioComparison(){
         const scYearsToRetire=r.retire-scAge;
         const scInflPct=r.infl/100;
         const scSeries=[
-          {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
-          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
           {type:'stacked',label:'Account Balances',stack:[
             {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
             {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
             {key:'bRoth',label:'Roth',color:'#10b981'},
             {key:'bHSA',label:'HSA',color:'#ec4899'},
           ]},
+          {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
         /* Add note when scenario came from spending suggestions */
@@ -4824,18 +5677,11 @@ function runScenarioComparison(){
           const isZero=r.endBal===0;
           out+=`<div style="background:${isZero?'#fef3c7':'#eff6ff'};border:1px solid ${isZero?'#f59e0b':'#93c5fd'};border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:0.82em;color:#374151">`;
           if(isZero) out+=`<strong>\u{1F3AF} Die with Zero:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated so your portfolio reaches $0 at age ${r.life} on the expected ${r.ret}% return path. Monte Carlo shows a ${r.mcSuccess.toFixed(0)}% chance of not running out of money before then.`;
-          else out+=`<strong>\u{1F3AF} Legacy Target:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated for ~${r.mcSuccess.toFixed(0)}% Monte Carlo confidence. The chart shows a deterministic ${r.ret}% fixed return path. The <span style="color:#dc2626;font-weight:600">dashed red line</span> shows your target ending balance.`;
+          else out+=`<strong>\u{1F3AF} Legacy Target:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated for ~${r.mcSuccess.toFixed(0)}% Monte Carlo confidence. The chart shows a deterministic ${r.ret}% fixed return path.`;
           out+=`</div>`;
         }
         const chartHtml=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
-        /* Set target line on chart registry for Total Balance chart */
-        if(r._fromSuggestions && r.endBal!==undefined){
-          const cReg=window._chartRegistry['sc-chart-'+ri];
-          if(cReg){
-            cReg.targetLine=r.endBal;
-            cReg.targetLinePV=r.endBal*r.pvFactor;
-          }
-        }
+        /* Target line registry removed — no longer drawn */
         /* Wrap the FV/PV + tabs controls in sc-per-chart-ctrl for global toggle */
         const containerIdx=chartHtml.indexOf('<div id="sc-chart-'+ri+'-label"');
         if(containerIdx>0){
@@ -4871,7 +5717,7 @@ const _tabCache={};
 const _renderedTabs=new Set();
 function _saveTab(key){
   /* Don't cache tabs with interactive elements — they break when restored via innerHTML */
-  if(key==='withdrawals'||key==='suggestions'||key==='taxloss'||key==='scenarios'||!_renderedTabs.has(key)) return;
+  if(key==='withdrawals'||key==='suggestions'||key==='taxloss'||key==='scenarios'||key==='snapshot'||key==='holdings'||!_renderedTabs.has(key)) return;
   _tabCache[key]={
     drill:document.getElementById('drilldown').innerHTML,
     alloc:document.getElementById('allocOverview').style.display,
@@ -4890,7 +5736,7 @@ function _restoreTab(key){
   document.getElementById('legend').innerHTML=c.legend;
   if(key==='withdrawals') document.querySelectorAll('#drilldown input, #drilldown select').forEach(el=>{el.addEventListener('change',saveSettings);el.addEventListener('input',saveSettings);});
 }
-let _activeTab='acctName';
+let _activeTab='holdings';
 
 document.querySelectorAll('.pivot-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -4902,6 +5748,9 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     btn.classList.add('active');
     const newTab=btn.dataset.pivot;
 
+    /* Show/hide sub-pivot bar */
+    document.getElementById('holdingsSubPivot').style.display=(newTab==='holdings')?'':'none';
+
     /* Restore or render */
     const insSwitch=document.querySelector('.insights');
     if(insSwitch) insSwitch.style.display='';
@@ -4909,16 +5758,35 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     if(_tabCache[newTab]){
       _restoreTab(newTab);
     } else {
-      if(newTab==='acctType') renderAcctTypePivot();
-      else if(newTab==='acctName') renderAcctNamePivot();
+      if(newTab==='holdings') _renderHoldingsSubPivot();
       else if(newTab==='suggestions') renderSuggestions();
       else if(newTab==='withdrawals') renderWithdrawals();
       else if(newTab==='taxloss') renderTaxLoss();
       else if(newTab==='scenarios') renderScenarios();
-      else renderCategoryPivot();
+      else if(newTab==='snapshot') renderSnapshotDiff();
     }
     _renderedTabs.add(newTab);
     _activeTab=newTab;
+    saveSettings();
+  });
+});
+
+/* ---- Holdings sub-pivot (By Account / By Account Type / By Investment Category) ---- */
+let _activeSubPivot='acctName';
+
+function _renderHoldingsSubPivot(sub){
+  if(sub) _activeSubPivot=sub;
+  if(_activeSubPivot==='acctType') renderAcctTypePivot();
+  else if(_activeSubPivot==='category') renderCategoryPivot();
+  else renderAcctNamePivot();
+}
+
+document.querySelectorAll('.sub-pivot-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    _activeSubPivot=btn.dataset.sub;
+    _renderHoldingsSubPivot();
     saveSettings();
   });
 });
@@ -4929,20 +5797,29 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     const raw=localStorage.getItem(SETTINGS_KEY);
     if(raw){
       const s=JSON.parse(raw);
-      if(s._activeTab&&s._activeTab!=='acctName'){
-        const btn=document.querySelector(`.pivot-tab[data-pivot="${s._activeTab}"]`);
+      /* Restore sub-pivot choice */
+      if(s._activeSubPivot) _activeSubPivot=s._activeSubPivot;
+      const subBtn=document.querySelector(`.sub-pivot-tab[data-sub="${_activeSubPivot}"]`);
+      if(subBtn){
+        document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+        subBtn.classList.add('active');
+      }
+      /* Migrate legacy tab names to holdings */
+      let savedTab=s._activeTab;
+      if(savedTab==='acctName'||savedTab==='acctType'||savedTab==='category') savedTab='holdings';
+      if(savedTab&&savedTab!=='holdings'){
+        const btn=document.querySelector(`.pivot-tab[data-pivot="${savedTab}"]`);
         if(btn){
-          /* Render default tab first so _saveTab has content, then switch */
-          renderAcctNamePivot();
-          _renderedTabs.add('acctName');
+          _renderHoldingsSubPivot();
+          _renderedTabs.add('holdings');
           btn.click();
           return;
         }
       }
     }
   }catch(e){}
-  renderAcctNamePivot();
-  _renderedTabs.add('acctName');
+  _renderHoldingsSubPivot();
+  _renderedTabs.add('holdings');
 })();
 
 /* Auto-save on page close/refresh — ensures no input values are lost */

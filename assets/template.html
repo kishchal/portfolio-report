@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Report — {{REPORT_DATE}}</title>
+<title>Portfolio Analysis &amp; Insights — {{REPORT_DATE}}</title>
 <style>
   :root {
     --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
@@ -23,6 +23,93 @@
   .header .total { font-size: 1.8em; font-weight: 700; letter-spacing: -0.5px; }
   .header .total-label { font-size: 0.8em; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; text-align: right; }
 
+  /* Settings gear menu */
+  .settings-menu-wrap { position: relative; }
+  .settings-gear-btn { background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); color: white;
+    width: 38px; height: 38px; border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    font-size: 1.25em; transition: background 0.2s, border-color 0.2s; }
+  .settings-gear-btn:hover { background: rgba(255,255,255,0.22); border-color: rgba(255,255,255,0.4); }
+  .settings-dropdown { display: none; position: absolute; top: 44px; right: 0; background: var(--card); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.15); min-width: 210px; z-index: 1000; overflow: hidden; }
+  .settings-dropdown.open { display: block; }
+  .settings-dropdown-item { display: flex; align-items: center; gap: 10px; padding: 11px 16px; font-size: 0.88em; font-weight: 500;
+    color: var(--text); cursor: pointer; border: none; background: none; width: 100%; text-align: left; transition: background 0.15s; }
+  .settings-dropdown-item:hover { background: var(--bg-secondary); }
+  .settings-dropdown-item svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); }
+  .settings-dropdown-sep { height: 1px; background: var(--border); margin: 0; }
+
+  /* Snapshot Diff tab */
+  .sd-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 30px;
+    text-align: center; background: var(--bg-secondary); transition: border-color 0.2s, background 0.2s; cursor: pointer; }
+  .sd-upload-zone:hover, .sd-upload-zone.dragover { border-color: var(--primary); background: var(--primary-light); }
+  .sd-upload-icon { font-size: 2.5em; margin-bottom: 10px; color: var(--text-muted); }
+  .sd-upload-title { font-size: 1.05em; font-weight: 600; margin-bottom: 4px; }
+  .sd-upload-sub { font-size: 0.85em; color: var(--text-muted); }
+  .sd-summary { display: grid; grid-template-columns: 1fr auto 1fr; gap: 0; align-items: center; margin-bottom: 24px; }
+  .sd-snap-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 24px; box-shadow: var(--shadow); }
+  .sd-snap-label { font-size: 0.8em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .sd-snap-date { font-size: 0.92em; font-weight: 600; margin-bottom: 8px; }
+  .sd-snap-total { font-size: 1.5em; font-weight: 700; letter-spacing: -0.5px; }
+  .sd-arrow { font-size: 1.8em; color: var(--text-muted); padding: 0 18px; text-align: center; }
+  .sd-change-banner { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 16px 24px; margin-bottom: 24px; box-shadow: var(--shadow); display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .sd-change-val { font-size: 1.3em; font-weight: 700; }
+  .sd-change-pct { font-size: 1em; font-weight: 600; padding: 3px 10px; border-radius: 6px; }
+  .sd-change-days { font-size: 0.85em; color: var(--text-muted); }
+  .sd-pos { color: #059669; } .sd-neg { color: #dc2626; }
+  .sd-pos-bg { background: #ecfdf5; color: #059669; } .sd-neg-bg { background: #fef2f2; color: #dc2626; }
+  .sd-section { margin-bottom: 24px; }
+  .sd-section-hdr { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; cursor: pointer; user-select: none; }
+  .sd-section-title { font-size: 1.05em; font-weight: 700; }
+  .sd-section-count { font-size: 0.82em; color: var(--text-muted); }
+  .sd-section-chevron { font-size: 0.7em; color: var(--text-muted); transition: transform 0.25s; }
+  .sd-section-hdr.open .sd-section-chevron { transform: rotate(90deg); }
+  .sd-section-body { display: none; }
+  .sd-section-body.open { display: block; }
+  .sd-tbl { width: 100%; border-collapse: collapse; font-size: 0.88em; }
+  .sd-tbl th { text-align: left; padding: 8px 10px; border-bottom: 2px solid var(--border); font-weight: 600;
+    color: var(--text-muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; }
+  .sd-tbl th.num { text-align: right; }
+  .sd-tbl td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
+  .sd-tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .sd-tbl tr:hover { background: #fafbfc; }
+  .sd-bar-cell { width: 120px; }
+  .sd-drift-bar { height: 8px; border-radius: 4px; min-width: 2px; }
+  .sd-badge-new { background: #ecfdf5; color: #059669; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-badge-closed { background: #fef2f2; color: #dc2626; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-badge-warn { background: #fffbeb; color: #d97706; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
+  .sd-drift-row { display: flex; align-items: center; height: 32px; border-radius: 4px; overflow: hidden; background: #f1f5f9; }
+  .sd-drift-seg { height: 100%; transition: width 0.3s; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+  .sd-drift-seg .sd-drift-label { font-size: 0.68em; font-weight: 600; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,0.4); white-space: nowrap; pointer-events: none; }
+  .sd-drift-legend { display: flex; gap: 4px; align-items: center; font-size: 0.75em; color: var(--text-muted); margin-top: 3px; }
+  .sd-toolbar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; flex-wrap: wrap; gap: 10px; }
+  .sd-clear-btn { background: none; border: 1px solid var(--border); border-radius: 6px; padding: 6px 14px;
+    font-size: 0.85em; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+  .sd-clear-btn:hover { background: #fef2f2; color: #dc2626; border-color: #fca5a5; }
+
+  /* Snapshot Diff drilldown ticker rows */
+  .sd-ticker-header, .sd-ticker-row { display: grid; grid-template-columns: 100px 1fr 100px 100px 100px 70px; gap: 8px; align-items: center; padding: 6px 16px; font-size: 0.85em; }
+  .sd-ticker-header-acct, .sd-ticker-header-acct + .sd-ticker-row,
+  .sd-ticker-header-acct ~ .sd-ticker-row { grid-template-columns: 100px 1fr 140px 100px 100px 100px 70px; }
+  .sd-ticker-header { border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 2px; }
+  .sd-ticker-row { border-bottom: 1px solid #f1f5f9; }
+  .sd-ticker-row:last-child { border-bottom: none; }
+  .sd-ticker-row:hover { background: #f8fafc; }
+  .sd-ticker-val { text-align: right; font-variant-numeric: tabular-nums; }
+  .sd-ticker-sym { font-weight: 600; }
+  .sd-ticker-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 0.92em; }
+  .sd-ticker-cat { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.85em; color: var(--text-muted); }
+
+  /* Snapshot Diff section dividers */
+  .sd-divider { display: flex; align-items: center; gap: 14px; margin: 32px 0 16px 0; padding: 14px 20px;
+    background: linear-gradient(135deg, #f0f4ff 0%, #e8f0fe 100%); border: 1px solid #c7d7f5; border-radius: var(--radius);
+    box-shadow: var(--shadow); }
+  .sd-divider-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center;
+    justify-content: center; font-size: 1.15em; flex-shrink: 0; }
+  .sd-divider-title { font-weight: 700; font-size: 1.05em; color: var(--text); }
+  .sd-divider-sub { font-size: 0.82em; color: var(--text-muted); margin-top: 1px; }
+
   .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
 
   .alloc-bar-wrap { margin: 0 0 8px 0; }
@@ -38,11 +125,26 @@
 
   .section-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
 
-  .pivot-tabs { display: inline-flex; flex-wrap: wrap; background: #e2e8f0; border-radius: 8px; padding: 3px; gap: 2px; margin-bottom: 18px; }
-  .pivot-tab { padding: 7px 18px; border-radius: 6px; font-size: 0.88em; font-weight: 600; cursor: pointer;
-    border: none; background: transparent; color: var(--text-muted); transition: all 0.2s; }
+  /* ---- Main tab bar — underline style ---- */
+  .pivot-tabs { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 18px; border-bottom: 2px solid var(--border);
+    padding: 0; background: none; border-radius: 0; }
+  .pivot-tab { position: relative; padding: 10px 22px 12px; font-size: 0.88em; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted); transition: color 0.25s; letter-spacing: -0.01em; }
+  .pivot-tab::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -2px; height: 2.5px;
+    background: var(--primary); border-radius: 2px 2px 0 0; transform: scaleX(0); transition: transform 0.25s cubic-bezier(.4,0,.2,1); }
   .pivot-tab:hover { color: var(--text); }
-  .pivot-tab.active { background: white; color: var(--primary); box-shadow: var(--shadow); }
+  .pivot-tab:hover::after { transform: scaleX(0.5); background: #94a3b8; }
+  .pivot-tab.active { color: var(--primary); }
+  .pivot-tab.active::after { transform: scaleX(1); }
+
+  /* ---- Sub-pivot bar — compact segmented control ---- */
+  .sub-pivot-wrap { display: inline-flex; background: linear-gradient(135deg, #f1f5f9 0%, #e8edf4 100%);
+    border-radius: 10px; padding: 3px; gap: 2px; border: 1px solid var(--border); }
+  .sub-pivot-tab { padding: 6px 18px; border-radius: 8px; font-size: 0.82em; font-weight: 600; cursor: pointer;
+    border: none; background: transparent; color: var(--text-muted); transition: all 0.25s cubic-bezier(.4,0,.2,1);
+    letter-spacing: -0.01em; position: relative; }
+  .sub-pivot-tab:hover { color: var(--text); background: rgba(255,255,255,0.5); }
+  .sub-pivot-tab.active { background: white; color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06); }
 
   .category-card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
     margin-bottom: 10px; box-shadow: var(--shadow); overflow: hidden; transition: box-shadow 0.2s; }
@@ -142,7 +244,8 @@
   .sugg-bar-row { display: flex; align-items: center; gap: 10px; font-size: 0.82em; }
   .sugg-bar-label { width: 220px; font-weight: 600; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: default; }
   .sugg-bar-track { flex: 1; height: 22px; background: #f1f5f9; border-radius: 4px; overflow: visible; display: flex; position: relative; }
-  .sugg-bar-seg { height: 100%; transition: width 0.3s; position: relative; overflow: visible; }
+  .sugg-bar-seg { height: 100%; transition: width 0.3s; position: relative; overflow: visible; display: flex; align-items: center; justify-content: center; }
+  .sugg-bar-seg .sugg-bar-inner { font-size: 0.68em; font-weight: 600; color: #fff; text-shadow: 0 0 2px rgba(0,0,0,0.4); white-space: nowrap; pointer-events: none; }
   .sugg-bar-seg .stip { display: none; position: absolute; bottom: 28px; left: 50%; transform: translateX(-50%);
     background: #1e293b; color: white; padding: 3px 8px; border-radius: 4px; font-size: 0.8em; white-space: nowrap; z-index: 5; }
   .sugg-bar-seg:hover .stip { display: block; }
@@ -321,6 +424,19 @@
   .sugg-actions button { padding:10px 24px; border-radius:6px; font-weight:600; font-size:0.9em; cursor:pointer; transition:all 0.15s; }
   @media (max-width:900px) { .sugg-scenario-grid { grid-template-columns:1fr; } }
 
+  /* ---- Tax-loss harvesting summary metric cards ---- */
+  .tl-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+  .tl-metric { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 20px 22px; position: relative; overflow: hidden; transition: box-shadow 0.2s; }
+  .tl-metric:hover { box-shadow: var(--shadow-lg); }
+  .tl-metric::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; border-radius: 4px 0 0 4px; }
+  .tl-metric.red::before { background: #dc2626; }
+  .tl-metric.green::before { background: #16a34a; }
+  .tl-metric.blue::before { background: #2563eb; }
+  .tl-metric-label { color: var(--text-muted); font-size: 0.82em; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.01em; }
+  .tl-metric-value { font-size: 1.65em; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
+  .tl-metric-sub { color: var(--text-muted); font-size: 0.78em; }
+
   /* Print styles */
   @media print {
     body { background: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
@@ -328,12 +444,12 @@
     .header h1 { font-size: 1.3em !important; }
     .header .subtitle, .header .total-label { font-size: 0.75em !important; }
     .header .total { font-size: 1.4em !important; }
-    .pivot-tabs, #allocOverview, .export-pdf-btn, .wd-btn, .wd-panel input, .wd-panel select,
+    .pivot-tabs, #holdingsSubPivot, #allocOverview, .export-pdf-btn, .wd-btn, .wd-panel input, .wd-panel select,
     .wd-panel button, #wdSpouseToggle, .mc-hist-wrap, .acct-selector, .wd-inputs,
-    .spend-phase-add, .spend-phase-del, .sugg-overlay, .sugg-btn-wrap { display: none !important; }
+    .spend-phase-add, .spend-phase-del, .sugg-overlay, .sugg-btn-wrap, .settings-menu-wrap { display: none !important; }
     .container { padding: 0 12px !important; max-width: 100% !important; }
     #drilldown { break-inside: auto; }
-    .sugg-section, .wd-summary-cards, .wd-notes, .roth-opt-table { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px !important; }
+    .sugg-section, .wd-summary-cards, .tl-metrics, .wd-notes, .roth-opt-table { break-inside: avoid; page-break-inside: avoid; margin-bottom: 8px !important; }
     .sugg-section { padding: 10px !important; }
     .sugg-h2 { font-size: 1em !important; }
     table { font-size: 0.72em !important; }
@@ -348,6 +464,8 @@
     #wd-print-params span { display: block; padding: 1px 0; }
     #scenGrid { display: none !important; }
     #scenResults { display: block !important; }
+    .sd-toolbar button, .sd-upload-zone { display: none !important; }
+    .sd-toolbar { margin-bottom: 8px !important; }
     .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
@@ -362,27 +480,47 @@
 <div class="header">
   <div class="header-inner">
     <div>
-      <h1>Portfolio Allocation Report</h1>
+      <h1>Portfolio Analysis &amp; Insights</h1>
       <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
       <div class="total">{{GRAND_TOTAL}}</div>
     </div>
+    <div class="settings-menu-wrap">
+      <button class="settings-gear-btn" id="settingsGearBtn" title="Settings">&#9881;</button>
+      <div class="settings-dropdown" id="settingsDropdown">
+        <button class="settings-dropdown-item" id="saveSettingsBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
+          Save Settings to File
+        </button>
+        <div class="settings-dropdown-sep"></div>
+        <button class="settings-dropdown-item" id="loadSettingsBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5"/></svg>
+          Load Settings from File
+        </button>
+      </div>
+      <input type="file" id="settingsFileInput" accept=".json" style="display:none">
+    </div>
   </div>
 </div>
 
 <div class="container">
 
-<div style="display:flex;align-items:center;gap:18px;flex-wrap:wrap">
-  <div class="pivot-tabs" style="margin-top:18px">
-    <button class="pivot-tab active" data-pivot="acctName">By Account</button>
-    <button class="pivot-tab" data-pivot="acctType">By Account Type</button>
-    <button class="pivot-tab" data-pivot="category">By Investment Category</button>
-    <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
-    <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
-    <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
-    <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
+<div class="pivot-tabs" style="margin-top:18px">
+  <button class="pivot-tab active" data-pivot="holdings">Holdings</button>
+  <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
+  <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
+  <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
+  <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
+  <button class="pivot-tab" data-pivot="snapshot">Snapshot Diff</button>
+</div>
+
+<div id="holdingsSubPivot" style="margin-bottom:14px">
+  <div class="sub-pivot-wrap">
+    <button class="sub-pivot-tab active" data-sub="acctName">By Account</button>
+    <button class="sub-pivot-tab" data-sub="acctType">By Account Type</button>
+    <button class="sub-pivot-tab" data-sub="category">By Investment Category</button>
   </div>
 </div>
 
@@ -406,7 +544,8 @@
 </div>
 
 <div class="footer">
-  Generated {{REPORT_DATE}}
+  Generated on {{REPORT_DATE}}<br>
+  Source: {{SOURCE_FILE}}
 </div>
 
 <script>
@@ -544,15 +683,7 @@ function _renderChart(cid){
     ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
   }
   svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'#7c3aed':'#64748b'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
-  /* Draw target ending balance line on Total Balance chart (index 0) */
-  if(activeIdx===0 && c.targetLine!==undefined){
-    const tVal=usePV?c.targetLinePV:c.targetLine;
-    const tY=yS(Math.max(0,tVal));
-    svg+=`<line x1="${P.l}" y1="${tY.toFixed(1)}" x2="${W-P.r}" y2="${tY.toFixed(1)}" stroke="#dc2626" stroke-width="2" stroke-dasharray="8,5"/>`;
-    const tLabel=tVal===0?'🎯 Target: $0':'🎯 Target: '+fK(tVal);
-    const labelY=tVal===0?tY-8:tY-6;
-    svg+=`<text x="${P.l+8}" y="${labelY.toFixed(1)}" font-size="11" fill="#dc2626" font-weight="700">${tLabel}</text>`;
-  }
+  /* Draw target ending balance line — REMOVED (redundant with the balance trajectory) */
   svg+=`</svg>`;
   document.getElementById(cid+'-container').innerHTML=svg;
   document.querySelectorAll('.'+cid+'-tab').forEach((b,i)=>{
@@ -887,7 +1018,7 @@ function computeCurrentAlloc(){
 
 function allocBar(items,total){
   let h='<div class="sugg-bar-track">';
-  items.forEach(i=>{const p=total>0?i.val/total*100:0;if(p>0.3)h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span></div>`;});
+  items.forEach(i=>{const p=total>0?i.val/total*100:0;if(p>0.3){const lbl=p>=5?`<span class="sugg-bar-inner">${p.toFixed(0)}%</span>`:'';h+=`<div class="sugg-bar-seg" style="width:${p}%;background:${i.color}"><span class="stip">${i.label}: ${p.toFixed(1)}%</span>${lbl}</div>`;}});
   h+='</div>';return h;
 }
 
@@ -1420,6 +1551,7 @@ function saveSettings(){
       if(el) s[f.id]=f.type==='checkbox'?el.checked:el.value;
     });
     s._activeTab=_activeTab;
+    s._activeSubPivot=_activeSubPivot;
     const phases=getSpendPhases();
     if(phases.length>0||document.getElementById('spendPhasesContainer')) s._spendPhases=phases;
     /* Save selected accounts */
@@ -1508,7 +1640,727 @@ function loadSettings(){
         onAcctSelChange();
       }
     }
+    /* Restore holdings sub-pivot */
+    if(s._activeSubPivot){
+      _activeSubPivot=s._activeSubPivot;
+      const subBtn=document.querySelector(`.sub-pivot-tab[data-sub="${_activeSubPivot}"]`);
+      if(subBtn){
+        document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+        subBtn.classList.add('active');
+      }
+    }
   }catch(e){}
+}
+
+/* ---- Settings File Export / Import ---- */
+function exportSettingsToFile(){
+  /* Ensure current DOM state is flushed to localStorage first */
+  saveSettings();
+  const raw=localStorage.getItem(SETTINGS_KEY);
+  const data=raw?JSON.parse(raw):{};
+  data._exportedAt=new Date().toISOString();
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  const ts=new Date().toISOString().replace(/[:T]/g,'-').replace(/\..*/,'');
+  a.download=`portfolio-settings-${ts}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function importSettingsFromFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    try{
+      const data=JSON.parse(e.target.result);
+      if(typeof data!=='object'||data===null) throw new Error('Invalid settings file');
+      /* Write to localStorage */
+      localStorage.setItem(SETTINGS_KEY,JSON.stringify(data));
+      /* Apply to current UI */
+      loadSettings();
+      /* Re-render current tab to pick up restored settings */
+      const activeBtn=document.querySelector('.pivot-tab.active');
+      if(activeBtn) activeBtn.click();
+    }catch(err){
+      alert('Failed to load settings: '+err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* Wire up gear menu */
+document.addEventListener('DOMContentLoaded',function(){
+  const gearBtn=document.getElementById('settingsGearBtn');
+  const dropdown=document.getElementById('settingsDropdown');
+  const saveBtn=document.getElementById('saveSettingsBtn');
+  const loadBtn=document.getElementById('loadSettingsBtn');
+  const fileInput=document.getElementById('settingsFileInput');
+
+  if(gearBtn&&dropdown){
+    gearBtn.addEventListener('click',function(e){
+      e.stopPropagation();
+      dropdown.classList.toggle('open');
+    });
+    document.addEventListener('click',function(){ dropdown.classList.remove('open'); });
+    dropdown.addEventListener('click',function(e){ e.stopPropagation(); });
+  }
+  if(saveBtn) saveBtn.addEventListener('click',function(){
+    dropdown.classList.remove('open');
+    exportSettingsToFile();
+  });
+  if(loadBtn) loadBtn.addEventListener('click',function(){
+    dropdown.classList.remove('open');
+    fileInput.click();
+  });
+  if(fileInput) fileInput.addEventListener('change',function(){
+    if(fileInput.files.length>0){
+      importSettingsFromFile(fileInput.files[0]);
+      fileInput.value=''; /* reset so same file can be re-selected */
+    }
+  });
+});
+
+/* ==== Snapshot Diff ==== */
+const SD_STORAGE_KEY='portfolioSnapshotCSV';
+
+/* --- CSV Parser (RFC 4180 compliant) --- */
+function _sdParseCSVLine(line){
+  const result=[];let cur='',inQ=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(inQ){
+      if(ch==='"'&&line[i+1]==='"'){cur+='"';i++;}
+      else if(ch==='"') inQ=false;
+      else cur+=ch;
+    } else {
+      if(ch==='"') inQ=true;
+      else if(ch===','){result.push(cur);cur='';}
+      else cur+=ch;
+    }
+  }
+  result.push(cur);
+  return result;
+}
+
+function _sdParseCSVText(text){
+  const lines=text.split(/\r?\n/);
+  if(lines.length<2) return [];
+  const headers=_sdParseCSVLine(lines[0]);
+  const rows=[];
+  for(let i=1;i<lines.length;i++){
+    const line=lines[i].trim();
+    if(!line) continue;
+    const vals=_sdParseCSVLine(line);
+    if(vals.length<headers.length) continue;
+    const row={};
+    headers.forEach((h,idx)=>{ row[h.trim()]=vals[idx]||''; });
+    rows.push(row);
+  }
+  return rows;
+}
+
+function _sdParseCurrency(str){
+  if(!str) return null;
+  str=str.trim();
+  if(!str||str==='N/A'||str==='n/a'||str==='--') return null;
+  const neg=/^\(/.test(str)||/^-/.test(str)||/^\$-/.test(str)||/^-\$/.test(str);
+  const v=parseFloat(str.replace(/[$,() +\-]/g,''));
+  if(isNaN(v)) return null;
+  return neg?-v:v;
+}
+
+/* Category classification — mirrors main.ps1 $CategoryMap.
+   Plan-specific symbols (e.g. 59515R401) may not exist in your portfolio;
+   unknown symbols fall through to heuristic classification. */
+const _SD_CAT_MAP={
+  'FXAIX':'US Index Funds','FSKAX':'US Index Funds','SCHD':'US Index Funds',
+  'FTIHX':'International Funds','FZILX':'International Funds','VFWSX':'International Funds',
+  'FXNAX':'Bond Funds','FSPTX':'Tech Sector Fund',
+  'TQQQ':'Growth / Leveraged ETFs','VOOG':'Growth / Leveraged ETFs','PBW':'Growth / Leveraged ETFs',
+  'SPAXX**':'Cash / Money Market','FDRXX**':'Cash / Money Market','CORE**':'Cash / Money Market','FZDXX':'Cash / Money Market',
+  'NHFSMKX98':'US Index Funds','59515R401':'US Index Funds','31617E471':'US Index Funds',
+  'INTL GROWTH ACCOUNT':'International Funds','SMID CAP GROWTH ACCT':'US Index Funds',
+  'Various':'Unspecified'
+};
+function _sdClassify(sym,desc){
+  if(_SD_CAT_MAP[sym]) return _SD_CAT_MAP[sym];
+  if(/^BROKERAGELINK/i.test(sym)) return 'Cash / Money Market';
+  if(/certificate.of.deposit|^CD\b|\bCD$|brokered\s*cd/i.test(desc||'')) return 'Cash / Money Market';
+  if(/^[A-Z]{1,5}$/.test(sym)&&!/\*/.test(sym)) return 'Individual Stocks';
+  return 'Other';
+}
+
+/* Account type inference — mirrors main.ps1 Get-AccountType */
+function _sdInferAcctType(name){
+  const n=(name||'').trim();
+  if(/roth/i.test(n)) return 'Roth';
+  if(/health\s*savings|^HSA/i.test(n)) return 'HSA';
+  if(/college\s*savings|529/i.test(n)) return '529 College Savings';
+  if(/UTMA|Uniform\s*Transfers?\s*to\s*Minor/i.test(n)) return 'Custodial (UTMA)';
+  if(/403\s*\(?b\)?/i.test(n)) return 'Tax-Deferred 403(b)';
+  if(/457\s*\(?b\)?/i.test(n)) return 'Tax-Deferred 457(b)';
+  if(/\bTSP\b|thrift\s*savings/i.test(n)) return 'Tax-Deferred TSP';
+  if(/401[Kk]/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/brokeragelink/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/DCP|deferred\s*comp/i.test(n)) return 'Tax-Deferred DCP';
+  if(/rollover\s*ira|traditional\s*ira|sep\s*ira|simple\s*ira/i.test(n)) return 'Tax-Deferred IRA';
+  if(/self.employed\s*401/i.test(n)) return 'Tax-Deferred 401(k)';
+  if(/\bira\b/i.test(n)) return 'Tax-Deferred IRA';
+  if(/individual|joint|wros|trust|living\s*trust|revocable/i.test(n)) return 'Taxable Investment';
+  return 'Other';
+}
+
+/* Parse a Fidelity CSV export text into {holdings[], total} */
+function sdParseFidelityCSV(text){
+  const rows=_sdParseCSVText(text);
+  if(!rows.length) return {holdings:[],total:0};
+  const hasAcctType=Object.prototype.hasOwnProperty.call(rows[0],'Account Type');
+  const map=new Map();
+  for(const row of rows){
+    let sym=(row['Symbol']||'').trim();
+    const acctNum=(row['Account Number']||'').trim();
+    const acctName=(row['Account Name']||'').trim();
+    const desc=(row['Description']||'').trim();
+    const valStr=(row['Current Value']||'').trim();
+    if(!acctNum||!valStr||valStr==='N/A'||valStr==='n/a'||valStr==='--') continue;
+    if(!sym&&!desc) continue;
+    if(/pending\s*activity/i.test(desc)||/pending\s*activity/i.test(sym)) continue;
+    if(/(401K|403B|457B?|TSP)\s*PLAN$/i.test(acctName)&&/BROKERAGELINK/i.test(desc)) continue;
+    const val=_sdParseCurrency(valStr);
+    if(val===null) continue;
+    if(!sym) sym=desc;
+    const acctType=hasAcctType?((row['Account Type']||'').trim()||_sdInferAcctType(acctName)):_sdInferAcctType(acctName);
+    const gl=_sdParseCurrency(row['Total Gain/Loss Dollar']);
+    const cb=_sdParseCurrency(row['Cost Basis Total']);
+    const cat=_sdClassify(sym,desc);
+    const key=acctNum+'|'+sym;
+    if(map.has(key)){
+      const e=map.get(key);
+      e.value+=val;
+      if(e.gainLoss!==null&&gl!==null) e.gainLoss+=gl;
+      else if(gl!==null) e.gainLoss=gl;
+      if(e.costBasis!==null&&cb!==null) e.costBasis+=cb;
+      else if(cb!==null) e.costBasis=cb;
+    } else {
+      map.set(key,{accountNumber:acctNum,accountName:acctName,accountType:acctType,
+        symbol:sym,description:desc,value:val,category:cat,gainLoss:gl,costBasis:cb});
+    }
+  }
+  const holdings=Array.from(map.values());
+  holdings.forEach(h=>{
+    h.gainLossPct=(h.costBasis&&h.costBasis>0&&h.gainLoss!==null)?Math.round(h.gainLoss/h.costBasis*10000)/100:null;
+  });
+  return {holdings,total:holdings.reduce((s,h)=>s+h.value,0)};
+}
+
+/* Flatten the baked-in DATA into the same format for comparison */
+function sdFlattenCurrentData(){
+  const holdings=[];
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      a.tickers.forEach(t=>{
+        holdings.push({accountNumber:a.num,accountName:a.name,accountType:a.type,
+          symbol:t.sym,description:t.name,value:t.val,category:d.cat,
+          gainLoss:t.gl,gainLossPct:t.glPct,costBasis:t.cb});
+      });
+    });
+  });
+  return {holdings,total:GRAND};
+}
+
+/* Compute the full diff between two parsed snapshots */
+function sdComputeDiff(before,after){
+  const bMap=new Map(),aMap=new Map();
+  before.holdings.forEach(h=>bMap.set(h.accountNumber+'|'+h.symbol,h));
+  after.holdings.forEach(h=>aMap.set(h.accountNumber+'|'+h.symbol,h));
+
+  const newPos=[],closedPos=[],changed=[];
+  aMap.forEach((aH,key)=>{
+    if(!bMap.has(key)){newPos.push(aH);}
+    else{
+      const bH=bMap.get(key);
+      const chg=aH.value-bH.value;
+      const chgPct=bH.value!==0?(chg/Math.abs(bH.value)*100):(chg!==0?100:0);
+      changed.push({...aH,beforeValue:bH.value,change:chg,changePct:chgPct,
+        beforeGainLoss:bH.gainLoss,beforeCostBasis:bH.costBasis});
+    }
+  });
+  bMap.forEach((bH,key)=>{if(!aMap.has(key)) closedPos.push(bH);});
+
+  /* Category-level diff */
+  const bByCat={},aByCat={};
+  before.holdings.forEach(h=>{bByCat[h.category]=(bByCat[h.category]||0)+h.value;});
+  after.holdings.forEach(h=>{aByCat[h.category]=(aByCat[h.category]||0)+h.value;});
+  const allCats=new Set([...Object.keys(bByCat),...Object.keys(aByCat)]);
+  const catDiff=[];
+  allCats.forEach(cat=>{
+    const bv=bByCat[cat]||0,av=aByCat[cat]||0;
+    const bPct=before.total>0?bv/before.total*100:0;
+    const aPct=after.total>0?av/after.total*100:0;
+    catDiff.push({category:cat,beforeValue:bv,afterValue:av,beforePct:bPct,afterPct:aPct,
+      change:av-bv,drift:aPct-bPct});
+  });
+  catDiff.sort((a,b)=>Math.abs(b.drift)-Math.abs(a.drift));
+
+  /* Account-level diff */
+  const bByAcct={},aByAcct={};
+  before.holdings.forEach(h=>{
+    if(!bByAcct[h.accountNumber]) bByAcct[h.accountNumber]={name:h.accountName,type:h.accountType,value:0};
+    bByAcct[h.accountNumber].value+=h.value;
+  });
+  after.holdings.forEach(h=>{
+    if(!aByAcct[h.accountNumber]) aByAcct[h.accountNumber]={name:h.accountName,type:h.accountType,value:0};
+    aByAcct[h.accountNumber].value+=h.value;
+  });
+  const allAccts=new Set([...Object.keys(bByAcct),...Object.keys(aByAcct)]);
+  const acctDiff=[];
+  allAccts.forEach(num=>{
+    const b=bByAcct[num]||{name:'',type:'',value:0};
+    const a=aByAcct[num]||{name:'',type:'',value:0};
+    acctDiff.push({accountNumber:num,accountName:a.name||b.name,accountType:a.type||b.type,
+      beforeValue:b.value,afterValue:a.value,change:a.value-b.value,
+      changePct:b.value!==0?((a.value-b.value)/Math.abs(b.value)*100):(a.value!==0?100:0)});
+  });
+  acctDiff.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  /* Build hierarchical data: Category → Account → Holdings (mirrors renderCards pattern) */
+  /* Merge ALL holdings (new, closed, changed) into one unified list with status flags */
+  const allHoldings=[];
+  newPos.forEach(h=>allHoldings.push({...h,status:'new',beforeValue:0,change:h.value,changePct:100}));
+  closedPos.forEach(h=>allHoldings.push({...h,status:'closed',afterValue:0,change:-h.value,changePct:-100,
+    value:0,beforeValue:h.value}));
+  changed.forEach(h=>allHoldings.push({...h,status:'changed'}));
+
+  /* Group by category, then by account within category */
+  const catMap=new Map();
+  allHoldings.forEach(h=>{
+    const cat=h.category||'Other';
+    if(!catMap.has(cat)) catMap.set(cat,new Map());
+    const acctMap=catMap.get(cat);
+    const acctKey=h.accountNumber;
+    if(!acctMap.has(acctKey)) acctMap.set(acctKey,{name:h.accountName,type:h.accountType,num:h.accountNumber,holdings:[]});
+    acctMap.get(acctKey).holdings.push(h);
+  });
+
+  const hierarchy=[];
+  catMap.forEach((acctMap,cat)=>{
+    const accounts=[];
+    let catBefore=0,catAfter=0,catNewCount=0,catClosedCount=0;
+    acctMap.forEach(acctData=>{
+      let acctBefore=0,acctAfter=0;
+      acctData.holdings.forEach(h=>{
+        acctBefore+=(h.beforeValue||0);
+        acctAfter+=(h.status==='closed'?0:h.value);
+      });
+      acctData.holdings.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+      accounts.push({...acctData,beforeValue:acctBefore,afterValue:acctAfter,
+        change:acctAfter-acctBefore});
+      catBefore+=acctBefore;catAfter+=acctAfter;
+      acctData.holdings.forEach(h=>{
+        if(h.status==='new') catNewCount++;
+        if(h.status==='closed') catClosedCount++;
+      });
+    });
+    accounts.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+    const bPct=before.total>0?catBefore/before.total*100:0;
+    const aPct=after.total>0?catAfter/after.total*100:0;
+    hierarchy.push({category:cat,accounts,beforeValue:catBefore,afterValue:catAfter,
+      change:catAfter-catBefore,beforePct:bPct,afterPct:aPct,drift:aPct-bPct,
+      newCount:catNewCount,closedCount:catClosedCount});
+  });
+  hierarchy.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  /* Build account-level hierarchy: Account → Holdings (for the Account Summary drilldown) */
+  const acctHierMap=new Map();
+  allHoldings.forEach(h=>{
+    const key=h.accountNumber;
+    if(!acctHierMap.has(key)) acctHierMap.set(key,{name:h.accountName,type:h.accountType,num:h.accountNumber,holdings:[]});
+    acctHierMap.get(key).holdings.push(h);
+  });
+  const accountHierarchy=[];
+  acctHierMap.forEach(acctData=>{
+    let bv=0,av=0,nc=0,cc=0;
+    acctData.holdings.forEach(h=>{
+      bv+=(h.beforeValue||0);
+      av+=(h.status==='closed'?0:h.value);
+      if(h.status==='new') nc++;
+      if(h.status==='closed') cc++;
+    });
+    acctData.holdings.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+    accountHierarchy.push({...acctData,beforeValue:bv,afterValue:av,
+      change:av-bv,changePct:bv!==0?((av-bv)/Math.abs(bv)*100):(av!==0?100:0),
+      newCount:nc,closedCount:cc});
+  });
+  accountHierarchy.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change));
+
+  return {
+    totalBefore:before.total,totalAfter:after.total,
+    totalChange:after.total-before.total,
+    totalChangePct:before.total>0?((after.total-before.total)/before.total*100):0,
+    newPositions:newPos.sort((a,b)=>b.value-a.value),
+    closedPositions:closedPos.sort((a,b)=>b.value-a.value),
+    changedPositions:changed.sort((a,b)=>Math.abs(b.change)-Math.abs(a.change)),
+    categoryDiff:catDiff,accountDiff:acctDiff,hierarchy,accountHierarchy
+  };
+}
+
+/* Extract date from Fidelity CSV filename */
+function sdExtractDate(filename){
+  const m=(filename||'').match(/(\w{3})-(\d{1,2})-(\d{4})/);
+  return m?m[1]+' '+m[2]+', '+m[3]:null;
+}
+
+/* Compute day span between two date strings like "Mar 12, 2026" */
+function sdDaySpan(d1,d2){
+  try{
+    const a=new Date(d1),b=new Date(d2);
+    if(isNaN(a)||isNaN(b)) return null;
+    return Math.round(Math.abs(b-a)/(1000*60*60*24));
+  }catch(e){return null;}
+}
+
+/* Helper: format change value with sign and color */
+function _sdFmtChg(v){
+  if(v==null) return '';
+  const cls=v>0?'sd-pos':v<0?'sd-neg':'';
+  const sign=v>0?'+':'';
+  return `<span class="${cls}">${sign}${fmt(v)}</span>`;
+}
+function _sdFmtChgPct(v){
+  if(v==null) return '';
+  const cls=v>0?'sd-pos':v<0?'sd-neg':'';
+  const sign=v>0?'+':'';
+  return `<span class="${cls}">${sign}${v.toFixed(2)}%</span>`;
+}
+
+/* ---------- Main render function ---------- */
+function renderSnapshotDiff(){
+  const el=document.getElementById('drilldown');
+  const allocEl=document.getElementById('allocOverview');
+  const insEl=document.querySelector('.insights');
+  allocEl.style.display='none';
+  if(insEl) insEl.style.display='none';
+
+  /* Check if we have a cached snapshot */
+  let cachedCSV=null,cachedName=null;
+  try{
+    const raw=localStorage.getItem(SD_STORAGE_KEY);
+    if(raw){const parsed=JSON.parse(raw);cachedCSV=parsed.csv;cachedName=parsed.name;}
+  }catch(e){}
+
+  if(!cachedCSV){
+    /* Show upload zone */
+    el.innerHTML=`
+      <div style="max-width:600px;margin:40px auto">
+        <div class="sd-upload-zone" id="sdUploadZone">
+          <div class="sd-upload-icon">&#128202;</div>
+          <div class="sd-upload-title">Upload a Previous Portfolio CSV</div>
+          <div class="sd-upload-sub">Drop a Fidelity <code>Portfolio_Positions_*.csv</code> file here, or click to browse.<br>
+            The current report will be compared against this earlier snapshot.</div>
+          <input type="file" id="sdFileInput" accept=".csv" style="display:none">
+        </div>
+      </div>`;
+    const zone=document.getElementById('sdUploadZone');
+    const inp=document.getElementById('sdFileInput');
+    zone.addEventListener('click',()=>inp.click());
+    zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('dragover');});
+    zone.addEventListener('dragleave',()=>zone.classList.remove('dragover'));
+    zone.addEventListener('drop',e=>{
+      e.preventDefault();zone.classList.remove('dragover');
+      if(e.dataTransfer.files.length>0) _sdHandleFile(e.dataTransfer.files[0]);
+    });
+    inp.addEventListener('change',()=>{if(inp.files.length>0) _sdHandleFile(inp.files[0]);});
+    return;
+  }
+
+  /* We have CSV data — parse and render diff */
+  _sdRenderResults(cachedCSV,cachedName);
+}
+
+function _sdHandleFile(file){
+  const reader=new FileReader();
+  reader.onload=function(e){
+    const text=e.target.result;
+    /* Validate it looks like a Fidelity CSV */
+    const firstLine=(text.split(/\r?\n/)[0]||'');
+    if(!/Account Number/i.test(firstLine)||!/Current Value/i.test(firstLine)){
+      alert('This does not appear to be a Fidelity Portfolio Positions CSV.\nExpected columns: Account Number, Current Value, Symbol, etc.');
+      return;
+    }
+    /* Store in localStorage */
+    try{
+      localStorage.setItem(SD_STORAGE_KEY,JSON.stringify({csv:text,name:file.name}));
+    }catch(err){
+      alert('File too large to store in browser storage. Try a smaller CSV.');
+      return;
+    }
+    _sdRenderResults(text,file.name);
+  };
+  reader.readAsText(file);
+}
+
+function _sdRenderResults(csvText,fileName){
+  const el=document.getElementById('drilldown');
+  const before=sdParseFidelityCSV(csvText);
+  const after=sdFlattenCurrentData();
+
+  if(before.holdings.length===0){
+    el.innerHTML='<div style="padding:40px;text-align:center;color:var(--text-muted)">No valid holdings found in the uploaded CSV.</div>';
+    return;
+  }
+
+  const diff=sdComputeDiff(before,after);
+  const beforeDate=sdExtractDate(fileName)||'Previous';
+  const currentDateEl=document.querySelector('.header .subtitle');
+  let currentDate='Current';
+  if(currentDateEl){
+    const dm=currentDateEl.textContent.match(/·\s*([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
+    if(dm) currentDate=dm[1].replace(',','');
+  }
+  const days=sdDaySpan(beforeDate,currentDate);
+  const chgCls=diff.totalChange>=0?'sd-pos':'sd-neg';
+  const chgBgCls=diff.totalChange>=0?'sd-pos-bg':'sd-neg-bg';
+
+  let html='';
+
+  /* Toolbar */
+  html+=`<div class="sd-toolbar">
+    <div style="font-size:0.85em;color:var(--text-muted)">Comparing <strong>${esc(fileName)}</strong> against current report</div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="sd-clear-btn" onclick="_sdClear()">✕ Clear Comparison</button>
+      <button class="export-pdf-btn" onclick="exportTabToPDF('snapshot')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button>
+    </div>
+  </div>`;
+
+  /* Get current report source filename from footer */
+  let currentFileName='Current Report';
+  const footerEl=document.querySelector('.footer');
+  if(footerEl){
+    const srcMatch=footerEl.textContent.match(/Source:\s*(.+)/);
+    if(srcMatch) currentFileName=srcMatch[1].trim();
+  }
+
+  /* ① Summary Banner */
+  html+=`<div class="sd-summary">
+    <div class="sd-snap-card">
+      <div class="sd-snap-label">Previous Snapshot</div>
+      <div class="sd-snap-date">${esc(beforeDate)}</div>
+      <div class="sd-snap-total">${fmt(diff.totalBefore)}</div>
+      <div style="font-size:0.82em;color:var(--text-muted);margin-top:4px">${before.holdings.length} holdings</div>
+      <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;word-break:break-all" title="${esc(fileName)}">${esc(fileName)}</div>
+    </div>
+    <div class="sd-arrow">→</div>
+    <div class="sd-snap-card">
+      <div class="sd-snap-label">Current Report</div>
+      <div class="sd-snap-date">${esc(currentDate)}</div>
+      <div class="sd-snap-total">${fmt(diff.totalAfter)}</div>
+      <div style="font-size:0.82em;color:var(--text-muted);margin-top:4px">${after.holdings.length} holdings</div>
+      <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;word-break:break-all" title="${esc(currentFileName)}">${esc(currentFileName)}</div>
+    </div>
+  </div>`;
+
+  /* Change banner */
+  html+=`<div class="sd-change-banner">
+    <div class="sd-change-val ${chgCls}">${diff.totalChange>=0?'+':''}${fmt(diff.totalChange)}</div>
+    <div class="sd-change-pct ${chgBgCls}">${diff.totalChangePct>=0?'+':''}${diff.totalChangePct.toFixed(2)}%</div>
+    ${days!==null?`<div class="sd-change-days">${days} day${days!==1?'s':''} between snapshots</div>`:''}
+  </div>`;
+
+  /* ② Allocation Drift — dual stacked bars */
+  html+=`<div style="background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 22px;margin-bottom:24px;box-shadow:var(--shadow)">
+    <div style="font-weight:700;font-size:0.95em;margin-bottom:12px">Allocation Drift</div>
+    <div style="margin-bottom:16px">
+      <div style="font-size:0.78em;color:var(--text-muted);margin-bottom:3px;font-weight:600">BEFORE</div>
+      <div class="sd-drift-row">`;
+  diff.categoryDiff.forEach(c=>{
+    if(c.beforePct<0.3) return;
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    const label=c.beforePct>=5?`<span class="sd-drift-label">${c.beforePct.toFixed(1)}%</span>`:'';
+    html+=`<div class="sd-drift-seg" style="width:${c.beforePct.toFixed(2)}%;background:${color}" title="${esc(c.category)}: ${c.beforePct.toFixed(1)}%">${label}</div>`;
+  });
+  html+=`</div>
+      <div style="font-size:0.78em;color:var(--text-muted);margin:8px 0 3px 0;font-weight:600">AFTER</div>
+      <div class="sd-drift-row">`;
+  diff.categoryDiff.forEach(c=>{
+    if(c.afterPct<0.3) return;
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    const label=c.afterPct>=5?`<span class="sd-drift-label">${c.afterPct.toFixed(1)}%</span>`:'';
+    html+=`<div class="sd-drift-seg" style="width:${c.afterPct.toFixed(2)}%;background:${color}" title="${esc(c.category)}: ${c.afterPct.toFixed(1)}%">${label}</div>`;
+  });
+  html+=`</div>
+      <div class="sd-drift-legend" style="margin-top:8px;flex-wrap:wrap;gap:12px">`;
+  diff.categoryDiff.forEach(c=>{
+    const color=CATEGORY_COLORS[c.category]||'#a3a3a3';
+    html+=`<span style="display:inline-flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:${color};display:inline-block"></span>${esc(c.category)}</span>`;
+  });
+  html+=`</div></div></div>`;
+
+  /* ③ Section divider — By Category */
+  html+=`<div class="sd-divider">
+    <div class="sd-divider-icon" style="background:#2563eb">📂</div>
+    <div class="sd-divider-text">
+      <div class="sd-divider-title">By Category</div>
+      <div class="sd-divider-sub">Holdings grouped by investment category, then by account</div>
+    </div>
+  </div>`;
+
+  /* Drilldown Cards — Category → Account → Holdings */
+  diff.hierarchy.forEach((cat,ci)=>{
+    const color=CATEGORY_COLORS[cat.category]||'#a3a3a3';
+    const chg=cat.change;
+    const driftAbs=Math.abs(cat.drift);
+    const warn=driftAbs>=2?' <span class="sd-badge-warn">⚠ '+cat.drift.toFixed(1)+'%</span>':'';
+    /* Build badges for new/closed counts */
+    let badges='';
+    if(cat.newCount>0) badges+=` <span class="sd-badge-new">+${cat.newCount} new</span>`;
+    if(cat.closedCount>0) badges+=` <span class="sd-badge-closed">${cat.closedCount} closed</span>`;
+
+    /* Account rows inside this category */
+    let acctHtml='';
+    cat.accounts.forEach((acct,ai)=>{
+      const ac=ACCT_TYPE_COLORS[acct.type]||'#64748b';
+      /* Ticker rows inside this account */
+      let tickerHtml='';
+      acct.holdings.forEach(h=>{
+        let statusBadge='';
+        if(h.status==='new') statusBadge='<span class="sd-badge-new" style="margin-left:6px">NEW</span>';
+        else if(h.status==='closed') statusBadge='<span class="sd-badge-closed" style="margin-left:6px">CLOSED</span>';
+        const symDisplay=ylink(h.symbol)+statusBadge;
+        const bVal=h.status==='new'?'—':fmt(h.beforeValue);
+        const aVal=h.status==='closed'?'—':fmt(h.value);
+        const chgVal=_sdFmtChg(h.change);
+        const pctVal=(h.status==='new'||h.status==='closed')?'':_sdFmtChgPct(h.changePct);
+        tickerHtml+=`<div class="sd-ticker-row">
+          <span class="sd-ticker-sym">${symDisplay}</span>
+          <span class="sd-ticker-name">${esc(h.description)}</span>
+          <span class="sd-ticker-val sd-ticker-before">${bVal}</span>
+          <span class="sd-ticker-val sd-ticker-after">${aVal}</span>
+          <span class="sd-ticker-val sd-ticker-chg">${chgVal}</span>
+          <span class="sd-ticker-val sd-ticker-pct">${pctVal}</span>
+        </div>`;
+      });
+
+      const acctChg=acct.change;
+      acctHtml+=`
+        <div class="acct-row" onclick="toggleAcct(this,event)" data-id="sd${ci}a${ai}">
+          <div class="acct-icon" style="background:${ac}">${(acct.type||'O').charAt(0)}</div>
+          <div class="acct-info">
+            <div class="acct-name">${esc(acct.name)} <span class="badge ${BADGE_CLS[acct.type]||''}">${esc(acct.type)}</span></div>
+            <div class="acct-num">${acct.num?'#'+esc(acct.num):''} · ${acct.holdings.length} holding${acct.holdings.length!==1?'s':''}</div>
+          </div>
+          <div class="acct-value">
+            <div class="amount">${_sdFmtChg(acctChg)}</div>
+            <div class="pct">${fmt(acct.beforeValue)} → ${fmt(acct.afterValue)}</div>
+          </div>
+          <div class="acct-chevron">&#9654;</div>
+        </div>
+        <div class="ticker-body" id="tb-sd${ci}a${ai}">
+          <div class="sd-ticker-header">
+            <span class="sd-ticker-sym" style="font-weight:600;color:var(--text-muted)">Symbol</span>
+            <span class="sd-ticker-name" style="font-weight:600;color:var(--text-muted)">Description</span>
+            <span class="sd-ticker-val sd-ticker-before" style="font-weight:600;color:var(--text-muted)">Before</span>
+            <span class="sd-ticker-val sd-ticker-after" style="font-weight:600;color:var(--text-muted)">After</span>
+            <span class="sd-ticker-val sd-ticker-chg" style="font-weight:600;color:var(--text-muted)">Change</span>
+            <span class="sd-ticker-val sd-ticker-pct" style="font-weight:600;color:var(--text-muted)">%</span>
+          </div>
+          ${tickerHtml}
+        </div>`;
+    });
+
+    html+=`
+      <div class="category-card">
+        <div class="cat-header" onclick="toggleCat(this)">
+          <div class="cat-color" style="background:${color}"></div>
+          <div class="cat-info">
+            <div class="cat-name">${esc(cat.category)}${badges}${warn}</div>
+            <div class="cat-meta">${cat.accounts.length} account${cat.accounts.length!==1?'s':''} · Alloc ${cat.beforePct.toFixed(1)}% → ${cat.afterPct.toFixed(1)}%</div>
+          </div>
+          <div class="cat-value">
+            <div class="amount">${_sdFmtChg(chg)}</div>
+            <div class="pct">${fmt(cat.beforeValue)} → ${fmt(cat.afterValue)}</div>
+          </div>
+          <div class="cat-chevron">&#9654;</div>
+        </div>
+        <div class="cat-body">${acctHtml}</div>
+      </div>`;
+  });
+
+  /* ④ Section divider — By Account */
+  if(diff.accountHierarchy.length>0){
+    html+=`<div class="sd-divider">
+      <div class="sd-divider-icon" style="background:#6366f1">🏦</div>
+      <div class="sd-divider-text">
+        <div class="sd-divider-title">By Account</div>
+        <div class="sd-divider-sub">Holdings grouped by brokerage account</div>
+      </div>
+    </div>`;
+    diff.accountHierarchy.forEach((acct,ai)=>{
+      const ac=ACCT_TYPE_COLORS[acct.type]||'#64748b';
+      let badges='';
+      if(acct.newCount>0) badges+=` <span class="sd-badge-new">+${acct.newCount} new</span>`;
+      if(acct.closedCount>0) badges+=` <span class="sd-badge-closed">${acct.closedCount} closed</span>`;
+
+      let tickerHtml='';
+      acct.holdings.forEach(h=>{
+        let statusBadge='';
+        if(h.status==='new') statusBadge='<span class="sd-badge-new" style="margin-left:6px">NEW</span>';
+        else if(h.status==='closed') statusBadge='<span class="sd-badge-closed" style="margin-left:6px">CLOSED</span>';
+        const symDisplay=ylink(h.symbol)+statusBadge;
+        const bVal=h.status==='new'?'—':fmt(h.beforeValue);
+        const aVal=h.status==='closed'?'—':fmt(h.value);
+        const chgVal=_sdFmtChg(h.change);
+        const pctVal=(h.status==='new'||h.status==='closed')?'':_sdFmtChgPct(h.changePct);
+        const catColor=CATEGORY_COLORS[h.category]||'#a3a3a3';
+        tickerHtml+=`<div class="sd-ticker-row">
+          <span class="sd-ticker-sym">${symDisplay}</span>
+          <span class="sd-ticker-name">${esc(h.description)}</span>
+          <span class="sd-ticker-cat"><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:${catColor};margin-right:4px;vertical-align:middle"></span>${esc(h.category)}</span>
+          <span class="sd-ticker-val sd-ticker-before">${bVal}</span>
+          <span class="sd-ticker-val sd-ticker-after">${aVal}</span>
+          <span class="sd-ticker-val sd-ticker-chg">${chgVal}</span>
+          <span class="sd-ticker-val sd-ticker-pct">${pctVal}</span>
+        </div>`;
+      });
+
+      html+=`
+        <div class="category-card">
+          <div class="cat-header" onclick="toggleCat(this)">
+            <div class="cat-color" style="background:${ac}"></div>
+            <div class="cat-info">
+              <div class="cat-name">${esc(acct.name)}${badges}</div>
+              <div class="cat-meta">${acct.num?'#'+esc(acct.num)+' · ':''}<span class="badge ${BADGE_CLS[acct.type]||''}">${esc(acct.type)}</span> · ${acct.holdings.length} holding${acct.holdings.length!==1?'s':''}</div>
+            </div>
+            <div class="cat-value">
+              <div class="amount">${_sdFmtChg(acct.change)}</div>
+              <div class="pct">${fmt(acct.beforeValue)} → ${fmt(acct.afterValue)}</div>
+            </div>
+            <div class="cat-chevron">&#9654;</div>
+          </div>
+          <div class="cat-body" style="padding:8px 16px">
+            <div class="sd-ticker-header sd-ticker-header-acct">
+              <span class="sd-ticker-sym" style="font-weight:600;color:var(--text-muted)">Symbol</span>
+              <span class="sd-ticker-name" style="font-weight:600;color:var(--text-muted)">Description</span>
+              <span class="sd-ticker-cat" style="font-weight:600;color:var(--text-muted)">Category</span>
+              <span class="sd-ticker-val sd-ticker-before" style="font-weight:600;color:var(--text-muted)">Before</span>
+              <span class="sd-ticker-val sd-ticker-after" style="font-weight:600;color:var(--text-muted)">After</span>
+              <span class="sd-ticker-val sd-ticker-chg" style="font-weight:600;color:var(--text-muted)">Change</span>
+              <span class="sd-ticker-val sd-ticker-pct" style="font-weight:600;color:var(--text-muted)">%</span>
+            </div>
+            ${tickerHtml}
+          </div>
+        </div>`;
+    });
+  }
+
+  el.innerHTML=html;
+}
+
+function _sdClear(){
+  try{localStorage.removeItem(SD_STORAGE_KEY);}catch(e){}
+  renderSnapshotDiff();
 }
 
 /* ---- Spending Phases (age-based, tied to primary participant) ---- */
@@ -2287,6 +3139,12 @@ function computeWithdrawalPlan(){
   html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CA} Retirement Metrics Charts</div>`;
   html+=`<p class="wd-desc">Explore key retirement metrics over time. Toggle between Future Value (nominal dollars) and Present Value (today's purchasing power discounted at ${inflPct*100}% inflation).</p>`;
   const wdChartSeries=[
+    {type:'stacked',label:'Account Balances',stack:[
+      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
+      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
+      {key:'bRoth',label:'Roth',color:'#10b981'},
+      {key:'bHSA',label:'HSA',color:'#ec4899'},
+    ]},
     {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
     {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
     {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
@@ -2297,12 +3155,6 @@ function computeWithdrawalPlan(){
       {key:'deferredW',label:'Deferred',color:'#3b82f6'},
       {key:'rothW',label:'Roth',color:'#10b981'},
       {key:'hsaW',label:'HSA',color:'#ec4899'},
-    ]},
-    {type:'stacked',label:'Account Balances',stack:[
-      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
-      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
-      {key:'bRoth',label:'Roth',color:'#10b981'},
-      {key:'bHSA',label:'HSA',color:'#ec4899'},
     ]},
   ];
   if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
@@ -2970,16 +3822,17 @@ function renderTaxLoss(){
   const totalSavings=ordSavings+ltcgSavings;
   const carryover=Math.max(0,netLossAfterGains-ORD_OFFSET);
 
-  let html=`<div class="wd-panel" style="padding:24px">`;
+  let html=`<div style="text-align:right;margin:0 0 10px"><button class="export-pdf-btn" onclick="exportTabToPDF('taxloss')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button></div>`;
+  html+=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F4C9} Tax-Loss Harvesting Analysis</h2>`;
   html+=`<p style="color:#64748b;margin-bottom:20px">Identify unrealized losses in taxable accounts that can be harvested to reduce your tax bill. Only <strong>taxable accounts</strong> benefit from tax-loss harvesting — losses in tax-advantaged accounts (IRA, 401k, Roth) have no tax impact.</p>`;
 
-  // Summary cards
-  html+=`<div class="wd-summary-cards" style="margin-bottom:24px">`;
-  html+=`<div style="border-left:4px solid #dc2626"><div style="color:#64748b;font-size:0.8em">Harvestable Losses</div><div style="font-size:1.5em;font-weight:700;color:#dc2626">${fmt2(Math.abs(totalTaxableLoss))}</div><div style="color:#64748b;font-size:0.8em">${taxableLosses.length} positions in taxable accounts</div></div>`;
-  html+=`<div style="border-left:4px solid #16a34a"><div style="color:#64748b;font-size:0.8em">Unrealized Gains (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:#16a34a">${fmt2(totalTaxableGain)}</div><div style="color:#64748b;font-size:0.8em">${taxableGains.length} positions</div></div>`;
-  html+=`<div style="border-left:4px solid ${netTaxable>=0?'#16a34a':'#dc2626'}"><div style="color:#64748b;font-size:0.8em">Net Gain/Loss (Taxable)</div><div style="font-size:1.5em;font-weight:700;color:${netTaxable>=0?'#16a34a':'#dc2626'}">${netTaxable>=0?'+':''}${fmt2(netTaxable)}</div></div>`;
-  html+=`<div style="border-left:4px solid #2563eb"><div style="color:#64748b;font-size:0.8em">Est. Tax Savings</div><div style="font-size:1.5em;font-weight:700;color:#2563eb">${fmt2(totalSavings)}</div><div style="color:#64748b;font-size:0.8em">at ${(ORD_RATE*100)}% ord / ${(LTCG_RATE*100)}% LTCG</div></div>`;
+  // Summary metric cards
+  html+=`<div class="tl-metrics">`;
+  html+=`<div class="tl-metric red"><div class="tl-metric-label">Harvestable Losses</div><div class="tl-metric-value" style="color:#dc2626">${fmt2(Math.abs(totalTaxableLoss))}</div><div class="tl-metric-sub">${taxableLosses.length} positions in taxable accounts</div></div>`;
+  html+=`<div class="tl-metric green"><div class="tl-metric-label">Unrealized Gains (Taxable)</div><div class="tl-metric-value" style="color:#16a34a">${fmt2(totalTaxableGain)}</div><div class="tl-metric-sub">${taxableGains.length} positions</div></div>`;
+  html+=`<div class="tl-metric ${netTaxable>=0?'green':'red'}"><div class="tl-metric-label">Net Gain/Loss (Taxable)</div><div class="tl-metric-value" style="color:${netTaxable>=0?'#16a34a':'#dc2626'}">${netTaxable>=0?'+':''}${fmt2(netTaxable)}</div></div>`;
+  html+=`<div class="tl-metric blue"><div class="tl-metric-label">Est. Tax Savings</div><div class="tl-metric-value" style="color:#2563eb">${fmt2(totalSavings)}</div><div class="tl-metric-sub">at ${(ORD_RATE*100)}% ord / ${(LTCG_RATE*100)}% LTCG</div></div>`;
   html+=`</div>`;
 
   // Tax savings breakdown
@@ -4105,7 +4958,7 @@ function runScenarioComparison(){
     const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
     if(validResults.length>0){
       /* Global vs Individual chart control toggle */
-      const chartLabels=['Total Balance','Annual Taxes','After-Tax Income','Account Balances'];
+      const chartLabels=['Account Balances','Total Balance','Annual Taxes','After-Tax Income'];
       out+=`<h3 style="margin:24px 0 8px">\u{1F4CA} Chart Controls</h3>`;
       out+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">`;
       out+=`<button id="sc-global-btn" onclick="_scToggleGlobalCharts(true)" style="padding:4px 14px;border-radius:4px;border:1px solid #cbd5e1;font-size:0.82em;font-weight:600;cursor:pointer;background:#1e40af;color:white">Apply to All</button>`;
@@ -4128,15 +4981,15 @@ function runScenarioComparison(){
         const scYearsToRetire=r.retire-scAge;
         const scInflPct=r.infl/100;
         const scSeries=[
-          {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
-          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
           {type:'stacked',label:'Account Balances',stack:[
             {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
             {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
             {key:'bRoth',label:'Roth',color:'#10b981'},
             {key:'bHSA',label:'HSA',color:'#ec4899'},
           ]},
+          {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
         /* Add note when scenario came from spending suggestions */
@@ -4144,18 +4997,11 @@ function runScenarioComparison(){
           const isZero=r.endBal===0;
           out+=`<div style="background:${isZero?'#fef3c7':'#eff6ff'};border:1px solid ${isZero?'#f59e0b':'#93c5fd'};border-radius:6px;padding:8px 12px;margin-bottom:10px;font-size:0.82em;color:#374151">`;
           if(isZero) out+=`<strong>\u{1F3AF} Die with Zero:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated so your portfolio reaches $0 at age ${r.life} on the expected ${r.ret}% return path. Monte Carlo shows a ${r.mcSuccess.toFixed(0)}% chance of not running out of money before then.`;
-          else out+=`<strong>\u{1F3AF} Legacy Target:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated for ~${r.mcSuccess.toFixed(0)}% Monte Carlo confidence. The chart shows a deterministic ${r.ret}% fixed return path. The <span style="color:#dc2626;font-weight:600">dashed red line</span> shows your target ending balance.`;
+          else out+=`<strong>\u{1F3AF} Legacy Target:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated for ~${r.mcSuccess.toFixed(0)}% Monte Carlo confidence. The chart shows a deterministic ${r.ret}% fixed return path.`;
           out+=`</div>`;
         }
         const chartHtml=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
-        /* Set target line on chart registry for Total Balance chart */
-        if(r._fromSuggestions && r.endBal!==undefined){
-          const cReg=window._chartRegistry['sc-chart-'+ri];
-          if(cReg){
-            cReg.targetLine=r.endBal;
-            cReg.targetLinePV=r.endBal*r.pvFactor;
-          }
-        }
+        /* Target line registry removed — no longer drawn */
         /* Wrap the FV/PV + tabs controls in sc-per-chart-ctrl for global toggle */
         const containerIdx=chartHtml.indexOf('<div id="sc-chart-'+ri+'-label"');
         if(containerIdx>0){
@@ -4191,7 +5037,7 @@ const _tabCache={};
 const _renderedTabs=new Set();
 function _saveTab(key){
   /* Don't cache tabs with interactive elements — they break when restored via innerHTML */
-  if(key==='withdrawals'||key==='suggestions'||key==='taxloss'||key==='scenarios'||!_renderedTabs.has(key)) return;
+  if(key==='withdrawals'||key==='suggestions'||key==='taxloss'||key==='scenarios'||key==='snapshot'||key==='holdings'||!_renderedTabs.has(key)) return;
   _tabCache[key]={
     drill:document.getElementById('drilldown').innerHTML,
     alloc:document.getElementById('allocOverview').style.display,
@@ -4210,7 +5056,7 @@ function _restoreTab(key){
   document.getElementById('legend').innerHTML=c.legend;
   if(key==='withdrawals') document.querySelectorAll('#drilldown input, #drilldown select').forEach(el=>{el.addEventListener('change',saveSettings);el.addEventListener('input',saveSettings);});
 }
-let _activeTab='acctName';
+let _activeTab='holdings';
 
 document.querySelectorAll('.pivot-tab').forEach(btn=>{
   btn.addEventListener('click',()=>{
@@ -4222,6 +5068,9 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     btn.classList.add('active');
     const newTab=btn.dataset.pivot;
 
+    /* Show/hide sub-pivot bar */
+    document.getElementById('holdingsSubPivot').style.display=(newTab==='holdings')?'':'none';
+
     /* Restore or render */
     const insSwitch=document.querySelector('.insights');
     if(insSwitch) insSwitch.style.display='';
@@ -4229,16 +5078,35 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     if(_tabCache[newTab]){
       _restoreTab(newTab);
     } else {
-      if(newTab==='acctType') renderAcctTypePivot();
-      else if(newTab==='acctName') renderAcctNamePivot();
+      if(newTab==='holdings') _renderHoldingsSubPivot();
       else if(newTab==='suggestions') renderSuggestions();
       else if(newTab==='withdrawals') renderWithdrawals();
       else if(newTab==='taxloss') renderTaxLoss();
       else if(newTab==='scenarios') renderScenarios();
-      else renderCategoryPivot();
+      else if(newTab==='snapshot') renderSnapshotDiff();
     }
     _renderedTabs.add(newTab);
     _activeTab=newTab;
+    saveSettings();
+  });
+});
+
+/* ---- Holdings sub-pivot (By Account / By Account Type / By Investment Category) ---- */
+let _activeSubPivot='acctName';
+
+function _renderHoldingsSubPivot(sub){
+  if(sub) _activeSubPivot=sub;
+  if(_activeSubPivot==='acctType') renderAcctTypePivot();
+  else if(_activeSubPivot==='category') renderCategoryPivot();
+  else renderAcctNamePivot();
+}
+
+document.querySelectorAll('.sub-pivot-tab').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    _activeSubPivot=btn.dataset.sub;
+    _renderHoldingsSubPivot();
     saveSettings();
   });
 });
@@ -4249,20 +5117,29 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     const raw=localStorage.getItem(SETTINGS_KEY);
     if(raw){
       const s=JSON.parse(raw);
-      if(s._activeTab&&s._activeTab!=='acctName'){
-        const btn=document.querySelector(`.pivot-tab[data-pivot="${s._activeTab}"]`);
+      /* Restore sub-pivot choice */
+      if(s._activeSubPivot) _activeSubPivot=s._activeSubPivot;
+      const subBtn=document.querySelector(`.sub-pivot-tab[data-sub="${_activeSubPivot}"]`);
+      if(subBtn){
+        document.querySelectorAll('.sub-pivot-tab').forEach(b=>b.classList.remove('active'));
+        subBtn.classList.add('active');
+      }
+      /* Migrate legacy tab names to holdings */
+      let savedTab=s._activeTab;
+      if(savedTab==='acctName'||savedTab==='acctType'||savedTab==='category') savedTab='holdings';
+      if(savedTab&&savedTab!=='holdings'){
+        const btn=document.querySelector(`.pivot-tab[data-pivot="${savedTab}"]`);
         if(btn){
-          /* Render default tab first so _saveTab has content, then switch */
-          renderAcctNamePivot();
-          _renderedTabs.add('acctName');
+          _renderHoldingsSubPivot();
+          _renderedTabs.add('holdings');
           btn.click();
           return;
         }
       }
     }
   }catch(e){}
-  renderAcctNamePivot();
-  _renderedTabs.add('acctName');
+  _renderHoldingsSubPivot();
+  _renderedTabs.add('holdings');
 })();
 
 /* Auto-save on page close/refresh — ensures no input values are lost */

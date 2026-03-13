@@ -23,14 +23,23 @@ def get_account_type(name):
     if re.search(r'(?i)health\s*savings|^HSA', n):                   return 'HSA'
     if re.search(r'(?i)college\s*savings|529', n):                   return '529 College Savings'
     if re.search(r'(?i)UTMA|Uniform\s*Transfers?\s*to\s*Minor', n):  return 'Custodial (UTMA)'
-    if re.search(r'(?i)401[Kk]|brokeragelink', n):                   return 'Tax-Deferred 401(k)'
+    if re.search(r'(?i)403\s*\(?b\)?', n):                           return 'Tax-Deferred 403(b)'
+    if re.search(r'(?i)457\s*\(?b\)?', n):                           return 'Tax-Deferred 457(b)'
+    if re.search(r'(?i)\bTSP\b|thrift\s*savings', n):                return 'Tax-Deferred TSP'
+    if re.search(r'(?i)401[Kk]', n):                                 return 'Tax-Deferred 401(k)'
+    if re.search(r'(?i)brokeragelink', n):                           return 'Tax-Deferred 401(k)'
     if re.search(r'(?i)DCP|deferred\s*comp', n):                     return 'Tax-Deferred DCP'
-    if re.search(r'(?i)rollover\s*ira|traditional\s*ira', n):        return 'Tax-Deferred IRA'
+    if re.search(r'(?i)rollover\s*ira|traditional\s*ira|sep\s*ira|simple\s*ira', n): return 'Tax-Deferred IRA'
     if re.search(r'(?i)self.employed\s*401', n):                     return 'Tax-Deferred 401(k)'
-    if re.search(r'(?i)individual|joint|wros', n):                    return 'Taxable Investment'
+    if re.search(r'(?i)\bira\b', n):                                 return 'Tax-Deferred IRA'
+    if re.search(r'(?i)individual|joint|wros|trust|living\s*trust|revocable', n): return 'Taxable Investment'
     return 'Other'
 
 # --- Category mapping ---
+# NOTE: Entries below cover common Fidelity fund symbols. Plan-specific symbols
+# (e.g. 59515R401, 31617E471, NHFSMKX98) are employer-plan pooled funds that
+# may not exist in your portfolio — unknown symbols fall through to heuristic
+# classification (stocks, CDs, cash) so the report still works without them.
 CATEGORY_MAP = {
     'FXAIX':      ('US Index Funds',          'Fidelity 500 Index (S&P 500)'),
     'FSKAX':      ('US Index Funds',          'Fidelity Total Market Index'),
@@ -47,11 +56,11 @@ CATEGORY_MAP = {
     'FDRXX**':    ('Cash / Money Market',     'Fidelity Government Money Market'),
     'CORE**':     ('Cash / Money Market',     'FDIC-Insured Deposit Sweep'),
     'FZDXX':      ('Cash / Money Market',     'Fidelity Money Market Premium Class'),
-    'NHFSMKX98':  ('US Index Funds',          'NH Fidelity 500 Index (529)'),
-    '59515R401':  ('US Index Funds',          'Vanguard 500 Index Trust (401k)'),
-    '31617E471':  ('US Index Funds',          'Fidelity Growth Company Pool Cl S (401k)'),
-    'INTL GROWTH ACCOUNT': ('International Funds', 'International Growth Account (401k)'),
-    'SMID CAP GROWTH ACCT': ('US Index Funds',     'SMID Cap Growth Account (401k)'),
+    'NHFSMKX98':  ('US Index Funds',          'NH Fidelity 500 Index (529 plan-specific)'),
+    '59515R401':  ('US Index Funds',          'Vanguard 500 Index Trust (plan-specific)'),
+    '31617E471':  ('US Index Funds',          'Fidelity Growth Company Pool Cl S (plan-specific)'),
+    'INTL GROWTH ACCOUNT': ('International Funds', 'International Growth Account (plan-specific)'),
+    'SMID CAP GROWTH ACCT': ('US Index Funds',     'SMID Cap Growth Account (plan-specific)'),
     'Various':    ('Unspecified',              'Various / Unspecified'),
 }
 
@@ -207,7 +216,7 @@ def main():
             continue
 
         # Skip duplicate wrapper accounts
-        if re.search(r'(?i)401K\s*PLAN$', acct_name) and re.search(r'(?i)BROKERAGELINK', desc):
+        if re.search(r'(?i)(401K|403B|457B?|TSP)\s*PLAN$', acct_name) and re.search(r'(?i)BROKERAGELINK', desc):
             continue
 
         # Determine account type
@@ -351,6 +360,7 @@ def main():
     html = html.replace('{{DATA_JSON}}', js_data)
     html = html.replace('{{GRAND_TOTAL_NUM}}', str(round(grand_total, 2)))
     html = html.replace('{{SUGGESTIONS_JSON}}', sugg_json.replace('</script', '<\\/script'))
+    html = html.replace('{{SOURCE_FILE}}', os.path.basename(csv_path))
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)

@@ -134,15 +134,24 @@ function Get-AccountType([string]$name) {
     if ($n -match '(?i)health\s*savings|^HSA')                  { return 'HSA' }
     if ($n -match '(?i)college\s*savings|529')                  { return '529 College Savings' }
     if ($n -match '(?i)UTMA|Uniform\s*Transfers?\s*to\s*Minor') { return 'Custodial (UTMA)' }
-    if ($n -match '(?i)401[Kk]|brokeragelink')                  { return 'Tax-Deferred 401(k)' }
+    if ($n -match '(?i)403\s*\(?b\)?')                          { return 'Tax-Deferred 403(b)' }
+    if ($n -match '(?i)457\s*\(?b\)?')                          { return 'Tax-Deferred 457(b)' }
+    if ($n -match '(?i)\bTSP\b|thrift\s*savings')               { return 'Tax-Deferred TSP' }
+    if ($n -match '(?i)401[Kk]')                                { return 'Tax-Deferred 401(k)' }
+    if ($n -match '(?i)brokeragelink')                          { return 'Tax-Deferred 401(k)' }
     if ($n -match '(?i)DCP|deferred\s*comp')                    { return 'Tax-Deferred DCP' }
-    if ($n -match '(?i)rollover\s*ira|traditional\s*ira')       { return 'Tax-Deferred IRA' }
+    if ($n -match '(?i)rollover\s*ira|traditional\s*ira|sep\s*ira|simple\s*ira') { return 'Tax-Deferred IRA' }
     if ($n -match '(?i)self.employed\s*401')                    { return 'Tax-Deferred 401(k)' }
-    if ($n -match '(?i)individual|joint|wros')                     { return 'Taxable Investment' }
+    if ($n -match '(?i)\bira\b')                                { return 'Tax-Deferred IRA' }
+    if ($n -match '(?i)individual|joint|wros|trust|living\s*trust|revocable') { return 'Taxable Investment' }
     return 'Other'
 }
 
 # --- Category mapping ---
+# NOTE: Entries below cover common Fidelity fund symbols. Plan-specific symbols
+# (e.g. 59515R401, 31617E471, NHFSMKX98) are employer-plan pooled funds that
+# may not exist in your portfolio — unknown symbols fall through to heuristic
+# classification (stocks, CDs, cash) so the report still works without them.
 $CategoryMap = @{
     'FXAIX'      = @{ Category = 'US Index Funds';          Detail = 'Fidelity 500 Index (S&P 500)' }
     'FSKAX'      = @{ Category = 'US Index Funds';          Detail = 'Fidelity Total Market Index' }
@@ -159,11 +168,11 @@ $CategoryMap = @{
     'FDRXX**'    = @{ Category = 'Cash / Money Market';     Detail = 'Fidelity Government Money Market' }
     'CORE**'     = @{ Category = 'Cash / Money Market';     Detail = 'FDIC-Insured Deposit Sweep' }
     'FZDXX'      = @{ Category = 'Cash / Money Market';     Detail = 'Fidelity Money Market Premium Class' }
-    'NHFSMKX98'  = @{ Category = 'US Index Funds';          Detail = 'NH Fidelity 500 Index (529)' }
-    '59515R401'  = @{ Category = 'US Index Funds';          Detail = 'Vanguard 500 Index Trust (401k)' }
-    '31617E471'  = @{ Category = 'US Index Funds';          Detail = 'Fidelity Growth Company Pool Cl S (401k)' }
-    'INTL GROWTH ACCOUNT' = @{ Category = 'International Funds'; Detail = 'International Growth Account (401k)' }
-    'SMID CAP GROWTH ACCT' = @{ Category = 'US Index Funds';    Detail = 'SMID Cap Growth Account (401k)' }
+    'NHFSMKX98'  = @{ Category = 'US Index Funds';          Detail = 'NH Fidelity 500 Index (529 plan-specific)' }
+    '59515R401'  = @{ Category = 'US Index Funds';          Detail = 'Vanguard 500 Index Trust (plan-specific)' }
+    '31617E471'  = @{ Category = 'US Index Funds';          Detail = 'Fidelity Growth Company Pool Cl S (plan-specific)' }
+    'INTL GROWTH ACCOUNT' = @{ Category = 'International Funds'; Detail = 'International Growth Account (plan-specific)' }
+    'SMID CAP GROWTH ACCT' = @{ Category = 'US Index Funds';    Detail = 'SMID Cap Growth Account (plan-specific)' }
     'Various'    = @{ Category = 'Unspecified';              Detail = 'Various / Unspecified' }
 }
 
@@ -218,9 +227,9 @@ foreach ($row in $csvData) {
     # Skip non-holding rows (e.g. "Pending Activity")
     if ($desc -match '(?i)pending\s*activity' -or $sym -match '(?i)pending\s*activity') { continue }
 
-    # Skip duplicate wrapper accounts (e.g. MICROSOFT 401K PLAN whose holdings
+    # Skip duplicate wrapper accounts (e.g. employer workplace plan whose holdings
     # are already listed under the BrokerageLink sub-account)
-    if ($acctName -match '(?i)401K\s*PLAN$' -and $desc -match '(?i)BROKERAGELINK') { continue }
+    if ($acctName -match '(?i)(401K|403B|457B?|TSP)\s*PLAN$' -and $desc -match '(?i)BROKERAGELINK') { continue }
 
     # Determine account type: use CSV column if present, otherwise infer
     if ($hasAccountType) {
@@ -401,6 +410,7 @@ $html = $html.Replace('{{GRAND_TOTAL_SHORT}}', $totalShort)
 $html = $html.Replace('{{DATA_JSON}}', $jsData)
 $html = $html.Replace('{{GRAND_TOTAL_NUM}}', [math]::Round($grandTotal, 2).ToString())
 $html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson.Replace('</script', '<\/script'))
+$html = $html.Replace('{{SOURCE_FILE}}', (Split-Path $CsvPath -Leaf))
 
 $html | Out-File -FilePath $OutputPath -Encoding utf8
 Write-Host "Portfolio report generated: $OutputPath"
