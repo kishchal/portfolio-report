@@ -8,13 +8,16 @@
   :root {
     --bg: #f8f9fb; --bg-secondary: #f1f5f9; --card: #ffffff; --border: #e2e8f0; --text: #1e293b;
     --text-muted: #64748b; --primary: #1e40af; --primary-light: #dbeafe;
-    --accent: #059669; --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --accent: #059669;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
     --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
-    --radius: 10px;
+    --radius-sm: 6px; --radius: 10px; --radius-lg: 14px;
+    --sp-xs: 4px; --sp-sm: 8px; --sp-md: 16px; --sp-lg: 24px; --sp-xl: 32px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   html { overflow-y: scroll; }
-  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; background: var(--bg); color: var(--text); line-height: 1.6; }
+  body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif; font-size: 15px; background: var(--bg); color: var(--text); line-height: 1.6; }
 
   .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 20px 0; }
   .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
@@ -37,6 +40,16 @@
   .settings-dropdown-item:hover { background: var(--bg-secondary); }
   .settings-dropdown-item svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--text-muted); }
   .settings-dropdown-sep { height: 1px; background: var(--border); margin: 0; }
+
+  /* Toast notifications */
+  .toast-container { position: fixed; bottom: var(--sp-lg); right: var(--sp-lg); z-index: 9999; display: flex; flex-direction: column; gap: var(--sp-sm); pointer-events: none; }
+  .toast { pointer-events: auto; background: var(--text); color: #fff; padding: 12px 20px; border-radius: var(--radius-sm);
+    font-size: 0.88em; font-weight: 500; box-shadow: var(--shadow-lg); max-width: 360px;
+    animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards; }
+  .toast.toast-success { background: #059669; }
+  .toast.toast-error { background: #dc2626; }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateY(-8px); } }
 
   /* Snapshot Diff tab */
   .sd-upload-zone { border: 2px dashed var(--border); border-radius: var(--radius); padding: 48px 30px;
@@ -74,6 +87,8 @@
   .sd-tbl td { padding: 7px 10px; border-bottom: 1px solid #f1f5f9; }
   .sd-tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
   .sd-tbl tr:hover { background: #fafbfc; }
+  .sd-tbl tbody tr:nth-child(even) { background: #f8fafc; }
+  .sd-tbl tbody tr:nth-child(even):hover { background: #f1f5f9; }
   .sd-bar-cell { width: 120px; }
   .sd-drift-bar { height: 8px; border-radius: 4px; min-width: 2px; }
   .sd-badge-new { background: #ecfdf5; color: #059669; font-size: 0.78em; font-weight: 600; padding: 2px 7px; border-radius: 4px; }
@@ -110,14 +125,14 @@
   .sd-divider-title { font-weight: 700; font-size: 1.05em; color: var(--text); }
   .sd-divider-sub { font-size: 0.82em; color: var(--text-muted); margin-top: 1px; }
 
-  .container { max-width: 1600px; margin: 0 auto; padding: 30px; }
+  .container { max-width: 1600px; margin: 0 auto; padding: var(--sp-xl); }
 
   .alloc-bar-wrap { margin: 0 0 8px 0; }
   .alloc-bar { display: flex; height: 32px; border-radius: 6px; overflow: visible; box-shadow: var(--shadow); }
   .alloc-bar .seg { transition: opacity 0.2s; cursor: pointer; position: relative; }
   .alloc-bar .seg:hover { opacity: 0.85; }
   .alloc-bar .seg .tip { display: none; position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
-    background: #1e293b; color: white; padding: 5px 10px; border-radius: 5px; font-size: 0.75em; white-space: nowrap; z-index: 10; }
+    background: #1e293b; color: white; padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.75em; white-space: nowrap; z-index: 10; }
   .alloc-bar .seg:hover .tip { display: block; }
   .legend { display: flex; flex-wrap: wrap; gap: 16px; margin: 16px 0 30px 0; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.82em; color: var(--text-muted); }
@@ -127,12 +142,17 @@
 
   /* ---- Main tab bar — underline style ---- */
   .pivot-tabs { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 18px; border-bottom: 2px solid var(--border);
-    padding: 0; background: none; border-radius: 0; }
+    padding: 8px 0 0; background: var(--bg); border-radius: 0;
+    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow-sm); }
   .pivot-tab { position: relative; padding: 10px 22px 12px; font-size: 0.88em; font-weight: 600; cursor: pointer;
     border: none; background: transparent; color: var(--text-muted); transition: color 0.25s; letter-spacing: -0.01em; }
   .pivot-tab::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -2px; height: 2.5px;
     background: var(--primary); border-radius: 2px 2px 0 0; transform: scaleX(0); transition: transform 0.25s cubic-bezier(.4,0,.2,1); }
   .pivot-tab:hover { color: var(--text); }
+  .pivot-tab .tab-badge { display: inline-flex; align-items: center; justify-content: center; min-width: 18px; height: 18px;
+    padding: 0 5px; margin-left: 6px; border-radius: 9px; font-size: 0.72em; font-weight: 700; line-height: 1;
+    background: var(--primary-light); color: var(--primary); vertical-align: middle; }
+  .pivot-tab.active .tab-badge { background: var(--primary); color: #fff; }
   .pivot-tab:hover::after { transform: scaleX(0.5); background: #94a3b8; }
   .pivot-tab.active { color: var(--primary); }
   .pivot-tab.active::after { transform: scaleX(1); }
@@ -177,7 +197,7 @@
   .acct-value { text-align: right; }
   .acct-value .amount { font-weight: 600; font-size: 0.92em; }
   .acct-value .pct { font-size: 0.75em; color: var(--text-muted); }
-  .acct-chevron { font-size: 0.6em; color: #cbd5e1; transition: transform 0.25s ease; width: 16px; text-align: center; }
+  .acct-chevron { font-size: 0.7em; color: #cbd5e1; transition: transform 0.25s ease; width: 16px; text-align: center; }
   .acct-row.open .acct-chevron { transform: rotate(90deg); }
 
   .ticker-body { display: none; background: #f8fafc; }
@@ -232,6 +252,8 @@
   .sugg-tbl th:hover { background: #e2e8f0; }
   .sugg-tbl td { padding: 6px 9px; border-bottom: 1px solid #f1f5f9; }
   .sugg-tbl tr:hover { background: #fafbfc; }
+  .sugg-tbl tbody tr:nth-child(even) { background: #f8fafc; }
+  .sugg-tbl tbody tr:nth-child(even):hover { background: #f1f5f9; }
   .sugg-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
   .sugg-tbl .pos { color: #059669; } .sugg-tbl .neg { color: #dc2626; }
   .sugg-score { display: inline-block; min-width: 22px; padding: 1px 5px; border-radius: 4px; text-align: center; font-weight: 700; font-size: 0.85em; color: white; }
@@ -260,15 +282,15 @@
 
   /* Withdrawals tab */
   .wd-panel { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-    padding: 22px 26px; margin-bottom: 24px; box-shadow: var(--shadow); }
+    padding: var(--sp-lg) 26px; margin-bottom: var(--sp-lg); box-shadow: var(--shadow); }
   .wd-panel h3 { font-size: 1em; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .wd-inputs { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
   .wd-field { display: flex; flex-direction: column; gap: 4px; }
   .wd-field label { font-size: 0.78em; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .wd-field input, .wd-field select { width: 110px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 6px;
+  .wd-field input, .wd-field select { width: 110px; padding: 7px 10px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     font-size: 0.9em; background: #f8fafc; }
   .wd-field input:focus, .wd-field select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary-light); }
-  .wd-btn { padding: 8px 24px; background: var(--primary); color: white; border: none; border-radius: 6px;
+  .wd-btn { padding: var(--sp-sm) var(--sp-lg); background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);
     font-size: 0.88em; font-weight: 600; cursor: pointer; transition: background 0.2s; margin-bottom: 1px; }
   .wd-btn:hover { background: #1e3a8a; }
 
@@ -313,13 +335,17 @@
   .wd-h2 { font-size: 1.08em; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .wd-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.65; margin: 6px 0 12px 0; }
 
-  .wd-tbl-wrap { overflow-x: auto; margin-bottom: 8px; }
-  .wd-tbl { width: 100%; border-collapse: collapse; font-size: 0.78em; }
-  .wd-tbl th { background: #f1f5f9; padding: 7px 8px; text-align: right; font-weight: 700; border-bottom: 2px solid var(--border); white-space: nowrap; cursor: help; }
+  .wd-tbl-wrap { overflow-x: auto; margin-bottom: 8px; -webkit-overflow-scrolling: touch; }
+  .wd-tbl { border-collapse: collapse; font-size: 0.78em; table-layout: auto; width: max-content; min-width: 100%; }
+  .wd-tbl th { background: #f1f5f9; padding: 7px 10px; text-align: right; font-weight: 700; border-bottom: 2px solid var(--border); white-space: nowrap; cursor: help; position: relative; }
   .wd-tbl th:first-child { text-align: center; }
-  .wd-tbl td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .wd-tbl th .col-resize { position: absolute; right: 0; top: 0; width: 5px; height: 100%; cursor: col-resize; user-select: none; }
+  .wd-tbl th .col-resize:hover, .wd-tbl th .col-resize.active { background: var(--primary); opacity: 0.4; }
+  .wd-tbl td { padding: 5px 10px; border-bottom: 1px solid #f1f5f9; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
   .wd-tbl td:first-child { text-align: center; font-weight: 600; }
   .wd-tbl tr:hover { background: #fafbfc; }
+  .wd-tbl tbody tr:nth-child(even) { background: #f8fafc; }
+  .wd-tbl tbody tr:nth-child(even):hover { background: #f1f5f9; }
   .wd-tbl .rmd-row { background: #eff6ff; }
   .wd-tbl .rmd-row:hover { background: #dbeafe; }
   .wd-tbl .depletion-row { background: #fef2f2; }
@@ -334,7 +360,7 @@
     background: #1e293b; color: white; padding: 6px 10px; border-radius: 6px; font-size: 0.75em;
     white-space: nowrap; z-index: 10; margin-bottom: 4px; line-height: 1.5; }
   .wd-chart-label { position: absolute; bottom: -22px; left: 50%; transform: translateX(-50%);
-    font-size: 0.65em; color: var(--text-muted); white-space: nowrap; }
+    font-size: 0.72em; color: var(--text-muted); white-space: nowrap; }
   .wd-chart-legend { display: flex; flex-wrap: wrap; gap: 14px; margin: 8px 0; font-size: 0.78em; color: var(--text-muted); }
   .wd-chart-legend span { display: flex; align-items: center; gap: 4px; }
   .wd-chart-legend .dot { width: 10px; height: 10px; border-radius: 2px; }
@@ -362,7 +388,7 @@
   .mc-hist-bar:hover .mc-hist-tip { display: block; }
   .mc-success-ring { display: inline-block; position: relative; width: 80px; height: 80px; }
   .mc-success-ring svg { transform: rotate(-90deg); }
-  .wd-ovr { font-variant-numeric: tabular-nums; width: 90px; }
+  .wd-ovr { font-variant-numeric: tabular-nums; width: 100px; }
   .wd-ovr:focus { outline: none; border-color: #f59e0b !important; box-shadow: 0 0 0 2px rgba(245,158,11,0.2); }
   .wd-field label[title] { cursor: help; border-bottom: 1px dotted var(--text-muted); }
 
@@ -372,6 +398,8 @@
   .roth-opt-table th:first-child { text-align: left; }
   .roth-opt-table td { padding: 7px 10px; text-align: right; border-bottom: 1px solid var(--border); }
   .roth-opt-table td:first-child { text-align: left; }
+  .roth-opt-table tbody tr:nth-child(even) { background: #f8fafc; }
+  .roth-opt-table tbody tr:nth-child(even):hover { background: #f1f5f9; }
   .roth-opt-best { background: #ecfdf5 !important; }
   .roth-opt-best td { border-bottom-color: #10b981; }
   .roth-opt-selected { background: #eff6ff !important; }
@@ -381,7 +409,7 @@
   /* Spending Phases */
   .spend-phases { padding: 12px; background: var(--bg-secondary, #f8f9fb); border-radius: 8px; border: 1px solid var(--border); }
   .spend-phase-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .spend-phase-row input { width: 80px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 5px;
+  .spend-phase-row input { width: 80px; padding: 5px 8px; border: 1px solid var(--border); border-radius: var(--radius-sm);
     font-size: 0.85em; text-align: right; font-variant-numeric: tabular-nums; }
   .spend-phase-row input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 2px rgba(30,64,175,0.15); }
   .spend-phase-row .sp-label { font-size: 0.8em; color: var(--text-muted); min-width: 55px; }
@@ -390,24 +418,24 @@
     border-radius: 4px; transition: background 0.15s; line-height: 1; }
   .spend-phase-del:hover { background: #fef2f2; }
   .spend-phase-add { background: none; border: 1px dashed var(--border); color: var(--primary); padding: 5px 14px;
-    border-radius: 5px; font-size: 0.8em; font-weight: 600; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
+    border-radius: var(--radius-sm); font-size: 0.8em; font-weight: 600; cursor: pointer; transition: all 0.15s; margin-top: 4px; }
   .spend-phase-add:hover { background: var(--primary-light); border-color: var(--primary); }
 
   /* Export PDF button */
-  .export-pdf-btn { display: inline-flex; align-items: center; gap: 6px; padding: 7px 18px; background: #059669; color: white;
-    border: none; border-radius: 6px; font-size: 0.82em; font-weight: 600; cursor: pointer; transition: background 0.2s; }
+  .export-pdf-btn { display: inline-flex; align-items: center; gap: var(--sp-sm); padding: 7px 18px; background: #059669; color: white;
+    border: none; border-radius: var(--radius-sm); font-size: 0.82em; font-weight: 600; cursor: pointer; transition: background 0.2s; }
   .export-pdf-btn:hover { background: #047857; }
   .export-pdf-btn svg { width: 16px; height: 16px; fill: currentColor; }
 
   /* Suggestions Modal */
   .sugg-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:9999; display:flex; align-items:center; justify-content:center; animation:sugg-fadein 0.2s ease; }
   @keyframes sugg-fadein { from{opacity:0} to{opacity:1} }
-  .sugg-modal { background:white; border-radius:12px; width:94vw; max-width:1200px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:28px 32px; position:relative; }
+  .sugg-modal { background:white; border-radius:var(--radius-lg); width:94vw; max-width:1200px; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,0.3); padding:28px 32px; position:relative; }
   .sugg-modal-close { position:absolute; top:14px; right:18px; background:none; border:none; font-size:1.5em; cursor:pointer; color:#94a3b8; transition:color 0.15s; z-index:1; }
   .sugg-modal-close:hover { color:#1e293b; }
   .sugg-scenario-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:16px 0; }
-  .sugg-scenario-card { border:2px solid #e2e8f0; border-radius:10px; padding:18px; transition:border-color 0.2s, box-shadow 0.2s; }
-  .sugg-scenario-card:hover { box-shadow:0 4px 16px rgba(0,0,0,0.08); }
+  .sugg-scenario-card { border:2px solid var(--border); border-radius:var(--radius); padding:18px; box-shadow:var(--shadow-sm); transition:border-color 0.2s, box-shadow 0.2s; }
+  .sugg-scenario-card:hover { box-shadow:var(--shadow-lg); }
   .sugg-scenario-card h4 { margin:0 0 12px; font-size:1em; }
   .sugg-metric { display:flex; justify-content:space-between; padding:5px 0; border-bottom:1px solid #f1f5f9; font-size:0.88em; }
   .sugg-metric:last-child { border-bottom:none; }
@@ -436,6 +464,38 @@
   .tl-metric-label { color: var(--text-muted); font-size: 0.82em; font-weight: 500; margin-bottom: 6px; letter-spacing: 0.01em; }
   .tl-metric-value { font-size: 1.65em; font-weight: 700; line-height: 1.2; margin-bottom: 4px; }
   .tl-metric-sub { color: var(--text-muted); font-size: 0.78em; }
+
+  /* ---- Fund X-Ray ---- */
+  .xray-section { margin-bottom: 28px; }
+  .xray-h2 { font-size: 1.08em; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+  .xray-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.6; margin-bottom: 16px; }
+  .xray-conc-tbl { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  .xray-conc-tbl th { background: #f1f5f9; padding: 8px 12px; text-align: left; font-weight: 700; border-bottom: 2px solid var(--border); white-space: nowrap; }
+  .xray-conc-tbl th.r { text-align: right; }
+  .xray-conc-tbl td { padding: 7px 12px; border-bottom: 1px solid #f1f5f9; font-variant-numeric: tabular-nums; }
+  .xray-conc-tbl td.r { text-align: right; }
+  .xray-conc-tbl tbody tr:nth-child(even) { background: #f8fafc; }
+  .xray-conc-tbl tbody tr:hover { background: #eef2ff; }
+  .xray-risk-high { color: #dc2626; font-weight: 700; }
+  .xray-risk-mod { color: #d97706; font-weight: 600; }
+  .xray-risk-low { color: #16a34a; }
+  .xray-heatmap { overflow-x: auto; margin-bottom: 8px; }
+  .xray-hm-tbl { border-collapse: collapse; font-size: 0.82em; width: 100%; }
+  .xray-hm-tbl th { padding: 6px 10px; font-weight: 700; white-space: nowrap; background: #f1f5f9; border: 1px solid var(--border); }
+  .xray-hm-tbl td { padding: 6px 10px; text-align: center; font-weight: 600; border: 1px solid var(--border); min-width: 60px; }
+  .xray-hm-tbl td.self { background: #e2e8f0; color: #94a3b8; }
+  .xray-alert { padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 10px; font-size: 0.88em; line-height: 1.6; border-left: 4px solid; }
+  .xray-alert-warn { background: #fef3c7; border-color: #f59e0b; }
+  .xray-alert-danger { background: #fef2f2; border-color: #ef4444; }
+  .xray-alert-ok { background: #f0fdf4; border-color: #22c55e; }
+  .xray-alert-info { background: #eef2ff; border-color: #6366f1; }
+  .xray-tag { display: inline-block; padding: 2px 8px; border-radius: 10px; font-size: 0.78em; font-weight: 600; margin: 0 3px; }
+  .xray-conc-bar { height: 8px; border-radius: 4px; background: #e2e8f0; overflow: hidden; min-width: 60px; }
+  .xray-conc-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .xray-no-data { color: var(--text-muted); font-size: 0.82em; font-style: italic; }
+  .xray-expand-btn { background: none; border: 1px solid var(--border); color: var(--primary); padding: 6px 16px;
+    border-radius: var(--radius-sm); font-size: 0.82em; font-weight: 600; cursor: pointer; margin-top: 8px; }
+  .xray-expand-btn:hover { background: var(--primary-light); border-color: var(--primary); }
 
   /* Print styles */
   @media print {
@@ -481,7 +541,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 06:44 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 10:58 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -510,17 +570,18 @@
 <div class="pivot-tabs" style="margin-top:18px">
   <button class="pivot-tab active" data-pivot="holdings">Holdings</button>
   <button class="pivot-tab" data-pivot="suggestions">Portfolio Suggestions</button>
-  <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting</button>
+  <button class="pivot-tab" data-pivot="taxloss">Tax-Loss Harvesting<span class="tab-badge" id="tlhBadge" style="display:none"></span></button>
   <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
   <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
-  <button class="pivot-tab" data-pivot="snapshot">Snapshot Diff</button>
+  <button class="pivot-tab" data-pivot="snapshot">Snapshot Diff<span class="tab-badge" id="sdBadge" style="display:none"></span></button>
 </div>
 
-<div id="holdingsSubPivot" style="margin-bottom:14px">
+<div id="holdingsSubPivot" style="margin-bottom:14px;position:sticky;top:50px;z-index:99;background:var(--bg);padding:8px 0">
   <div class="sub-pivot-wrap">
     <button class="sub-pivot-tab active" data-sub="acctName">By Account</button>
     <button class="sub-pivot-tab" data-sub="acctType">By Account Type</button>
     <button class="sub-pivot-tab" data-sub="category">By Investment Category</button>
+    <button class="sub-pivot-tab" data-sub="xray">Fund X-Ray 🔬</button>
   </div>
 </div>
 
@@ -536,6 +597,8 @@
 
 <div id="drilldown"></div>
 
+<div id="xrayContent" style="display:none"></div>
+
 <div class="insights">
   <div class="insights-title">Portfolio Risk Insights <span style="font-weight:400;font-size:0.8em;color:var(--text-muted)">— auto-generated analysis</span></div>
   <div id="insightsContainer"></div>
@@ -549,6 +612,50 @@
 </div>
 
 <script>
+/* Toast notification helper */
+function showToast(msg, type) {
+  const c = document.getElementById('toastContainer');
+  const t = document.createElement('div');
+  t.className = 'toast' + (type ? ' toast-' + type : '');
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3100);
+}
+
+/* Column-resize: inject drag handles into table headers */
+function initColResize(tbl) {
+  if (!tbl) return;
+  const ths = tbl.querySelectorAll('thead th');
+  const tbody = tbl.querySelector('tbody');
+  /* Measure max width across header + all body cells per column */
+  ths.forEach((th, ci) => {
+    let maxW = th.scrollWidth;
+    if (tbody) {
+      const rows = tbody.rows;
+      for (let r = 0; r < Math.min(rows.length, 5); r++) {
+        const td = rows[r] && rows[r].cells[ci];
+        if (td) maxW = Math.max(maxW, td.scrollWidth);
+      }
+    }
+    th.style.minWidth = maxW + 'px';
+  });
+  ths.forEach(th => {
+    const grip = document.createElement('span');
+    grip.className = 'col-resize';
+    th.appendChild(grip);
+    let startX, startW;
+    grip.addEventListener('mousedown', e => {
+      e.preventDefault(); e.stopPropagation();
+      startX = e.pageX; startW = th.offsetWidth;
+      grip.classList.add('active');
+      const onMove = ev => { th.style.minWidth = Math.max(40, startW + ev.pageX - startX) + 'px'; };
+      const onUp = () => { grip.classList.remove('active'); document.removeEventListener('mousemove', onMove); document.removeEventListener('mouseup', onUp); };
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+    });
+  });
+}
+
 const CATEGORY_COLORS = {
   'US Index Funds':'#2563eb','International Funds':'#059669','Individual Stocks':'#ea580c',
   'Unspecified':'#94a3b8','Bond Funds':'#7c3aed','Cash / Money Market':'#475569',
@@ -1556,7 +1663,318 @@ function renderAcctNamePivot(){
   computeInsights('acctName');
 }
 
-/* ---- Suggestions Tab: Static Data ---- */
+/* ---- Fund X-Ray: Embedded Holdings Database ---- */
+/* Top holdings (approx weight %) for major ETFs & mutual funds. Covers ~80 popular funds.
+   Weights are approximate and represent a point-in-time snapshot. */
+const FUND_HOLDINGS_DB = {
+  /* --- S&P 500 / Large Cap US --- */
+  VOO:  {n:'Vanguard S&P 500 ETF', h:{AAPL:7.0,MSFT:6.5,NVDA:6.2,AMZN:3.8,META:2.7,GOOGL:2.1,GOOG:1.8,BRKB:1.7,LLY:1.5,AVGO:1.5,JPM:1.4,TSLA:1.3,UNH:1.3,XOM:1.2,V:1.1,MA:1.0,PG:1.0,COST:1.0,JNJ:0.9,HD:0.9}},
+  FXAIX:{n:'Fidelity 500 Index', h:{AAPL:7.0,MSFT:6.5,NVDA:6.2,AMZN:3.8,META:2.7,GOOGL:2.1,GOOG:1.8,BRKB:1.7,LLY:1.5,AVGO:1.5,JPM:1.4,TSLA:1.3,UNH:1.3,XOM:1.2,V:1.1,MA:1.0,PG:1.0,COST:1.0,JNJ:0.9,HD:0.9}},
+  SPY:  {n:'SPDR S&P 500 ETF', h:{AAPL:7.0,MSFT:6.5,NVDA:6.2,AMZN:3.8,META:2.7,GOOGL:2.1,GOOG:1.8,BRKB:1.7,LLY:1.5,AVGO:1.5,JPM:1.4,TSLA:1.3,UNH:1.3,XOM:1.2,V:1.1,MA:1.0,PG:1.0,COST:1.0,JNJ:0.9,HD:0.9}},
+  IVV:  {n:'iShares Core S&P 500', h:{AAPL:7.0,MSFT:6.5,NVDA:6.2,AMZN:3.8,META:2.7,GOOGL:2.1,GOOG:1.8,BRKB:1.7,LLY:1.5,AVGO:1.5,JPM:1.4,TSLA:1.3,UNH:1.3,XOM:1.2,V:1.1,MA:1.0,PG:1.0,COST:1.0,JNJ:0.9,HD:0.9}},
+  VOOG: {n:'Vanguard S&P 500 Growth', h:{AAPL:12.5,MSFT:11.2,NVDA:10.8,AMZN:6.8,META:4.8,GOOGL:3.5,GOOG:3.0,LLY:2.5,AVGO:2.5,TSLA:2.2,V:1.8,MA:1.6,COST:1.5,CRM:1.2,NFLX:1.2,ISRG:1.0,INTU:1.0,NOW:0.9,AMD:0.9,ADBE:0.8}},
+  /* --- Total US Market --- */
+  VTI:  {n:'Vanguard Total Stock Market', h:{AAPL:6.3,MSFT:5.8,NVDA:5.5,AMZN:3.4,META:2.4,GOOGL:1.9,GOOG:1.6,BRKB:1.5,LLY:1.3,AVGO:1.3,JPM:1.2,TSLA:1.1,UNH:1.1,XOM:1.0,V:1.0,MA:0.9,PG:0.9,COST:0.9,JNJ:0.8,HD:0.8}},
+  FSKAX:{n:'Fidelity Total Market Index', h:{AAPL:6.3,MSFT:5.8,NVDA:5.5,AMZN:3.4,META:2.4,GOOGL:1.9,GOOG:1.6,BRKB:1.5,LLY:1.3,AVGO:1.3,JPM:1.2,TSLA:1.1,UNH:1.1,XOM:1.0,V:1.0,MA:0.9,PG:0.9,COST:0.9,JNJ:0.8,HD:0.8}},
+  ITOT: {n:'iShares Core S&P Total US', h:{AAPL:6.3,MSFT:5.8,NVDA:5.5,AMZN:3.4,META:2.4,GOOGL:1.9,GOOG:1.6,BRKB:1.5,LLY:1.3,AVGO:1.3,JPM:1.2,TSLA:1.1,UNH:1.1,XOM:1.0,V:1.0,MA:0.9,PG:0.9,COST:0.9,JNJ:0.8,HD:0.8}},
+  SWTSX:{n:'Schwab Total Stock Market', h:{AAPL:6.3,MSFT:5.8,NVDA:5.5,AMZN:3.4,META:2.4,GOOGL:1.9,GOOG:1.6,BRKB:1.5,LLY:1.3,AVGO:1.3,JPM:1.2,TSLA:1.1,UNH:1.1,XOM:1.0,V:1.0,MA:0.9,PG:0.9,COST:0.9,JNJ:0.8,HD:0.8}},
+  /* --- Nasdaq / Growth / Tech --- */
+  QQQ:  {n:'Invesco QQQ Trust (Nasdaq-100)', h:{AAPL:8.8,MSFT:8.1,NVDA:7.8,AMZN:5.5,META:4.1,AVGO:3.8,GOOGL:2.7,GOOG:2.5,TSLA:2.5,COST:2.4,NFLX:2.0,AMD:1.5,LIN:1.4,ISRG:1.3,INTU:1.2,CSCO:1.1,ADBE:1.0,QCOM:1.0,TXN:1.0,AMAT:0.9}},
+  QQQM: {n:'Invesco Nasdaq-100 ETF', h:{AAPL:8.8,MSFT:8.1,NVDA:7.8,AMZN:5.5,META:4.1,AVGO:3.8,GOOGL:2.7,GOOG:2.5,TSLA:2.5,COST:2.4,NFLX:2.0,AMD:1.5,LIN:1.4,ISRG:1.3,INTU:1.2,CSCO:1.1,ADBE:1.0,QCOM:1.0,TXN:1.0,AMAT:0.9}},
+  TQQQ: {n:'ProShares UltraPro QQQ (3x)', h:{AAPL:8.8,MSFT:8.1,NVDA:7.8,AMZN:5.5,META:4.1,AVGO:3.8,GOOGL:2.7,GOOG:2.5,TSLA:2.5,COST:2.4,NFLX:2.0,AMD:1.5,LIN:1.4,ISRG:1.3,INTU:1.2,CSCO:1.1,ADBE:1.0,QCOM:1.0,TXN:1.0,AMAT:0.9}},
+  VGT:  {n:'Vanguard Info Tech ETF', h:{AAPL:16.5,MSFT:14.8,NVDA:13.2,AVGO:4.8,CRM:2.0,AMD:1.8,ADBE:1.6,CSCO:1.5,ORCL:1.5,INTU:1.4,TXN:1.3,NOW:1.2,IBM:1.1,QCOM:1.1,AMAT:1.0,SNPS:0.8,CDNS:0.8,KLAC:0.7,LRCX:0.7,FTNT:0.6}},
+  FSPTX:{n:'Fidelity Select Technology', h:{AAPL:18.0,NVDA:14.0,MSFT:12.0,AVGO:4.0,AMD:2.5,CRM:2.0,ORCL:1.8,CSCO:1.5,NOW:1.3,ADBE:1.3,TXN:1.2,INTU:1.0,AMAT:1.0,QCOM:0.9,SNPS:0.8,KLAC:0.7,CDNS:0.7,MU:0.6,LRCX:0.6,FTNT:0.5}},
+  XLK:  {n:'Technology Select SPDR', h:{AAPL:16.0,MSFT:14.0,NVDA:12.5,AVGO:4.5,CRM:2.0,AMD:1.8,ADBE:1.5,CSCO:1.5,ORCL:1.4,INTU:1.3,TXN:1.3,NOW:1.2,IBM:1.1,QCOM:1.0,AMAT:1.0,SNPS:0.8,CDNS:0.7,KLAC:0.7,LRCX:0.6,FTNT:0.5}},
+  /* --- Dividend / Value --- */
+  SCHD: {n:'Schwab US Dividend Equity', h:{ABBV:4.5,HD:4.3,CSCO:4.2,BLK:4.1,AMGN:4.0,PFE:3.8,TXN:3.7,KO:3.5,PEP:3.3,AVGO:3.2,VZ:3.0,MRK:2.8,CVX:2.5,XOM:2.3,BMY:2.0,PG:1.8,LMT:1.6,USB:1.5,KEY:1.3,ALL:1.2}},
+  VYM:  {n:'Vanguard High Dividend Yield', h:{BRKB:3.5,JPM:3.2,XOM:2.8,JNJ:2.3,PG:2.1,HD:2.0,ABBV:1.8,MRK:1.7,CVX:1.6,KO:1.5,PEP:1.4,CSCO:1.3,PFE:1.2,BAC:1.2,WFC:1.1,INTC:1.0,VZ:1.0,BMY:0.9,T:0.9,MO:0.8}},
+  VTV:  {n:'Vanguard Value ETF', h:{BRKB:3.4,JPM:2.6,UNH:2.5,XOM:2.3,JNJ:2.0,PG:1.7,HD:1.6,ABBV:1.5,MRK:1.4,CVX:1.3,BAC:1.2,KO:1.1,PEP:1.1,CSCO:1.0,WFC:1.0,LLY:1.0,PFE:0.9,TMO:0.9,LIN:0.9,ACN:0.8}},
+  DGRW: {n:'WisdomTree US Quality Dividend Growth', h:{MSFT:6.8,AAPL:5.5,JNJ:3.0,PG:2.8,ABBV:2.5,PEP:2.3,KO:2.0,HD:2.0,MRK:1.8,CSCO:1.7,AVGO:1.6,TXN:1.5,QCOM:1.3,ACN:1.2,UPS:1.1,LMT:1.0,ADP:1.0,MMM:0.9,ITW:0.9,EMR:0.8}},
+  COWZ: {n:'Pacer US Cash Cows 100', h:{CVS:2.5,KR:2.3,TSN:2.0,MPC:1.8,FANG:1.7,DXC:1.6,PSX:1.5,CI:1.5,MCK:1.4,CNC:1.3,HCA:1.3,LYB:1.2,CF:1.1,NUE:1.0,HPQ:1.0,DKS:0.9,OVV:0.9,BURL:0.8,BG:0.8,EMN:0.7}},
+  /* --- Small / Mid / Extended --- */
+  VXF:  {n:'Vanguard Extended Market', h:{PLTR:1.2,CRWD:0.9,MSTR:0.8,DASH:0.7,RBLX:0.5,HOOD:0.5,DDOG:0.4,NET:0.4,SNOW:0.4,TEAM:0.3,MDB:0.3,ZM:0.3,DOCU:0.3,ABNB:0.3,LULU:0.3,RIVN:0.2,LCID:0.2,BILL:0.2,DT:0.2,PAYC:0.2}},
+  AVUV: {n:'Avantis US Small Cap Value', h:{SIG:0.6,CEIX:0.5,ARCH:0.5,BTU:0.4,MATX:0.4,ATKR:0.4,RMBS:0.3,SM:0.3,RRC:0.3,EAT:0.3,LUMN:0.3,CRC:0.3,GPOR:0.2,HBI:0.2,PRDO:0.2,GPI:0.2,GOGL:0.2,CCRN:0.2,SKYW:0.2,POWL:0.2}},
+  IJR:  {n:'iShares Core S&P Small-Cap', h:{ONTO:0.5,FN:0.4,HRI:0.4,CRVL:0.3,LNTH:0.3,CALM:0.3,IBP:0.3,PJT:0.3,BOOT:0.3,SITM:0.3,AIT:0.3,IPAR:0.2,MOG_A:0.2,CSWI:0.2,SPSC:0.2,NSIT:0.2,SLG:0.2,NOVT:0.2,ALRM:0.2,EXPO:0.2}},
+  /* --- International --- */
+  VXUS: {n:'Vanguard Total Intl Stock', h:{TSM:1.6,NOVO_B:1.3,ASML:1.0,SAP:0.9,SHEL:0.8,NESN:0.7,AZN:0.7,NVS:0.6,ROCHE:0.6,TOYOTA:0.5,LVMH:0.5,SAMSUNG:0.5,HSBC:0.4,SIEMENS:0.4,UNILEVER:0.4,BHP:0.4,RIO:0.3,SNY:0.3,BP:0.3,TTE:0.3}},
+  FTIHX:{n:'Fidelity Total Intl Index', h:{TSM:1.6,NOVO_B:1.3,ASML:1.0,SAP:0.9,SHEL:0.8,NESN:0.7,AZN:0.7,NVS:0.6,ROCHE:0.6,TOYOTA:0.5,LVMH:0.5,SAMSUNG:0.5,HSBC:0.4,SIEMENS:0.4,UNILEVER:0.4,BHP:0.4,RIO:0.3,SNY:0.3,BP:0.3,TTE:0.3}},
+  VEA:  {n:'Vanguard FTSE Developed Markets', h:{NOVO_B:1.6,SAP:1.2,ASML:1.2,SHEL:1.0,NESN:0.9,AZN:0.9,NVS:0.8,ROCHE:0.7,TOYOTA:0.7,LVMH:0.6,SIEMENS:0.5,UNILEVER:0.5,HSBC:0.5,BHP:0.4,RIO:0.4,SNY:0.4,BP:0.4,TTE:0.4,SONY:0.3,MUFG:0.3}},
+  VWO:  {n:'Vanguard FTSE Emerging Markets', h:{TSM:7.5,TENCENT:4.2,ALIBABA:2.5,SAMSUNG:2.0,RELIANCE:1.5,MEITUAN:1.2,PDD:1.0,INFOSYS:0.9,JD:0.8,ICBC:0.7,CCB:0.6,VALE:0.5,NAVER:0.5,SK_HYNIX:0.5,BAIDU:0.4,NIO_ADR:0.4,HDFC:0.4,NASPERS:0.4,PING_AN:0.3,BYD:0.3}},
+  IEMG: {n:'iShares Core MSCI Emerging Markets', h:{TSM:7.0,TENCENT:4.0,ALIBABA:2.3,SAMSUNG:1.8,RELIANCE:1.4,MEITUAN:1.1,PDD:0.9,INFOSYS:0.8,JD:0.7,ICBC:0.6,CCB:0.5,VALE:0.5,NAVER:0.4,SK_HYNIX:0.4,BAIDU:0.4,HDFC:0.3,NASPERS:0.3,PING_AN:0.3,BYD:0.3,NIO_ADR:0.3}},
+  EFA:  {n:'iShares MSCI EAFE', h:{NOVO_B:1.8,ASML:1.4,NESN:1.0,SAP:1.0,SHEL:0.9,AZN:0.9,NVS:0.8,ROCHE:0.7,TOYOTA:0.7,LVMH:0.7,SIEMENS:0.5,HSBC:0.5,UNILEVER:0.5,BHP:0.4,RIO:0.4,SNY:0.4,BP:0.4,TTE:0.3,SONY:0.3,AIA:0.3}},
+  SCHE: {n:'Schwab Emerging Markets', h:{TSM:7.2,TENCENT:4.1,ALIBABA:2.4,SAMSUNG:1.9,RELIANCE:1.4,MEITUAN:1.1,PDD:1.0,INFOSYS:0.8,JD:0.7,ICBC:0.6,CCB:0.5,VALE:0.5,NAVER:0.4,SK_HYNIX:0.4,BAIDU:0.4,HDFC:0.4,NASPERS:0.3,PING_AN:0.3,BYD:0.3,NIO_ADR:0.3}},
+  AVDV: {n:'Avantis Intl Small Cap Value', h:{BUZZI:0.5,INTERPUMP:0.4,BREMBO:0.4,RHEINMETALL:0.4,ASR_NL:0.3,KOJAMO:0.3,HEXPOL:0.3,BELLWAY:0.3,CRANSWICK:0.3,BAWAG:0.3,ITV:0.2,TOYO_TIRE:0.2,DAIFUKU:0.2,MONDI:0.2,FREENET:0.2,COVESTRO:0.2,APERAM:0.2,STO:0.2,VISCOFAN:0.2,FUGRO:0.2}},
+  FZILX:{n:'Fidelity ZERO International Index', h:{TSM:1.5,NOVO_B:1.2,ASML:1.0,SAP:0.9,SHEL:0.8,NESN:0.7,AZN:0.7,NVS:0.6,ROCHE:0.6,TOYOTA:0.5,LVMH:0.5,SAMSUNG:0.5,HSBC:0.4,SIEMENS:0.4,UNILEVER:0.4,BHP:0.4,RIO:0.3,SNY:0.3,BP:0.3,TTE:0.3}},
+  VFWSX:{n:'Vanguard FTSE All-World ex-US Fund', h:{TSM:1.6,NOVO_B:1.3,ASML:1.0,SAP:0.9,SHEL:0.8,NESN:0.7,AZN:0.7,NVS:0.6,ROCHE:0.6,TOYOTA:0.5,LVMH:0.5,SAMSUNG:0.5,HSBC:0.4,SIEMENS:0.4,UNILEVER:0.4,BHP:0.4,RIO:0.3,SNY:0.3,BP:0.3,TTE:0.3}},
+  /* --- Bonds --- */
+  BND:  {n:'Vanguard Total Bond Market', h:{}},
+  FXNAX:{n:'Fidelity US Bond Index', h:{}},
+  AGG:  {n:'iShares Core US Aggregate Bond', h:{}},
+  BNDX: {n:'Vanguard Total Intl Bond', h:{}},
+  VGSH: {n:'Vanguard Short-Term Treasury', h:{}},
+  SCHP: {n:'Schwab US TIPS', h:{}},
+  TLT:  {n:'iShares 20+ Year Treasury', h:{}},
+  HYG:  {n:'iShares High Yield Corp Bond', h:{}},
+  VCSH: {n:'Vanguard Short-Term Corp Bond', h:{}},
+  VTIP: {n:'Vanguard Short-Term TIPS', h:{}},
+  MUB:  {n:'iShares National Muni Bond', h:{}},
+  /* --- Real Estate / Alternatives --- */
+  VNQ:  {n:'Vanguard Real Estate ETF', h:{PLD:8.5,AMT:6.2,EQIX:5.5,WELL:4.0,DLR:3.5,SPG:3.2,O:3.0,PSA:2.8,CCI:2.5,AVB:2.0,EXR:1.8,VICI:1.6,ARE:1.5,MAA:1.3,UDR:1.2,ESS:1.0,BXP:0.9,KIM:0.8,REG:0.7,HST:0.6}},
+  VNQI: {n:'Vanguard Global ex-US Real Estate', h:{}},
+  GLD:  {n:'SPDR Gold Shares', h:{}},
+  PDBC: {n:'Invesco Optimum Yield Commodities', h:{}},
+  /* --- Sector ETFs --- */
+  XLF:  {n:'Financial Select SPDR', h:{BRKB:13.5,JPM:9.5,V:7.5,MA:6.5,BAC:3.8,WFC:2.5,GS:2.3,MS:2.2,SCHW:2.0,AXP:1.8,BLK:1.6,C:1.5,PNC:1.3,USB:1.2,TFC:1.1,CME:1.0,ICE:0.9,AON:0.8,MMC:0.8,CB:0.7}},
+  XLV:  {n:'Health Care Select SPDR', h:{LLY:11.5,UNH:9.0,JNJ:6.5,ABBV:5.5,MRK:4.5,TMO:3.5,ABT:3.0,ISRG:2.5,AMGN:2.3,DHR:2.2,PFE:2.0,VRTX:1.8,SYK:1.6,REGN:1.5,BSX:1.3,ELV:1.2,CI:1.1,GEHC:1.0,MDT:1.0,BDX:0.8}},
+  XLE:  {n:'Energy Select SPDR', h:{XOM:22.0,CVX:16.0,COP:7.5,SLB:4.5,MPC:4.0,EOG:3.8,WMB:3.5,PSX:3.2,OKE:3.0,VLO:2.5,HAL:2.3,HES:2.0,DVN:1.8,FANG:1.6,BKR:1.5,TRGP:1.4,KMI:1.3,OXY:1.2,CTRA:1.0,APA:0.8}},
+  XLI:  {n:'Industrial Select SPDR', h:{GE:5.0,CAT:4.5,RTX:3.8,UNP:3.5,HON:3.3,DE:3.0,ETN:2.8,LMT:2.5,ADP:2.3,BA:2.2,TT:2.0,ITW:1.8,UBER:1.6,NSC:1.5,GD:1.4,URI:1.3,FDX:1.2,WM:1.1,CSX:1.0,EMR:0.9}},
+  XLRE: {n:'Real Estate Select SPDR', h:{PLD:14.0,AMT:9.0,EQIX:8.0,WELL:5.5,DLR:5.0,SPG:4.5,O:4.0,PSA:3.8,CCI:3.5,AVB:2.8,EXR:2.5,VICI:2.2,ARE:2.0,MAA:1.6,UDR:1.5,ESS:1.3,BXP:1.2,KIM:1.0,REG:0.9,HST:0.7}},
+  /* --- Clean energy --- */
+  PBW:  {n:'Invesco WilderHill Clean Energy', h:{PLUG:3.5,FSLR:3.0,ENPH:2.8,SEDG:2.5,RUN:2.3,NOVA:2.0,BLDP:1.8,BE:1.6,CSIQ:1.5,JKS:1.3,ARRY:1.2,MAXN:1.0,STEM:0.9,CHPT:0.8,SPWR:0.7,GPRE:0.6,ORA:0.5,NEP:0.5,AES:0.5,DQ:0.4}},
+};
+
+/* Merge live fund data (fetched at report generation) over static estimates */
+const _FUND_LIVE = {"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"NVDA":4.91,"AMZN":2.56,"TSLA":2.29,"AAPL":4.45,"IQMM":22.7,"META":2.17,"MSFT":3.33}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"2330.TW":3.52,"000660.KS":0.88,"0700.HK":1.25,"HSBA.L":0.79,"ASML.AS":1.48,"9988.HK":1.0,"AZN.L":0.73,"005930.KS":1.36,"ROG.SW":0.84,"NOVN.SW":0.75}},"FSPTX":{"n":"Fidelity Select Technology","h":{"NVDA":25.92,"GFS":2.3,"AAPL":10.98,"ON":3.86,"MU":4.09,"WDC":2.33,"NXPI":5.01,"MRVL":4.31,"MSFT":9.1,"CSCO":4.1}},"FTIHX":{"n":"Fidelity Total International Index","h":{"2330.TW":3.24,"000660.KS":0.82,"0700.HK":1.17,"ASML.AS":1.33,"9988.HK":0.87,"005930.KS":1.24,"ROG.SW":0.76}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"2330.TW":3.57,"000660.KS":0.92,"0700.HK":1.26,"HSBA.L":0.81,"ASML.AS":1.49,"9988.HK":1.09,"005930.KS":1.48,"ROG.SW":0.86}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"PWR":2.1,"ENPH":2.03,"AEIS":2.48,"CDLR":2.34,"DAR":2.54,"BELFB":2.12,"POWL":2.5,"ESE":2.22,"LAR.TO":2.34,"BE":2.71}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"NVDA":14.74,"AMZN":3.92,"BRK-B":2.8,"AAPL":6.08,"GOOG":5.0,"LLY":2.61,"META":4.95,"GOOGL":6.24,"AVGO":4.96,"MSFT":10.15}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"NVDA":6.92,"AMZN":3.47,"TSLA":1.8,"AAPL":5.72,"GOOG":2.34,"BRK-B":1.31,"META":2.33,"GOOGL":2.93,"AVGO":2.33,"MSFT":4.77}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"VZ":4.31,"BMY":4.28,"MRK":4.23,"CVX":4.31,"PEP":4.01,"LMT":4.81,"TXN":4.06,"KO":4.03,"MO":4.13,"COP":4.32}},"FXAIX":{"n":"Fidelity 500 Index","h":{"NVDA":7.84,"AMZN":3.93,"TSLA":2.04,"AAPL":6.47,"GOOG":2.66,"BRK-B":1.49,"META":2.63,"GOOGL":3.32,"AVGO":2.64,"MSFT":5.4}}};
+const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
+if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
+  if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
+}); }
+
+/* ---- Fund X-Ray: Computation Engine ---- */
+function computeFundXRay(){
+  /* Flatten all holdings from DATA */
+  const holdings=[]; /* {sym, name, val, fundSym, acctName} */
+  DATA.forEach(d=>{
+    d.accounts.forEach(a=>{
+      a.tickers.forEach(t=>{
+        if(t.val>0) holdings.push({sym:t.sym,name:t.name,val:t.val,acctName:a.name,acctNum:a.num});
+      });
+    });
+  });
+
+  /* Classify: fund (has DB entry with holdings) vs individual stock vs unknown fund vs bond/other */
+  const CASH_RE=/^(SPAXX|FDRXX|FZFXX|VMFXX|SWVXX|CORE)\*?\*?$/i;
+  const fundPositions=[]; /* positions that are funds with known holdings */
+  const stockPositions=[]; /* individual stocks or positions without fund data */
+  const noDataFunds=[]; /* funds that look like funds but aren't in DB */
+  const coveredValue={total:0,covered:0};
+
+  holdings.forEach(h=>{
+    if(CASH_RE.test(h.sym)) return; /* skip money market */
+    const db=FUND_HOLDINGS_DB[h.sym.replace(/\*+$/,'')];
+    if(db && Object.keys(db.h).length>0){
+      fundPositions.push({...h,db});
+      coveredValue.covered+=h.val;
+    } else if(db && Object.keys(db.h).length===0){
+      /* Bond/commodity fund — no equity holdings to decompose */
+      stockPositions.push(h);
+    } else {
+      /* Could be individual stock or unknown fund */
+      stockPositions.push(h);
+    }
+    coveredValue.total+=h.val;
+  });
+
+  /* 1. Compute effective stock exposure across all funds */
+  const stockExposure={}; /* sym -> {name, totalVal, sources:[{fundSym, fundName, pct, val}]} */
+  /* Add individual stock positions directly */
+  stockPositions.forEach(h=>{
+    const sym=h.sym.replace(/\*+$/,'');
+    if(!stockExposure[sym]) stockExposure[sym]={name:h.name||sym,totalVal:0,sources:[]};
+    stockExposure[sym].totalVal+=h.val;
+    stockExposure[sym].sources.push({fundSym:'Direct',fundName:'Individual Stock',pct:100,val:h.val});
+  });
+  /* Decompose fund positions */
+  fundPositions.forEach(h=>{
+    const fundSym=h.sym.replace(/\*+$/,'');
+    Object.entries(h.db.h).forEach(([stock,pct])=>{
+      const effectiveVal=h.val*pct/100;
+      if(!stockExposure[stock]) stockExposure[stock]={name:stock,totalVal:0,sources:[]};
+      stockExposure[stock].totalVal+=effectiveVal;
+      stockExposure[stock].sources.push({fundSym,fundName:h.db.n,pct,val:effectiveVal});
+    });
+  });
+  const topStocks=Object.entries(stockExposure)
+    .map(([sym,d])=>({sym,...d,pctOfPortfolio:d.totalVal/GRAND*100}))
+    .filter(s=>s.totalVal>100)
+    .sort((a,b)=>b.totalVal-a.totalVal);
+
+  /* 2. Compute pairwise fund overlap */
+  const fundSyms=[...new Set(fundPositions.map(h=>h.sym.replace(/\*+$/,'')))].sort();
+  const overlap={};
+  fundSyms.forEach(a=>{
+    overlap[a]={};
+    const aH=FUND_HOLDINGS_DB[a].h;
+    fundSyms.forEach(b=>{
+      if(a===b){ overlap[a][b]=100; return; }
+      const bH=FUND_HOLDINGS_DB[b].h;
+      /* Overlap = sum of min(weight_a, weight_b) for each common stock */
+      let shared=0;
+      Object.keys(aH).forEach(s=>{ if(bH[s]) shared+=Math.min(aH[s],bH[s]); });
+      overlap[a][b]=Math.round(shared*10)/10;
+    });
+  });
+
+  /* 3. Generate alerts */
+  const alerts=[];
+  /* High concentration alerts */
+  topStocks.filter(s=>s.pctOfPortfolio>=5 && s.sources.length>1).forEach(s=>{
+    const drop20=s.totalVal*0.2;
+    const symLink=`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(s.sym)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">${s.sym}</a>`;
+    alerts.push({type:'danger',
+      msg:`<strong>${symLink} concentration: ${s.pctOfPortfolio.toFixed(1)}%</strong> ($${Math.round(s.totalVal).toLocaleString()}) — Found in ${s.sources.filter(x=>x.fundSym!=='Direct').length} funds${s.sources.some(x=>x.fundSym==='Direct')?' + direct holding':''}. A 20% drop would reduce your portfolio by ~$${Math.round(drop20).toLocaleString()}.`});
+  });
+  /* High overlap alerts */
+  const seen=new Set();
+  fundSyms.forEach(a=>{
+    fundSyms.forEach(b=>{
+      if(a>=b) return;
+      const k=a+'|'+b;
+      if(seen.has(k)) return; seen.add(k);
+      const ov=overlap[a]?.[b]||0;
+      if(ov>=60){
+        const aLink=`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(a)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">${a}</a>`;
+        const bLink=`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(b)}" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">${b}</a>`;
+        alerts.push({type:'warn',
+          msg:`<strong>${aLink} ↔ ${bLink}: ${ov}% overlap</strong> — These funds hold many of the same stocks. Consider consolidating into one to reduce redundancy and simplify your portfolio.`});
+      }
+    });
+  });
+  /* Diversification positive */
+  const intlFunds=fundSyms.filter(s=>{const d=FUND_HOLDINGS_DB[s]; return d&&d.n&&/intl|international|emerging|ex-us|eafe|world/i.test(d.n);});
+  if(intlFunds.length>0){
+    const maxOverlapWithUS=Math.max(...intlFunds.map(i=>fundSyms.filter(u=>u!==i&&!intlFunds.includes(u)).map(u=>overlap[i]?.[u]||0)).flat(),0);
+    if(maxOverlapWithUS<10) alerts.push({type:'ok', msg:`<strong>International funds provide genuine diversification</strong> — Less than 10% overlap with your US holdings. Good geographic spread.`});
+  }
+  /* No data coverage note */
+  if(noDataFunds.length>0){
+    alerts.push({type:'info', msg:`<strong>${noDataFunds.length} fund(s) without composition data</strong> — ${noDataFunds.map(f=>f.sym).join(', ')}. These are not included in the overlap analysis.`});
+  }
+
+  return {topStocks, fundSyms, overlap, alerts, fundPositions, coveredValue, noDataFunds};
+}
+
+/* ---- Fund X-Ray: Renderer ---- */
+function renderFundXRay(){
+  /* Hide normal holdings views, show xray container */
+  document.getElementById('allocOverview').style.display='none';
+  document.getElementById('drilldown').style.display='none';
+  const insEl=document.querySelector('.insights');
+  if(insEl) insEl.style.display='none';
+  const xc=document.getElementById('xrayContent');
+  xc.style.display='';
+
+  const xray=computeFundXRay();
+  const fmtD=v=>'$'+Math.round(v).toLocaleString();
+  const fmtPct=v=>v.toFixed(1)+'%';
+  const yfl=sym=>`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;font-weight:700" title="View ${esc(sym)} on Yahoo Finance">${esc(sym)}</a>`;
+  let h='';
+
+  /* Header */
+  h+=`<div class="xray-section"><div class="xray-h2">\u{1F50D} Fund X-Ray Analysis</div>`;
+  h+=`<div class="xray-desc">This analysis looks <em>inside</em> your ETFs and mutual funds to reveal hidden stock concentration and fund overlap. `;
+  if(xray.coveredValue.total>0){
+    const covPct=(xray.coveredValue.covered/xray.coveredValue.total*100);
+    h+=`Coverage: <strong>${fmtPct(covPct)}</strong> of equity value (${fmtD(xray.coveredValue.covered)} of ${fmtD(xray.coveredValue.total)}) has fund composition data. `;
+  }
+  h+=_FUND_DATA_FRESH
+    ?`<span style="color:#059669;font-weight:600">\u2705 Live data fetched at report generation.</span>`
+    :`<span style="color:#d97706;font-weight:600">\u{26A0}\uFE0F Using static estimates — regenerate the report to fetch live data.</span>`;
+  h+=`</div></div>`;
+
+  /* Panel 1: Top Stock Exposure */
+  h+=`<div class="xray-section"><div class="xray-h2">\u{1F4CA} Hidden Stock Concentration</div>`;
+  h+=`<div class="xray-desc">Your largest single-stock exposures across all funds combined. Stocks appearing in multiple funds create hidden concentration risk.</div>`;
+  if(xray.topStocks.length===0){
+    h+=`<div class="xray-no-data">No fund composition data available for your holdings.</div>`;
+  } else {
+    const showCount=25;
+    h+=`<div style="overflow-x:auto"><table class="xray-conc-tbl"><thead><tr>`;
+    h+=`<th>#</th><th>Stock</th><th class="r">Effective Value</th><th class="r">% of Portfolio</th><th>Exposure</th><th>Found In</th><th>Risk</th>`;
+    h+=`</tr></thead><tbody>`;
+    xray.topStocks.slice(0,showCount).forEach((s,i)=>{
+      const riskCls=s.pctOfPortfolio>=5?'xray-risk-high':s.pctOfPortfolio>=3?'xray-risk-mod':'xray-risk-low';
+      const riskLabel=s.pctOfPortfolio>=5?'\u{1F534} High':s.pctOfPortfolio>=3?'\u{1F7E1} Moderate':'\u{1F7E2} Low';
+      const barPct=Math.min(s.pctOfPortfolio/Math.max(xray.topStocks[0].pctOfPortfolio,1)*100,100);
+      const barColor=s.pctOfPortfolio>=5?'#ef4444':s.pctOfPortfolio>=3?'#f59e0b':'#22c55e';
+      const fundList=s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx)
+        .map(src=>src.fundSym==='Direct'?'<span class="xray-tag" style="background:#dbeafe;color:#1e40af">Direct</span>'
+          :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:#f1f5f9;color:#334155;text-decoration:none">${src.fundSym}</a>`).join(' ');
+      h+=`<tr><td class="r" style="color:var(--text-muted)">${i+1}</td>`;
+      h+=`<td>${yfl(s.sym)}</td>`;
+      h+=`<td class="r">${fmtD(s.totalVal)}</td>`;
+      h+=`<td class="r"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">`;
+      h+=`<div class="xray-conc-bar" style="width:80px"><div class="xray-conc-fill" style="width:${barPct}%;background:${barColor}"></div></div>`;
+      h+=`<span style="min-width:42px;text-align:right">${fmtPct(s.pctOfPortfolio)}</span></div></td>`;
+      h+=`<td>${s.sources.length>1?s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx).length+' sources':s.sources[0].fundSym==='Direct'?'Direct':'1 fund'}</td>`;
+      h+=`<td style="max-width:300px">${fundList}</td>`;
+      h+=`<td class="${riskCls}">${riskLabel}</td></tr>`;
+    });
+    h+=`</tbody>`;
+    /* Expandable rows in same table for alignment */
+    if(xray.topStocks.length>showCount){
+      h+=`<tbody id="xrayExtraRows" style="display:none">`;
+      xray.topStocks.slice(showCount).forEach((s,i)=>{
+        const riskCls=s.pctOfPortfolio>=5?'xray-risk-high':s.pctOfPortfolio>=3?'xray-risk-mod':'xray-risk-low';
+        const riskLabel=s.pctOfPortfolio>=5?'\u{1F534} High':s.pctOfPortfolio>=3?'\u{1F7E1} Moderate':'\u{1F7E2} Low';
+        const barPct=Math.min(s.pctOfPortfolio/Math.max(xray.topStocks[0].pctOfPortfolio,1)*100,100);
+        const barColor=s.pctOfPortfolio>=5?'#ef4444':s.pctOfPortfolio>=3?'#f59e0b':'#22c55e';
+        const fundList=s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx)
+          .map(src=>src.fundSym==='Direct'?'<span class="xray-tag" style="background:#dbeafe;color:#1e40af">Direct</span>'
+            :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:#f1f5f9;color:#334155;text-decoration:none">${src.fundSym}</a>`).join(' ');
+        h+=`<tr><td class="r" style="color:var(--text-muted)">${showCount+i+1}</td>`;
+        h+=`<td>${yfl(s.sym)}</td>`;
+        h+=`<td class="r">${fmtD(s.totalVal)}</td>`;
+        h+=`<td class="r"><div style="display:flex;align-items:center;gap:8px;justify-content:flex-end">`;
+        h+=`<div class="xray-conc-bar" style="width:80px"><div class="xray-conc-fill" style="width:${barPct}%;background:${barColor}"></div></div>`;
+        h+=`<span style="min-width:42px;text-align:right">${fmtPct(s.pctOfPortfolio)}</span></div></td>`;
+        h+=`<td>${s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx).length} sources</td>`;
+        h+=`<td style="max-width:300px">${fundList}</td>`;
+        h+=`<td class="${riskCls}">${riskLabel}</td></tr>`;
+      });
+      h+=`</tbody>`;
+    }
+    h+=`</table></div>`;
+    if(xray.topStocks.length>showCount){
+      h+=`<button class="xray-expand-btn" id="xrayToggleBtn" onclick="var rows=document.getElementById('xrayExtraRows'),btn=this;if(rows.style.display==='none'){rows.style.display='';btn.textContent='Show top ${showCount} only \u25B2';}else{rows.style.display='none';btn.textContent='Show all ${xray.topStocks.length} stocks \u25BC';}">Show all ${xray.topStocks.length} stocks \u25BC</button>`;
+    }
+  }
+  h+=`</div>`;
+
+  /* Panel 2: Fund Overlap Heatmap */
+  if(xray.fundSyms.length>=2){
+    h+=`<div class="xray-section"><div class="xray-h2">\u{1F5FA}\uFE0F Fund Overlap Heatmap</div>`;
+    h+=`<div class="xray-desc">Each cell shows the percentage of common holdings (by weight) between two funds. Higher overlap means more redundancy.</div>`;
+    h+=`<div class="xray-heatmap"><table class="xray-hm-tbl"><thead><tr><th></th>`;
+    xray.fundSyms.forEach(s=>{ h+=`<th>${yfl(s)}</th>`; });
+    h+=`</tr></thead><tbody>`;
+    xray.fundSyms.forEach(a=>{
+      h+=`<tr><th>${yfl(a)}</th>`;
+      xray.fundSyms.forEach(b=>{
+        if(a===b){ h+=`<td class="self">—</td>`; return; }
+        const ov=xray.overlap[a]?.[b]||0;
+        const bg=ov>=60?`rgba(239,68,68,${0.15+ov/100*0.5})`:ov>=30?`rgba(245,158,11,${0.1+ov/100*0.4})`:`rgba(34,197,94,${0.05+ov/100*0.3})`;
+        const fg=ov>=60?'#991b1b':ov>=30?'#92400e':'#166534';
+        h+=`<td style="background:${bg};color:${fg}">${ov}%</td>`;
+      });
+      h+=`</tr>`;
+    });
+    h+=`</tbody></table></div></div>`;
+  }
+
+  /* Panel 3: Alerts */
+  if(xray.alerts.length>0){
+    h+=`<div class="xray-section"><div class="xray-h2">\u{26A0}\uFE0F Redundancy & Concentration Alerts</div>`;
+    xray.alerts.forEach(a=>{
+      const cls=a.type==='danger'?'xray-alert-danger':a.type==='warn'?'xray-alert-warn':a.type==='ok'?'xray-alert-ok':'xray-alert-info';
+      const icon=a.type==='danger'?'\u{1F6A8}':a.type==='warn'?'\u{26A0}\uFE0F':a.type==='ok'?'\u2705':'\u{2139}\uFE0F';
+      h+=`<div class="xray-alert ${cls}">${icon} ${a.msg}</div>`;
+    });
+    h+=`</div>`;
+  }
+
+  xc.innerHTML=h;
+}
 const ALLOC_COLORS = {eq:'#2563eb',intl:'#059669',bond:'#7c3aed',cash:'#94a3b8',reit:'#ea580c',alt:'#d97706',other:'#d4d4d4'};
 const FUND_META = {
   VTI:{n:'Vanguard Total Stock Market ETF',ac:'US Equity',sc:'Total Market',role:'Core broad US equity covering large, mid, and small caps',er:0.03,scores:{g:8,r:6,d:9,c:10}},
@@ -1691,9 +2109,11 @@ function computeCurrentAlloc(){
   const intl=cats['International Funds']||0;
   const bond=cats['Bond Funds']||0;
   const cash=cats['Cash / Money Market']||0;
-  const mapped=eq+intl+bond+cash;
+  const reit=cats['Real Estate']||0;
+  const alt=cats['Alternatives']||cats['Commodities']||0;
+  const mapped=eq+intl+bond+cash+reit+alt;
   const other=Math.max(0,GRAND-mapped);
-  return{eq,intl,bond,cash,other,total:GRAND};
+  return{eq,intl,bond,cash,reit,alt,other,total:GRAND};
 }
 
 function allocBar(items,total){
@@ -1728,7 +2148,7 @@ function renderSuggestions(){
       else if(ac==='Bonds')bond+=a.pct;else if(ac==='Real Estate')reit+=a.pct;else if(ac==='Alternatives')alt+=a.pct;});
     return{eq,intl,bond,cash:0,reit,alt};
   }
-  const rows=[{label:'Your Portfolio',d:{eq:cur.eq/GRAND*100,intl:cur.intl/GRAND*100,bond:cur.bond/GRAND*100,cash:cur.cash/GRAND*100,reit:0,alt:0,other:cur.other/GRAND*100}}];
+  const rows=[{label:'Your Portfolio',d:{eq:cur.eq/GRAND*100,intl:cur.intl/GRAND*100,bond:cur.bond/GRAND*100,cash:cur.cash/GRAND*100,reit:cur.reit/GRAND*100,alt:cur.alt/GRAND*100,other:cur.other/GRAND*100}}];
   ['high','medium','low'].forEach(k=>{rows.push({label:MODELS[k].name,d:modelBreakdown(MODELS[k].alloc)});});
 
   rows.forEach(r=>{
@@ -1958,11 +2378,16 @@ const EXTRA_STD_DED_MFJ=1600; /* per person, MFJ */
 const EXTRA_STD_DED_SINGLE=2000;
 /* OBBBA §101 temporary senior deduction 2025-2028: $6,000 per person regardless of filing status */
 const OBBBA_SENIOR_DED=6000; /* per person age 65+; phases out at $150K MFJ / $75K single MAGI (6%/$ over threshold) */
-function getStdDeduction(filing,age,spouseAge,hasSpouse){
+const OBBBA_THRESHOLD_MFJ=150000;
+const OBBBA_THRESHOLD_SINGLE=75000;
+function getStdDeduction(filing,age,spouseAge,hasSpouse,magi){
   let base=filing==='mfj'?STD_DEDUCTION_MFJ:STD_DEDUCTION_SINGLE;
   const extra=filing==='mfj'?EXTRA_STD_DED_MFJ:EXTRA_STD_DED_SINGLE;
-  if(age>=65){ base+=extra; base+=OBBBA_SENIOR_DED; /* §101 2025-2028; sunset/extension not modeled — brackets also use static 2025 values */ }
-  if(filing==='mfj'&&hasSpouse&&spouseAge>=65){ base+=extra; base+=OBBBA_SENIOR_DED; }
+  const obbbaThreshold=filing==='mfj'?OBBBA_THRESHOLD_MFJ:OBBBA_THRESHOLD_SINGLE;
+  const obbbaPhaseOut=magi!=null?Math.min(OBBBA_SENIOR_DED,Math.max(0,(magi-obbbaThreshold)*0.06)):0;
+  const seniorDed=OBBBA_SENIOR_DED-obbbaPhaseOut;
+  if(age>=65){ base+=extra; base+=seniorDed; }
+  if(filing==='mfj'&&hasSpouse&&spouseAge>=65){ base+=extra; base+=seniorDed; }
   return base;
 }
 
@@ -2057,7 +2482,7 @@ function runMonteCarlo(params){
     for(let yr=0;yr<yearsInRetirement;yr++){
       const age=retAge+yr;
       const spouseAge=hasSpouse?(age+spAgeOffset):0;
-      const stdDedMC=getStdDeduction(filing,age,spouseAge,hasSpouse);
+      const stdDedMC=getStdDeduction(filing,age,spouseAge,hasSpouse,yr>0&&magiHistory[yr-1]!=null?magiHistory[yr-1]:null);
       const inflMult=Math.pow(1+inflPct,yr+yearsToRetire);
       /* Random return for this year (log-normal) */
       const yearReturn=Math.exp(mu+vol*randNormal())-1;
@@ -2079,6 +2504,7 @@ function runMonteCarlo(params){
       const mcBase=mcUsingPhases?phaseExp:fallbackMC;
       let need=mcUsingPhases?mcBase*inflMult:mcBase*Math.pow(1+inflPct,yr);
       if(!mcUsingPhases) need=Math.max(curTotal*0.035,Math.min(curTotal*0.055,need));
+      const ssSurplus=Math.max(0,ssIncome-need); /* excess SS reinvested into taxable */
       let target=Math.max(0,need-ssIncome);
       target=Math.min(target,curTotal);
 
@@ -2107,9 +2533,18 @@ function runMonteCarlo(params){
       /* Last resort: drain remaining HSA */
       if(rem>0&&bH>wH){ const moreH=Math.min(rem,bH-wH); wH+=moreH; rem-=moreH; }
 
+      /* Simplified Roth conversion in MC — fill bracket room in pre-RMD years */
+      let mcRothConv=0;
+      if(rothConvStrategy&&rothConvStrategy!=='none'&&age<RMD_START_AGE&&bD>wD){
+        const mcOrdBeforeConv=wD+Math.max(0,(wH||0)-(age>=65?5000*inflMult:0));
+        const mcSSBeforeConv=ssIncome>0?calcSSTaxableAmount(ssIncome,mcOrdBeforeConv+wT,filing):0;
+        const mcBracketRoom=Math.max(0,convBracketLimit+stdDedMC-mcOrdBeforeConv-mcSSBeforeConv);
+        mcRothConv=Math.min(mcBracketRoom,bD-wD);
+      }
+
       /* Simplified tax estimation for MC — gross up withdrawal to cover taxes */
       const hsaNonMed=Math.max(0,wH-annMed);
-      const ordIncMC=wD+hsaNonMed;
+      const ordIncMC=wD+hsaNonMed+mcRothConv;
       const agiMC=ordIncMC+wT;
       const ssTaxMC=ssIncome>0?calcSSTaxableAmount(ssIncome,agiMC,filing):0;
       const taxableIncMC=Math.max(0,ordIncMC+ssTaxMC-stdDedMC);
@@ -2122,19 +2557,20 @@ function runMonteCarlo(params){
       const mcTax=mcTaxBase+mcIrmaa+(params.stateTaxPct>0?taxableIncMC*params.stateTaxPct:0);
       /* Store MAGI for future IRMAA lookback */
       magiHistory.push(agiMC+ssTaxMC);
-      /* Reinvest RMD surplus into taxable */
+      /* Reinvest RMD surplus + SS surplus into taxable */
       const rmdSurplus=Math.max(0,wT+wD+wR+wH-target);
+      const mcReinvest=rmdSurplus+ssSurplus;
       /* Tax drain: cascade across accounts (taxable → deferred → roth → HSA) */
       let mcTaxRem=mcTax;
-      const mDrT=Math.min(mcTaxRem,Math.max(0,bT-wT+rmdSurplus)); mcTaxRem-=mDrT;
-      const mDrD=Math.min(mcTaxRem,Math.max(0,bD-wD)); mcTaxRem-=mDrD;
-      const mDrR=Math.min(mcTaxRem,Math.max(0,bR-wR)); mcTaxRem-=mDrR;
+      const mDrT=Math.min(mcTaxRem,Math.max(0,bT-wT+mcReinvest)); mcTaxRem-=mDrT;
+      const mDrD=Math.min(mcTaxRem,Math.max(0,bD-wD-mcRothConv)); mcTaxRem-=mDrD;
+      const mDrR=Math.min(mcTaxRem,Math.max(0,bR-wR+mcRothConv)); mcTaxRem-=mDrR;
       const mDrH=Math.min(mcTaxRem,Math.max(0,bH-wH));
 
       /* Grow balances with randomized return */
-      bT=Math.max(0,(bT-wT-mDrT+rmdSurplus)*(1+yearReturn));
-      bD=Math.max(0,(bD-wD-mDrD)*(1+yearReturn));
-      bR=Math.max(0,(bR-wR-mDrR)*(1+yearReturn));
+      bT=Math.max(0,(bT-wT-mDrT+mcReinvest)*(1+yearReturn));
+      bD=Math.max(0,(bD-wD-mcRothConv-mDrD)*(1+yearReturn));
+      bR=Math.max(0,(bR-wR+mcRothConv-mDrR)*(1+yearReturn));
       bH=Math.max(0,(bH-wH-mDrH)*(1+yearReturn));
       yearTotals[yr].push(bT+bD+bR+bH);
     }
@@ -2349,6 +2785,7 @@ function exportSettingsToFile(){
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
+  showToast('Settings exported successfully', 'success');
 }
 
 function importSettingsFromFile(file){
@@ -2364,8 +2801,9 @@ function importSettingsFromFile(file){
       /* Re-render current tab to pick up restored settings */
       const activeBtn=document.querySelector('.pivot-tab.active');
       if(activeBtn) activeBtn.click();
+      showToast('Settings loaded successfully', 'success');
     }catch(err){
-      alert('Failed to load settings: '+err.message);
+      showToast('Failed to load settings: '+err.message, 'error');
     }
   };
   reader.readAsText(file);
@@ -2767,14 +3205,14 @@ function _sdHandleFile(file){
     /* Validate it looks like a Fidelity CSV */
     const firstLine=(text.split(/\r?\n/)[0]||'');
     if(!/Account Number/i.test(firstLine)||!/Current Value/i.test(firstLine)){
-      alert('This does not appear to be a Fidelity Portfolio Positions CSV.\nExpected columns: Account Number, Current Value, Symbol, etc.');
+      showToast('This does not appear to be a Fidelity Portfolio Positions CSV.', 'error');
       return;
     }
     /* Store in localStorage */
     try{
       localStorage.setItem(SD_STORAGE_KEY,JSON.stringify({csv:text,name:file.name}));
     }catch(err){
-      alert('File too large to store in browser storage. Try a smaller CSV.');
+      showToast('File too large to store in browser storage.', 'error');
       return;
     }
     _sdRenderResults(text,file.name);
@@ -3036,10 +3474,19 @@ function _sdRenderResults(csvText,fileName){
   }
 
   el.innerHTML=html;
+  /* Update Snapshot Diff tab badge */
+  const sdBadge=document.getElementById('sdBadge');
+  if(sdBadge){
+    const totalChanged=diff.newPositions.length+diff.closedPositions.length+diff.changedPositions.filter(p=>Math.abs(p.changePct)>=0.1).length;
+    if(totalChanged>0){ sdBadge.textContent=totalChanged; sdBadge.style.display=''; }
+    else sdBadge.style.display='none';
+  }
 }
 
 function _sdClear(){
   try{localStorage.removeItem(SD_STORAGE_KEY);}catch(e){}
+  const sdBadge=document.getElementById('sdBadge');
+  if(sdBadge) sdBadge.style.display='none';
   renderSnapshotDiff();
 }
 
@@ -3408,7 +3855,7 @@ function computeWithdrawalPlan(){
   for(let yr=0;yr<yearsInRetirement;yr++){
     const age=retAge+yr;
     const spouseAge=hasSpouse?(age+spAgeOffset):0; /* spouse's current age this year */
-    const stdDeduction=getStdDeduction(filing,age,spouseAge,hasSpouse);
+    const stdDeduction=getStdDeduction(filing,age,spouseAge,hasSpouse,yr>0?rows[yr-1]._magi:null);
     const inflMult=Math.pow(1+inflPct,yr+yearsToRetire); /* inflate from today */
     let yourSS=0;
     if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp){
@@ -3869,7 +4316,7 @@ function computeWithdrawalPlan(){
   onmouseout="this.style.transform='';this.style.boxShadow='0 2px 8px rgba(124,58,237,0.25)'"
   >\u{1F4A1} See Spending Suggestions</button></div>`;
 
-  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CB} Year-by-Year Withdrawal Schedule <span style="font-size:0.6em;font-weight:400;color:var(--text-muted)">— click withdrawal cells to override</span></div>`;
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F4CB} Year-by-Year Withdrawal Schedule <span style="font-size:0.72em;font-weight:400;color:var(--text-muted)">— click withdrawal cells to override</span></div>`;
   html+=`<div id="wd-tbl-container">`;
   html+=`</div>`;
   /* Render initial table */
@@ -3877,7 +4324,7 @@ function computeWithdrawalPlan(){
   html+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:6px">\u{1F4CC} = RMD required year &nbsp; * = includes Required Minimum Distribution &nbsp; Blue rows = RMD years &nbsp; Red rows = portfolio depleted${hasConv?' &nbsp; Green border = Roth conversion year':''} &nbsp; <span style="color:#7c3aed">Purple (PV) = present value in today's dollars (discounted at ${inflPct*100}% inflation)</span> &nbsp; <span style="color:#b45309">\u{270F}\uFE0F Orange = user override (edit to recalculate)</span></div>`;
   html+=`</div>`;
 
-  html+=`<div class="wd-section"><div class="wd-h2">\u{1F3B2} Monte Carlo Analysis <span style="font-size:0.65em;font-weight:400;color:var(--text-muted)">(${mc.nSims} simulations)</span></div>`;
+  html+=`<div class="wd-section"><div class="wd-h2">\u{1F3B2} Monte Carlo Analysis <span style="font-size:0.72em;font-weight:400;color:var(--text-muted)">(${mc.nSims} simulations)</span></div>`;
   html+=`<p class="wd-desc">Each simulation randomizes annual market returns using a log-normal distribution (mean ${retPct*100}%, volatility ${volPct*100}%). This shows the range of possible outcomes rather than a single deterministic projection.</p>`;
 
   /* MC Summary cards */
@@ -4193,7 +4640,7 @@ function renderWdTable(){
     const br=baseRows[i];
     const age=br.age;
     const spouseAge=br.spouseAge;
-    const stdDeduction=getStdDeduction(filing,age,spouseAge,hasSpouse);
+    const stdDeduction=getStdDeduction(filing,age,spouseAge,hasSpouse,i>0?rRows[i-1]._magi:null);
     const inflMult=Math.pow(1+inflPct,i+yearsToRetire);
     /* SS */
     let yourSS=0,spouseSS=0;
@@ -4317,7 +4764,10 @@ function renderWdTable(){
     /* Reinvest excess RMD surplus into taxable */
     const targetW=wTaxable+wDeferred+wRoth+wHSA;
     const phaseExpR=getAnnualExpenseForAge(age,spendingPhases);
-    const baseTarget=br?Math.max(0,(hasPhases?phaseExpR*Math.pow(1+inflPct,i+yearsToRetire):((bTaxableInit+bDeferredInit+bRothInit+bHSAInit)*0.04)*Math.pow(1+inflPct,i))-ssIncome):targetW;
+    const curTotalR=bTaxable+bDeferred+bRoth+bHSA;
+    let baseNeed=hasPhases?phaseExpR*Math.pow(1+inflPct,i+yearsToRetire):((bTaxableInit+bDeferredInit+bRothInit+bHSAInit)*0.04)*Math.pow(1+inflPct,i);
+    if(!hasPhases&&curTotalR>0) baseNeed=Math.max(curTotalR*0.035,Math.min(curTotalR*0.055,baseNeed));
+    const baseTarget=br?Math.max(0,baseNeed-ssIncome):targetW;
     const rmdSurplus=Math.max(0,targetW-Math.max(baseTarget,0));
     /* Tax drain: cascade across accounts */
     let txRemR=totalTax;
@@ -4367,7 +4817,7 @@ function renderWdTable(){
     const ovBg=r.overridden?'background:#fffbeb;':'';
     const ovStyle=r.overridden?'color:#b45309;font-weight:700':'';
     /* Editable input helper */
-    const mkInput=(field,val)=>`<input type="number" class="wd-ovr" data-row="${i}" data-field="${field}" value="${Math.round(val)}" style="width:90px;padding:2px 4px;border:1px solid ${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#f59e0b':'#e2e8f0'};border-radius:4px;font-size:0.85em;text-align:right;background:${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#fffbeb':'transparent'}" onchange="wdOverride(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();wdOverride(this);}">`;
+    const mkInput=(field,val)=>`<input type="number" class="wd-ovr" data-row="${i}" data-field="${field}" value="${Math.round(val)}" style="width:100px;padding:2px 4px;border:1px solid ${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#f59e0b':'#e2e8f0'};border-radius:4px;font-size:0.85em;text-align:right;background:${r.overridden&&overrides[i]&&overrides[i][field]!=null?'#fffbeb':'transparent'}" onchange="wdOverride(this)" onkeydown="if(event.key==='Enter'){event.preventDefault();wdOverride(this);}">`;
 
     t+=`<tr class="${cls}" style="${convBorder}${ovBg}">`;
     t+=`<td>${r.age}${r.age>=RMD_START_AGE&&r.bTotal>0?' \u{1F4CC}':''}</td>`;
@@ -4402,7 +4852,7 @@ function renderWdTable(){
   t+=`<div style="font-size:0.8em;color:#6b7280;margin-top:6px;padding:0 4px"><span style="color:#059669">✦</span> Tax-free — Roth &amp; HSA withdrawals do not affect income tax. &nbsp; <span style="color:#d97706">⟳</span> Roth conversion auto-adjusted to fill tax bracket — total ordinary income unchanged, so tax stays the same.</div>`;
 
   const container=document.getElementById('wd-tbl-container');
-  if(container) container.innerHTML=t;
+  if(container){ container.innerHTML=t; initColResize(container.querySelector('.wd-tbl')); }
   }catch(e){console.error('renderWdTable error:',e);const c=document.getElementById('wd-tbl-container');if(c) c.innerHTML='<div style="color:red;padding:10px">Recalc Error: '+esc(e.message||'')+'<br>'+esc(e.stack||'')+'</div>';}
 }
 
@@ -4438,6 +4888,7 @@ function wdOverride(el){
    TAX-LOSS HARVESTING TAB
    ================================================================== */
 const TLH_TAXABLE_TYPES = ['Taxable Investment','Custodial (UTMA)'];
+function _isTLHTaxable(type){ return type==='Taxable Investment'||type==='Custodial (UTMA)'||(type||'').includes('Individual')||(type||'').includes('Joint'); }
 const TLH_REPLACEMENT_MAP = {
   // US broad market / S&P 500
   'FXAIX':['VOO','VTI','SCHX'],'VOO':['FXAIX','IVV','SCHX'],'VTI':['FSKAX','ITOT','SCHB'],
@@ -4462,7 +4913,7 @@ function renderTaxLoss(){
   const positions=[];
   DATA.forEach(d=>{
     d.accounts.forEach(a=>{
-      const isTaxable=TLH_TAXABLE_TYPES.includes(a.type);
+      const isTaxable=_isTLHTaxable(a.type);
       a.tickers.forEach(t=>{
         if(t.gl!==null && t.gl!==undefined){
           positions.push({sym:t.sym,name:t.name,val:t.val,gl:t.gl,glPct:t.glPct,cb:t.cb,
@@ -4613,6 +5064,12 @@ function renderTaxLoss(){
 
   html+=`</div>`;
   el.innerHTML=html;
+  /* Update TLH tab badge */
+  const tlhBadge=document.getElementById('tlhBadge');
+  if(tlhBadge){
+    if(taxableLosses.length>0){ tlhBadge.textContent=taxableLosses.length; tlhBadge.style.display=''; }
+    else tlhBadge.style.display='none';
+  }
 }
 
 /* ==================================================================
@@ -4624,7 +5081,7 @@ function showWithdrawalSuggestions(){
 
   /* Read current withdrawal context */
   const ctx=window._wdCtx;
-  if(!ctx){alert('Please run Calculate Withdrawal Plan first.');return;}
+  if(!ctx){showToast('Please run Calculate Withdrawal Plan first.','error');return;}
 
   const raw=localStorage.getItem(SETTINGS_KEY);
   let saved={};try{saved=raw?JSON.parse(raw):{};}catch(e){saved={};}
@@ -4921,7 +5378,7 @@ function showWithdrawalSuggestions(){
     /* Top-level error: remove stuck overlay and alert user */
     _closeSuggOverlay();
     console.error('Spending suggestions error:',err);
-    alert('Error calculating suggestions: '+err.message);
+    showToast('Error calculating suggestions: '+err.message, 'error');
    }
   },50);
 }
@@ -5289,7 +5746,7 @@ function _scenarioSim(p){
   for(let yr=0;yr<yearsInRetirement;yr++){
     const age=retAge+yr;
     const spouseAge=hasSpouse?(age+spAgeOffset):0;
-    const stdDed=getStdDeduction(filing,age,spouseAge,hasSpouse);
+    const stdDed=getStdDeduction(filing,age,spouseAge,hasSpouse,yr>0?rows[yr-1]._magi:null);
     const inflMult=Math.pow(1+inflPct,yr+yearsToRetire);
     let yourSS=0;
     if(ssAnnualFRA>0&&age>=ssStartAge&&age<=lifeExp) yourSS=ssAnnualFRA*(SS_AGE_FACTOR[ssStartAge]||1.0)*inflMult;
@@ -5750,8 +6207,10 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
 
     /* Show/hide sub-pivot bar */
     document.getElementById('holdingsSubPivot').style.display=(newTab==='holdings')?'':'none';
+    document.getElementById('xrayContent').style.display='none';
 
-    /* Restore or render */
+    /* Restore visibility of all main panels (xray hides drilldown + allocOverview + insights) */
+    document.getElementById('drilldown').style.display='';
     const insSwitch=document.querySelector('.insights');
     if(insSwitch) insSwitch.style.display='';
     document.getElementById('allocOverview').style.display='';
@@ -5776,7 +6235,16 @@ let _activeSubPivot='acctName';
 
 function _renderHoldingsSubPivot(sub){
   if(sub) _activeSubPivot=sub;
-  if(_activeSubPivot==='acctType') renderAcctTypePivot();
+  /* Toggle visibility: xray hides normal panels, others show them */
+  const isXray=_activeSubPivot==='xray';
+  document.getElementById('allocOverview').style.display=isXray?'none':'';
+  document.getElementById('drilldown').style.display=isXray?'none':'';
+  const insEl=document.querySelector('.insights');
+  if(insEl) insEl.style.display=isXray?'none':'';
+  document.getElementById('xrayContent').style.display=isXray?'':'none';
+
+  if(isXray) renderFundXRay();
+  else if(_activeSubPivot==='acctType') renderAcctTypePivot();
   else if(_activeSubPivot==='category') renderCategoryPivot();
   else renderAcctNamePivot();
 }
@@ -5824,6 +6292,20 @@ document.querySelectorAll('.sub-pivot-tab').forEach(btn=>{
 
 /* Auto-save on page close/refresh — ensures no input values are lost */
 window.addEventListener('beforeunload',()=>saveSettings());
+
+/* Pre-compute TLH badge count from DATA without full render */
+(function(){
+  try{
+    const tlhBadge=document.getElementById('tlhBadge');
+    if(!tlhBadge) return;
+    let cnt=0;
+    DATA.forEach(acct=>{
+      const isTax=!/ira|401|403|457|roth|hsa|529|tsp|sep|simple/i.test((acct.acctType||'')+(acct.acctName||''));
+      if(isTax) acct.positions.forEach(p=>{ if((p.gainLoss||0)<-0.005) cnt++; });
+    });
+    if(cnt>0){ tlhBadge.textContent=cnt; tlhBadge.style.display=''; }
+  }catch(e){}
+})();
 
 function toggleCat(el){
   el.classList.toggle('open');
@@ -6060,6 +6542,7 @@ function computeInsights(pivot){
     </div>`).join('');
 }
 </script>
+<div class="toast-container" id="toastContainer"></div>
 </body>
 </html>
 

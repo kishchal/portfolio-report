@@ -412,6 +412,70 @@ $html = $html.Replace('{{GRAND_TOTAL_NUM}}', [math]::Round($grandTotal, 2).ToStr
 $html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson.Replace('</script', '<\/script'))
 $html = $html.Replace('{{SOURCE_FILE}}', (Split-Path $CsvPath -Leaf))
 
+# --- Fetch live fund holdings for X-Ray ---
+$fundSyms = @()
+foreach ($h in $holdings) {
+    $sym = ($h.Symbol -replace '\*+$', '')
+    if (-not $sym -or $sym -match '^(SPAXX|FDRXX|FZFXX|VMFXX|SWVXX|CORE|FZDXX)\*?\*?$') { continue }
+    # Known fund from CategoryMap
+    if ($CategoryMap.ContainsKey($sym) -and $CategoryMap[$sym].Category -ne 'Cash / Money Market') {
+        $fundSyms += $sym; continue
+    }
+    # Check risk cache: fund-like categories or mutual fund ticker pattern (5 chars ending in X)
+    $riskCat = if ($riskCache.ContainsKey($sym)) { $riskCache[$sym] } else { '' }
+    if ($riskCat -match 'Fund|ETF|Index') { $fundSyms += $sym; continue }
+    if ($sym -match '^[A-Z]{5}X?$' -and $sym -notin $StockSymbols) { $fundSyms += $sym }
+}
+$fundSyms = $fundSyms | Sort-Object -Unique | Where-Object { $_ -match '^[A-Z]{2,6}$' }
+
+$liveJson = 'null'
+if ($fundSyms.Count -gt 0) {
+    Write-Host "  Fetching live fund holdings for $($fundSyms.Count) funds..."
+    try {
+        # Get consent cookie via fc.yahoo.com, then crumb
+        $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+        try {
+            $null = Invoke-WebRequest -Uri 'https://fc.yahoo.com/' -SessionVariable session -TimeoutSec 10 -UserAgent $ua -ErrorAction SilentlyContinue
+        } catch {
+            # Expected — fc.yahoo.com errors but sets consent cookie in $session
+        }
+        $crumb = Invoke-RestMethod -Uri 'https://query2.finance.yahoo.com/v1/test/getcrumb' -WebSession $session -TimeoutSec 10 -UserAgent $ua -ErrorAction Stop
+
+        $liveData = @{}
+        $fetched = 0
+        foreach ($sym in $fundSyms) {
+            try {
+                $url = "https://query2.finance.yahoo.com/v10/finance/quoteSummary/$sym`?modules=topHoldings,quoteType&crumb=$([uri]::EscapeDataString($crumb))"
+                $resp = Invoke-RestMethod -Uri $url -WebSession $session -TimeoutSec 8 -UserAgent $ua -ErrorAction Stop
+                $res0 = $resp.quoteSummary.result[0]
+                $top = $res0.topHoldings
+                if (-not $top -or -not $top.holdings) { continue }
+
+                $h2 = @{}
+                foreach ($item in $top.holdings) {
+                    $s = $item.symbol
+                    $pct = $item.holdingPercent.raw
+                    if ($s -and $pct -gt 0) {
+                        $h2[$s] = [math]::Round($pct * 100, 2)
+                    }
+                }
+                if ($h2.Count -gt 0) {
+                    $fundName = if ($res0.quoteType.longName) { $res0.quoteType.longName } else { $sym }
+                    $liveData[$sym] = @{ n = $fundName; h = $h2 }
+                    $fetched++
+                }
+            } catch { }
+        }
+        if ($fetched -gt 0) {
+            Write-Host "  Fetched live holdings for $fetched/$($fundSyms.Count) funds from Yahoo Finance"
+            $liveJson = ($liveData | ConvertTo-Json -Depth 4 -Compress)
+        }
+    } catch {
+        Write-Host "  Warning: Yahoo Finance fetch failed, using static fund data" -ForegroundColor Yellow
+    }
+}
+$html = $html.Replace('{{FUND_HOLDINGS_LIVE_JSON}}', $liveJson)
+
 $html | Out-File -FilePath $OutputPath -Encoding utf8
 Write-Host "Portfolio report generated: $OutputPath"
 Write-Host "Holdings: $($holdings.Count) | Categories: $($categories.Count) | Grand Total: $totalFormatted"

@@ -1,11 +1,11 @@
 ---
 name: portfolio-report
-description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account Type / By Investment Category / By Account sub-pivots), Suggestions, Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, a what-if scenario comparator, and point-in-time portfolio snapshot comparison.
+description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account Type / By Investment Category / By Account / Fund X-Ray sub-pivots), Suggestions, Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, Fund X-Ray overlap/concentration analysis with live Yahoo Finance holdings data, a what-if scenario comparator, and point-in-time portfolio snapshot comparison. Includes settings import/export for portable configuration.
 allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "5.0.0"
+  version: "6.0.0"
 ---
 
 # Portfolio Report Skill
@@ -128,13 +128,18 @@ Multiple rows for the same ticker in the same account (different tax lots with d
 ### Output
 
 An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
-1. **Header** with total portfolio value, source CSV filename in the footer
+1. **Header** with total portfolio value, source CSV filename in the footer, and a settings gear menu (top-right) for Save Settings (export all inputs to JSON) and Load Settings (import JSON to restore all inputs)
 2. **Horizontal allocation bar** with hover tooltips — updates dynamically per active pivot
 3. **Tab navigation** with underline-style main tabs and segmented-control sub-tabs:
-   - **Holdings** (default) — consolidated tab with three sub-pivot views:
+   - **Holdings** (default) — consolidated tab with four sub-pivot views:
      - **By Account Type** (default sub-pivot) — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
      - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
      - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
+     - **Fund X-Ray 🔬** — deep analysis of fund overlap and hidden stock concentration:
+       - **Hidden Stock Concentration** — table of top stock exposures across all funds, showing effective dollar value, portfolio percentage, bar-chart visualization, fund sources (with Yahoo Finance links), and risk level (High/Moderate/Low). Expandable to show all stocks beyond top 25.
+       - **Fund Overlap Heatmap** — pairwise overlap matrix between all portfolio funds using min-weight method. Color-coded: green (<30%), amber (30–60%), red (>60%).
+       - **Redundancy & Concentration Alerts** — auto-generated warnings for high single-stock concentration (>5%), high fund overlap (>50%), and portfolio health indicators.
+       - **Live Data** — fund top-10 holdings fetched from Yahoo Finance at report generation (via `fc.yahoo.com` consent cookie + `quoteSummary` API). Falls back to a static embedded database (~60 popular ETFs/mutual funds) when API is unavailable. A status indicator shows whether live or static data is displayed.
    - **Suggestions** — Investment research and portfolio construction guidance featuring:
      - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown (US Equity, International, Bonds, Cash, Real Estate, Alternatives, Other) against three model portfolios. All holdings always sum to 100% — unmapped categories (CDs, Unspecified) are captured in the "Other" bucket.
      - **Fund-by-Fund Analysis** — table of 19 recommended ETFs/index funds/bond funds with performance metrics (1Y/3Y returns, volatility, max drawdown), expense ratios, and suitability scores (Growth, Risk, Diversification, Cost on 1–10 scale)

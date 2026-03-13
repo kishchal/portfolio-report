@@ -10,7 +10,7 @@ Usage:
     python main.py <CsvPath> [--output <OutputPath>] [--refresh-risk] [--refresh-suggestions] [--refresh-all]
 """
 
-import csv, json, os, re, sys, subprocess, math, argparse, time
+import csv, json, os, re, sys, subprocess, math, argparse, time, urllib.parse
 from datetime import datetime
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -104,6 +104,72 @@ def js_val(val):
         escaped = val.replace("\\", "\\\\").replace("'", "\\u0027").replace("<", "\\u003c").replace(">", "\\u003e").replace("&", "\\u0026")
         return f"'{escaped}'"
     return str(round(val, 2))
+
+
+# --- Fetch live fund holdings from Yahoo Finance ---
+def fetch_fund_holdings(symbols):
+    """Fetch top holdings for a list of fund symbols from Yahoo Finance.
+    Returns dict: { 'VOO': {'n': 'Vanguard S&P 500 ETF', 'h': {'AAPL': 7.0, ...}}, ... }
+    Falls back gracefully — returns empty dict on total failure."""
+    import urllib.request, urllib.error, ssl
+    result = {}
+    if not symbols:
+        return result
+
+    import http.cookiejar
+    ctx = ssl.create_default_context()
+    ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36'
+
+    # Step 1: Get consent cookie via fc.yahoo.com, then crumb
+    try:
+        cj = http.cookiejar.CookieJar()
+        opener = urllib.request.build_opener(
+            urllib.request.HTTPCookieProcessor(cj),
+            urllib.request.HTTPSHandler(context=ctx)
+        )
+        opener.addheaders = [('User-Agent', ua)]
+        try:
+            opener.open('https://fc.yahoo.com/', timeout=10)
+        except Exception:
+            pass  # Expected — fc.yahoo.com errors but sets consent cookie
+
+        crumb = opener.open('https://query2.finance.yahoo.com/v1/test/getcrumb', timeout=10).read().decode('utf-8').strip()
+        if not crumb:
+            print("  Warning: Could not get Yahoo Finance crumb, using static fund data", file=sys.stderr)
+            return result
+    except Exception as e:
+        print(f"  Warning: Yahoo Finance auth failed ({e}), using static fund data", file=sys.stderr)
+        return result
+
+    # Step 2: Fetch holdings for each symbol (topHoldings + quoteType in one call)
+    fetched = 0
+    for sym in symbols:
+        try:
+            url = f'https://query2.finance.yahoo.com/v10/finance/quoteSummary/{sym}?modules=topHoldings,quoteType&crumb={urllib.parse.quote(crumb)}'
+            data = json.loads(opener.open(url, timeout=8).read().decode('utf-8'))
+            res0 = data.get('quoteSummary', {}).get('result', [{}])[0]
+            top = res0.get('topHoldings', {})
+            holdings_list = top.get('holdings', [])
+            if not holdings_list:
+                continue
+
+            h = {}
+            for item in holdings_list:
+                s = item.get('symbol', '')
+                pct_raw = item.get('holdingPercent', {}).get('raw', 0)
+                if s and pct_raw > 0:
+                    h[s] = round(pct_raw * 100, 2)
+
+            name = res0.get('quoteType', {}).get('longName', '') or sym
+            if h:
+                result[sym] = {'n': name, 'h': h}
+                fetched += 1
+        except Exception:
+            pass  # Silently skip — static fallback will be used
+
+    if fetched > 0:
+        print(f"  Fetched live holdings for {fetched}/{len(symbols)} funds from Yahoo Finance")
+    return result
 
 
 def main():
@@ -361,6 +427,35 @@ def main():
     html = html.replace('{{GRAND_TOTAL_NUM}}', str(round(grand_total, 2)))
     html = html.replace('{{SUGGESTIONS_JSON}}', sugg_json.replace('</script', '<\\/script'))
     html = html.replace('{{SOURCE_FILE}}', os.path.basename(csv_path))
+
+    # --- Fetch live fund holdings for X-Ray ---
+    cash_re = re.compile(r'^(SPAXX|FDRXX|FZFXX|VMFXX|SWVXX|CORE|FZDXX)\*?\*?$', re.IGNORECASE)
+    fund_syms = set()
+    for h in holdings:
+        sym = re.sub(r'\*+$', '', h.get('sym', ''))
+        if not sym or cash_re.match(sym):
+            continue
+        # Known fund from CATEGORY_MAP
+        if sym in CATEGORY_MAP and 'Cash' not in CATEGORY_MAP[sym][0]:
+            fund_syms.add(sym)
+            continue
+        # Check risk cache: fund-like categories or mutual fund ticker pattern (5 chars ending in X)
+        risk_cat = risk_cache.get(sym, '')
+        if any(kw in risk_cat for kw in ('Fund', 'ETF', 'Index')):
+            fund_syms.add(sym)
+            continue
+        if re.match(r'^[A-Z]{5}X?$', sym) and sym not in STOCK_SYMBOLS:
+            fund_syms.add(sym)
+
+    live_holdings = {}
+    if fund_syms:
+        clean_syms = [s for s in fund_syms if re.match(r'^[A-Z]{2,6}$', s)]
+        if clean_syms:
+            print(f"  Fetching live fund holdings for {len(clean_syms)} funds...")
+            live_holdings = fetch_fund_holdings(clean_syms)
+
+    live_json = json.dumps(live_holdings, separators=(',', ':')) if live_holdings else 'null'
+    html = html.replace('{{FUND_HOLDINGS_LIVE_JSON}}', live_json)
 
     with open(output_path, 'w', encoding='utf-8') as f:
         f.write(html)
