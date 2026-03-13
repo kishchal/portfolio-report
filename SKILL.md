@@ -137,7 +137,7 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
      - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
      - **Fund X-Ray 🔬** — deep analysis of fund overlap and hidden stock concentration:
        - **Hidden Stock Concentration** — table of top stock exposures across all funds, showing effective dollar value, portfolio percentage, bar-chart visualization, fund sources (with Yahoo Finance links), and risk level (High/Moderate/Low). Expandable to show all stocks beyond top 25.
-       - **Fund Overlap Heatmap** — pairwise overlap matrix between all portfolio funds using min-weight method. Color-coded: green (<30%), amber (30–60%), red (>60%).
+       - **Fund Overlap Heatmap** — pairwise overlap matrix between all portfolio funds using min-weight method. Color-coded: green (<30%), amber (30–60%), red (>60%). Each cell is clickable — opens a detail modal showing common holdings with per-stock weights in each fund, overlap contribution bars, and unique holdings for each fund.
        - **Redundancy & Concentration Alerts** — auto-generated warnings for high single-stock concentration (>5%), high fund overlap (>50%), and portfolio health indicators.
        - **Live Data** — fund top-10 holdings fetched from Yahoo Finance at report generation (via `fc.yahoo.com` consent cookie + `quoteSummary` API). Falls back to a static embedded database (~60 popular ETFs/mutual funds) when API is unavailable. A status indicator shows whether live or static data is displayed.
    - **Suggestions** — Investment research and portfolio construction guidance featuring:

@@ -541,7 +541,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 10:58 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 12, 2026 &middot; Report generated Mar 12, 2026 at 11:05 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -1734,7 +1734,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"ASML.AS":1.48,"005930.KS":1.36,"NOVN.SW":0.75,"0700.HK":1.25,"000660.KS":0.88,"2330.TW":3.52,"9988.HK":1.0,"AZN.L":0.73,"HSBA.L":0.79,"ROG.SW":0.84}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"ASML.AS":1.49,"005930.KS":1.48,"0700.HK":1.26,"000660.KS":0.92,"2330.TW":3.57,"9988.HK":1.09,"HSBA.L":0.81,"ROG.SW":0.86}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"GOOGL":6.24,"GOOG":5.0,"AAPL":6.08,"LLY":2.61,"AVGO":4.96,"META":4.95,"MSFT":10.15,"AMZN":3.92,"NVDA":14.74,"BRK-B":2.8}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"GOOGL":2.93,"GOOG":2.34,"BRK-B":1.31,"AAPL":5.72,"AVGO":2.33,"META":2.33,"MSFT":4.77,"AMZN":3.47,"NVDA":6.92,"TSLA":1.8}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"TXN":4.06,"KO":4.03,"MRK":4.23,"COP":4.32,"CVX":4.31,"LMT":4.81,"BMY":4.28,"VZ":4.31,"MO":4.13,"PEP":4.01}},"FTIHX":{"n":"Fidelity Total International Index","h":{"ASML.AS":1.33,"005930.KS":1.24,"0700.HK":1.17,"000660.KS":0.82,"2330.TW":3.24,"9988.HK":0.87,"ROG.SW":0.76}},"FSPTX":{"n":"Fidelity Select Technology","h":{"MU":4.09,"CSCO":4.1,"MRVL":4.31,"MSFT":9.1,"AAPL":10.98,"GFS":2.3,"ON":3.86,"NXPI":5.01,"WDC":2.33,"NVDA":25.92}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"LAR.TO":2.34,"ENPH":2.03,"DAR":2.54,"BELFB":2.12,"BE":2.71,"AEIS":2.48,"POWL":2.5,"ESE":2.22,"CDLR":2.34,"PWR":2.1}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"META":2.17,"AAPL":4.45,"IQMM":22.7,"TSLA":2.29,"MSFT":3.33,"AMZN":2.56,"NVDA":4.91}},"FXAIX":{"n":"Fidelity 500 Index","h":{"GOOGL":3.32,"GOOG":2.66,"BRK-B":1.49,"AAPL":6.47,"AVGO":2.64,"META":2.63,"MSFT":5.4,"AMZN":3.93,"NVDA":7.84,"TSLA":2.04}}};
+const _FUND_LIVE = {"FXAIX":{"n":"Fidelity 500 Index","h":{"META":2.63,"BRK-B":1.49,"NVDA":7.84,"AMZN":3.93,"AVGO":2.64,"MSFT":5.4,"TSLA":2.04,"GOOGL":3.32,"AAPL":6.47,"GOOG":2.66}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"ROG.SW":0.86,"005930.KS":1.48,"9988.HK":1.09,"2330.TW":3.57,"ASML.AS":1.49,"HSBA.L":0.81,"0700.HK":1.26,"000660.KS":0.92}},"FTIHX":{"n":"Fidelity Total International Index","h":{"ROG.SW":0.76,"005930.KS":1.24,"9988.HK":0.87,"2330.TW":3.24,"ASML.AS":1.33,"0700.HK":1.17,"000660.KS":0.82}},"FSPTX":{"n":"Fidelity Select Technology","h":{"MU":4.09,"GFS":2.3,"CSCO":4.1,"NVDA":25.92,"NXPI":5.01,"ON":3.86,"MSFT":9.1,"MRVL":4.31,"AAPL":10.98,"WDC":2.33}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"META":4.95,"BRK-B":2.8,"LLY":2.61,"NVDA":14.74,"GOOG":5.0,"AVGO":4.96,"MSFT":10.15,"GOOGL":6.24,"AMZN":3.92,"AAPL":6.08}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"META":2.33,"BRK-B":1.31,"NVDA":6.92,"AMZN":3.47,"AVGO":2.33,"MSFT":4.77,"TSLA":1.8,"GOOGL":2.93,"AAPL":5.72,"GOOG":2.34}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"KO":4.03,"MRK":4.23,"MO":4.13,"COP":4.32,"PEP":4.01,"VZ":4.31,"BMY":4.28,"CVX":4.31,"LMT":4.81,"TXN":4.06}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"ROG.SW":0.84,"005930.KS":1.36,"NOVN.SW":0.75,"9988.HK":1.0,"2330.TW":3.52,"ASML.AS":1.48,"HSBA.L":0.79,"0700.HK":1.25,"AZN.L":0.73,"000660.KS":0.88}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"BELFB":2.12,"ESE":2.22,"PWR":2.1,"CDLR":2.34,"POWL":2.5,"BE":2.71,"ENPH":2.03,"LAR.TO":2.34,"AEIS":2.48,"DAR":2.54}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"IQMM":22.7,"META":2.17,"NVDA":4.91,"AMZN":2.56,"MSFT":3.33,"TSLA":2.29,"AAPL":4.45}}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -1854,6 +1854,110 @@ function computeFundXRay(){
   return {topStocks, fundSyms, overlap, alerts, fundPositions, coveredValue, noDataFunds};
 }
 
+/* ---- Fund Overlap Detail Modal ---- */
+function showOverlapDetail(symA,symB){
+  const xray=window._xrayResult;
+  if(!xray) return;
+  const dbA=FUND_HOLDINGS_DB[symA], dbB=FUND_HOLDINGS_DB[symB];
+  if(!dbA||!dbB) return;
+  const hA=dbA.h, hB=dbB.h;
+  const ov=xray.overlap[symA]?.[symB]||0;
+  const yfl=s=>`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(s)}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;font-weight:600">${esc(s)}</a>`;
+
+  /* Build common holdings sorted by overlap contribution */
+  const common=[];
+  Object.keys(hA).forEach(s=>{
+    if(hB[s]) common.push({sym:s, wA:hA[s], wB:hB[s], shared:Math.min(hA[s],hB[s])});
+  });
+  common.sort((a,b)=>b.shared-a.shared);
+  const totalShared=common.reduce((s,c)=>s+c.shared,0);
+
+  /* Stocks unique to each fund */
+  const onlyA=Object.keys(hA).filter(s=>!hB[s]).sort((a,b)=>hB[b]||hA[b]-hA[a]);
+  const onlyB=Object.keys(hB).filter(s=>!hA[s]).sort((a,b)=>hB[b]-hB[a]||0);
+
+  let mh=`<div class="sugg-modal" style="max-width:900px">`;
+  mh+=`<button class="sugg-modal-close" onclick="_closeOverlapModal()" title="Close">&times;</button>`;
+  mh+=`<div style="margin-bottom:16px"><span style="font-size:1.3em;font-weight:700">Fund Overlap Detail</span></div>`;
+
+  /* Summary */
+  const ovColor=ov>=60?'#dc2626':ov>=30?'#d97706':'#16a34a';
+  mh+=`<div style="display:flex;gap:24px;margin-bottom:20px;flex-wrap:wrap">`;
+  mh+=`<div style="flex:1;min-width:200px;background:#f8fafc;border-radius:var(--radius);padding:16px;border:1px solid var(--border)">`;
+  mh+=`<div style="font-size:0.8em;color:var(--text-muted);margin-bottom:4px">${yfl(symA)}</div>`;
+  mh+=`<div style="font-weight:600">${esc(dbA.n)}</div>`;
+  mh+=`<div style="color:var(--text-muted);font-size:0.85em;margin-top:4px">${Object.keys(hA).length} holdings tracked</div></div>`;
+  mh+=`<div style="flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center">`;
+  mh+=`<div style="font-size:2em;font-weight:800;color:${ovColor}">${ov}%</div>`;
+  mh+=`<div style="font-size:0.8em;color:var(--text-muted)">overlap</div></div>`;
+  mh+=`<div style="flex:1;min-width:200px;background:#f8fafc;border-radius:var(--radius);padding:16px;border:1px solid var(--border)">`;
+  mh+=`<div style="font-size:0.8em;color:var(--text-muted);margin-bottom:4px">${yfl(symB)}</div>`;
+  mh+=`<div style="font-weight:600">${esc(dbB.n)}</div>`;
+  mh+=`<div style="color:var(--text-muted);font-size:0.85em;margin-top:4px">${Object.keys(hB).length} holdings tracked</div></div>`;
+  mh+=`</div>`;
+
+  /* Common holdings table */
+  if(common.length>0){
+    mh+=`<div style="margin-bottom:8px;font-weight:600;font-size:0.95em">${common.length} Common Holdings <span style="color:var(--text-muted);font-weight:400">(${totalShared.toFixed(1)}% total shared weight)</span></div>`;
+    mh+=`<div style="overflow-x:auto;max-height:400px;overflow-y:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:0.85em">`;
+    mh+=`<thead style="position:sticky;top:0;background:white;z-index:1"><tr style="border-bottom:2px solid var(--border)">`;
+    mh+=`<th style="text-align:left;padding:8px">Stock</th>`;
+    mh+=`<th style="text-align:right;padding:8px">${esc(symA)} Weight</th>`;
+    mh+=`<th style="text-align:right;padding:8px">${esc(symB)} Weight</th>`;
+    mh+=`<th style="text-align:right;padding:8px">Overlap</th>`;
+    mh+=`<th style="padding:8px;width:120px">Contribution</th>`;
+    mh+=`</tr></thead><tbody>`;
+    common.forEach(c=>{
+      const pctOfOverlap=totalShared>0?(c.shared/totalShared*100):0;
+      const barW=Math.min(pctOfOverlap/Math.max(common[0].shared/totalShared*100,1)*100,100);
+      mh+=`<tr style="border-bottom:1px solid #f1f5f9">`;
+      mh+=`<td style="padding:8px">${yfl(c.sym)}</td>`;
+      mh+=`<td style="text-align:right;padding:8px;font-variant-numeric:tabular-nums">${c.wA.toFixed(2)}%</td>`;
+      mh+=`<td style="text-align:right;padding:8px;font-variant-numeric:tabular-nums">${c.wB.toFixed(2)}%</td>`;
+      mh+=`<td style="text-align:right;padding:8px;font-weight:600;font-variant-numeric:tabular-nums">${c.shared.toFixed(2)}%</td>`;
+      mh+=`<td style="padding:8px"><div style="display:flex;align-items:center;gap:6px">`;
+      mh+=`<div style="flex:1;height:6px;background:#e2e8f0;border-radius:3px;overflow:hidden"><div style="height:100%;width:${barW}%;background:${ovColor};border-radius:3px"></div></div>`;
+      mh+=`<span style="font-size:0.8em;color:var(--text-muted);min-width:32px;text-align:right">${pctOfOverlap.toFixed(0)}%</span></div></td>`;
+      mh+=`</tr>`;
+    });
+    mh+=`</tbody></table></div>`;
+  }
+
+  /* Unique holdings */
+  if(onlyA.length>0||onlyB.length>0){
+    mh+=`<div style="display:flex;gap:16px;flex-wrap:wrap">`;
+    if(onlyA.length>0){
+      mh+=`<div style="flex:1;min-width:200px"><div style="font-weight:600;font-size:0.9em;margin-bottom:6px">Only in ${esc(symA)} <span style="color:var(--text-muted);font-weight:400">(${onlyA.length})</span></div>`;
+      mh+=`<div style="display:flex;flex-wrap:wrap;gap:4px">`;
+      onlyA.slice(0,30).forEach(s=>{mh+=`<span style="background:#dbeafe;color:#1e40af;padding:2px 8px;border-radius:10px;font-size:0.78em">${yfl(s)}</span>`;});
+      if(onlyA.length>30) mh+=`<span style="color:var(--text-muted);font-size:0.78em;padding:2px 4px">+${onlyA.length-30} more</span>`;
+      mh+=`</div></div>`;
+    }
+    if(onlyB.length>0){
+      mh+=`<div style="flex:1;min-width:200px"><div style="font-weight:600;font-size:0.9em;margin-bottom:6px">Only in ${esc(symB)} <span style="color:var(--text-muted);font-weight:400">(${onlyB.length})</span></div>`;
+      mh+=`<div style="display:flex;flex-wrap:wrap;gap:4px">`;
+      onlyB.slice(0,30).forEach(s=>{mh+=`<span style="background:#fef3c7;color:#92400e;padding:2px 8px;border-radius:10px;font-size:0.78em">${yfl(s)}</span>`;});
+      if(onlyB.length>30) mh+=`<span style="color:var(--text-muted);font-size:0.78em;padding:2px 4px">+${onlyB.length-30} more</span>`;
+      mh+=`</div></div>`;
+    }
+    mh+=`</div>`;
+  }
+
+  mh+=`<div style="text-align:right;margin-top:20px"><button onclick="_closeOverlapModal()" style="background:white;color:#64748b;border:1px solid #cbd5e1;padding:8px 20px;border-radius:var(--radius);cursor:pointer">Close</button></div>`;
+  mh+=`</div>`;
+
+  /* Create overlay */
+  const overlay=document.createElement('div');
+  overlay.className='sugg-overlay';
+  overlay.id='overlap-overlay';
+  overlay.innerHTML=mh;
+  document.body.appendChild(overlay);
+  overlay.addEventListener('click',e=>{if(e.target===overlay)_closeOverlapModal();});
+  window._overlapEscHandler=function(e){if(e.key==='Escape')_closeOverlapModal();};
+  document.addEventListener('keydown',window._overlapEscHandler);
+}
+function _closeOverlapModal(){const el=document.getElementById('overlap-overlay');if(el)el.remove();document.removeEventListener('keydown',window._overlapEscHandler);}
+
 /* ---- Fund X-Ray: Renderer ---- */
 function renderFundXRay(){
   /* Hide normal holdings views, show xray container */
@@ -1865,6 +1969,7 @@ function renderFundXRay(){
   xc.style.display='';
 
   const xray=computeFundXRay();
+  window._xrayResult=xray; /* expose for heatmap click handler */
   const fmtD=v=>'$'+Math.round(v).toLocaleString();
   const fmtPct=v=>v.toFixed(1)+'%';
   const yfl=sym=>`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(sym)}" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;font-weight:700" title="View ${esc(sym)} on Yahoo Finance">${esc(sym)}</a>`;
@@ -1955,7 +2060,7 @@ function renderFundXRay(){
         const ov=xray.overlap[a]?.[b]||0;
         const bg=ov>=60?`rgba(239,68,68,${0.15+ov/100*0.5})`:ov>=30?`rgba(245,158,11,${0.1+ov/100*0.4})`:`rgba(34,197,94,${0.05+ov/100*0.3})`;
         const fg=ov>=60?'#991b1b':ov>=30?'#92400e':'#166534';
-        h+=`<td style="background:${bg};color:${fg}">${ov}%</td>`;
+        h+=`<td style="background:${bg};color:${fg};cursor:pointer" onclick="showOverlapDetail('${esc(a)}','${esc(b)}')" title="Click to see overlap detail between ${esc(a)} and ${esc(b)}">${ov}%</td>`;
       });
       h+=`</tr>`;
     });
