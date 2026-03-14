@@ -381,6 +381,42 @@ foreach ($c in $categories) {
 }
 $jsData += "]"
 
+# --- Generate raw CSV rows JSON for export ---
+$csvHeaders = @($csvData[0].PSObject.Properties.Name)
+$rawRowsJson = "["
+foreach ($h in $holdings) {
+    # Reconstruct a row with the original CSV column names
+    $row = @{}
+    foreach ($hdr in $csvHeaders) {
+        $row[$hdr] = ''
+    }
+    $row['Account Number'] = $h.AccountNumber
+    $row['Account Name']   = $h.AccountName
+    $row['Symbol']         = $h.Symbol
+    $row['Description']    = $h.FundName
+    $row['Current Value']  = if ($h.Value -lt 0) { '($' + [math]::Abs($h.Value).ToString("F2") + ')' } else { '$' + $h.Value.ToString("N2") }
+    if ($null -ne $h.GainLoss) {
+        $row['Total Gain/Loss Dollar'] = if ($h.GainLoss -lt 0) { '-$' + [math]::Abs($h.GainLoss).ToString("N2") } else { '+$' + $h.GainLoss.ToString("N2") }
+    } else { $row['Total Gain/Loss Dollar'] = '--' }
+    if ($null -ne $h.GainLossPct) {
+        $row['Total Gain/Loss Percent'] = $h.GainLossPct.ToString("F2") + '%'
+    } else { $row['Total Gain/Loss Percent'] = '--' }
+    if ($null -ne $h.CostBasis) {
+        $row['Cost Basis Total'] = '$' + $h.CostBasis.ToString("N2")
+    } else { $row['Cost Basis Total'] = '--' }
+    if ($csvHeaders -contains 'Account Type') {
+        $row['Account Type'] = $h.AccountType
+    }
+    # Build JSON object
+    $pairs = @()
+    foreach ($hdr in $csvHeaders) {
+        $v = ($row[$hdr] ?? '').Replace('\', '\\').Replace('"', '\"')
+        $pairs += "`"$($hdr.Replace('"','\"'))`":`"$v`""
+    }
+    $rawRowsJson += "{" + ($pairs -join ',') + "},"
+}
+$rawRowsJson = $rawRowsJson.TrimEnd(',') + "]"
+
 # --- Derive report date from filename or current date ---
 $dateMatch = [regex]::Match((Split-Path $CsvPath -Leaf), '(\w{3}-\d{1,2}-\d{4})')
 if ($dateMatch.Success) {
@@ -411,6 +447,7 @@ $html = $html.Replace('{{DATA_JSON}}', $jsData)
 $html = $html.Replace('{{GRAND_TOTAL_NUM}}', [math]::Round($grandTotal, 2).ToString())
 $html = $html.Replace('{{SUGGESTIONS_JSON}}', $suggJson.Replace('</script', '<\/script'))
 $html = $html.Replace('{{SOURCE_FILE}}', (Split-Path $CsvPath -Leaf))
+$html = $html.Replace('{{RAW_CSV_JSON}}', $rawRowsJson.Replace('</script', '<\/script'))
 
 # --- Fetch live fund holdings for X-Ray ---
 $fundSyms = @()

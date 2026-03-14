@@ -1,11 +1,11 @@
 ---
 name: portfolio-report
-description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account Type / By Investment Category / By Account / Fund X-Ray sub-pivots), Suggestions, Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing, Social Security income modeling, BETR Roth conversion analysis, Monte Carlo simulation, Fund X-Ray overlap/concentration analysis with live Yahoo Finance holdings data, a what-if scenario comparator, and point-in-time portfolio snapshot comparison. Includes settings import/export for portable configuration.
+description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account / By Account Type / By Investment Category / Fund X-Ray / Suggestions / Rebalance / Expenses / Tax-Loss eight sub-pivots), Withdrawals, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing and pre-retirement contribution modeling, Social Security income modeling with break-even analysis, BETR Roth conversion analysis, Monte Carlo simulation, Fund X-Ray overlap/concentration analysis with live Yahoo Finance holdings data, rebalancing trade list generator, fund expense drag analysis, tax-loss harvesting analysis, a what-if scenario comparator, and point-in-time portfolio snapshot comparison. Includes settings import/export for portable configuration, Export Data (CSV), three themes (Cool Blue, Warm Coral, Dark Mode), and PDF export on all tabs.
 allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
   author: portfolio-report
-  version: "6.0.0"
+  version: "7.0.0"
 ---
 
 # Portfolio Report Skill
@@ -128,27 +128,41 @@ Multiple rows for the same ticker in the same account (different tax lots with d
 ### Output
 
 An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
-1. **Header** with total portfolio value, source CSV filename in the footer, and a settings gear menu (top-right) for Save Settings (export all inputs to JSON) and Load Settings (import JSON to restore all inputs)
+1. **Header** with total portfolio value, source CSV filename in the footer, and a settings gear menu (top-right) for Save Settings (export all inputs to JSON), Load Settings (import JSON to restore all inputs), Export Data (CSV) for downloading the portfolio as a Fidelity-style CSV, and a theme switcher (Cool Blue / Warm Coral / Dark Mode)
 2. **Horizontal allocation bar** with hover tooltips — updates dynamically per active pivot
 3. **Tab navigation** with underline-style main tabs and segmented-control sub-tabs:
-   - **Holdings** (default) — consolidated tab with four sub-pivot views:
-     - **By Account Type** (default sub-pivot) — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
+   - **Holdings** (default) — consolidated tab with eight sub-pivot views:
+     - **By Account** (default sub-pivot) — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
+     - **By Account Type** — Tax-Deferred Savings, Taxable Investment, Roth, Cash / Money Market, HSA, 529 College Savings, Custodial (UTMA). Cash/money market holdings (SPAXX**, FDRXX**, CORE**) are separated into their own top-level group to avoid double-counting within accounts.
      - **By Investment Category** — US Index Funds, Individual Stocks, International Funds, Bond Funds, etc.
-     - **By Account** — Each individual account (by account number/name) as a top-level card, with investment categories as children and tickers within each category.
      - **Fund X-Ray 🔬** — deep analysis of fund overlap and hidden stock concentration:
        - **Hidden Stock Concentration** — table of top stock exposures across all funds, showing effective dollar value, portfolio percentage, bar-chart visualization, fund sources (with Yahoo Finance links), and risk level (High/Moderate/Low). Expandable to show all stocks beyond top 25.
        - **Fund Overlap Heatmap** — pairwise overlap matrix between all portfolio funds using min-weight method. Color-coded: green (<30%), amber (30–60%), red (>60%). Each cell is clickable — opens a detail modal showing common holdings with per-stock weights in each fund, overlap contribution bars, and unique holdings for each fund.
        - **Redundancy & Concentration Alerts** — auto-generated warnings for high single-stock concentration (>5%), high fund overlap (>50%), and portfolio health indicators.
        - **Live Data** — fund top-10 holdings fetched from Yahoo Finance at report generation (via `fc.yahoo.com` consent cookie + `quoteSummary` API). Falls back to a static embedded database (~60 popular ETFs/mutual funds) when API is unavailable. A status indicator shows whether live or static data is displayed.
-   - **Suggestions** — Investment research and portfolio construction guidance featuring:
-     - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown (US Equity, International, Bonds, Cash, Real Estate, Alternatives, Other) against three model portfolios. All holdings always sum to 100% — unmapped categories (CDs, Unspecified) are captured in the "Other" bucket.
-     - **Fund-by-Fund Analysis** — table of 19 recommended ETFs/index funds/bond funds with performance metrics (1Y/3Y returns, volatility, max drawdown), expense ratios, and suitability scores (Growth, Risk, Diversification, Cost on 1–10 scale)
-     - **Three Model Portfolios** — High Risk/High Growth, Medium Risk/Balanced, Low Risk/Capital Preservation with specific ticker allocations, weighted expense ratios, and volatility expectations
-     - **Account-Specific Guidance** — tax-efficient placement recommendations for 401(k), Traditional IRA, and Roth IRA with target allocation ranges and rationale
-     - **Disclaimers** — educational research notice, not personalized financial advice
+     - **Rebalance ⚖️** — generates a tax-aware trade list to reach a target allocation:
+       - **Target Model Selection** — dropdown to select High Growth, Balanced, Conservative, or Custom allocation percentages (must sum to 100%)
+       - **Current vs Target Bars** — side-by-side allocation bars with per-category drift indicators showing dollar amounts
+       - **Trade List** — table of SELL/BUY trades with symbol, account, amount, category, reason, and tax notes. Sells prioritize tax-advantaged accounts first, then losses, then smallest positions. Buys use model-recommended funds with tax-efficient account placement.
+       - **Summary Card** — portfolio drift %, trades needed, estimated tax impact
+       - **Copy Trade List** — clipboard export for easy pasting into brokerage order screens
+     - **Expenses 💰** — fund expense drag analysis:
+       - **Summary Cards** — weighted average expense ratio, annual dollar cost, 10-year compound drag estimate, potential annual savings from cheaper alternatives
+       - **Expense Contribution Bar Chart** — horizontal bars showing which funds cost the most annually
+       - **Full Holdings Table** — every fund ranked by expense drag with ER, annual cost, cheaper alternative (if available), alternative ER, and annual savings. High-ER funds highlighted in red.
+       - **Cheaper Alternatives Database** — maps expensive funds to low-cost index equivalents (e.g., active funds → FXAIX/VTI, sector funds → VGT)
+     - **Suggestions 💡** — Investment research and portfolio construction guidance featuring:
+        - **Current vs Model Allocation** — visual bar chart comparing your portfolio's asset class breakdown (US Equity, International, Bonds, Cash, Real Estate, Alternatives, Other) against three model portfolios. All holdings always sum to 100% — unmapped categories (CDs, Unspecified) are captured in the "Other" bucket.
+        - **Fund-by-Fund Analysis** — table of 19 recommended ETFs/index funds/bond funds with performance metrics (1Y/3Y returns, volatility, max drawdown), expense ratios, and suitability scores (Growth, Risk, Diversification, Cost on 1–10 scale)
+        - **Three Model Portfolios** — High Risk/High Growth, Medium Risk/Balanced, Low Risk/Capital Preservation with specific ticker allocations, weighted expense ratios, and volatility expectations
+        - **Account-Specific Guidance** — tax-efficient placement recommendations for 401(k), Traditional IRA, and Roth IRA with target allocation ranges and rationale
+        - **Disclaimers** — educational research notice, not personalized financial advice
+     - **Tax-Loss 🏷️** — Analyzes unrealized losses in taxable accounts: summary metric cards (harvestable losses, unrealized gains, net gain/loss, est. tax savings), harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags. PDF export button.
    - **Withdrawals** — Interactive retirement withdrawal planner featuring:
      - **Input Panel** — shared fields (expected return %, inflation %, filing status, Roth conversion strategy) plus per-participant sections for You and Spouse (toggle): current age, retirement age, life expectancy, monthly SS income, SS starting age (62–70)
+     - **Pre-Retirement Contributions** — collapsible section for annual savings until retirement: 401k/403b, employer match, IRA/Roth IRA, taxable brokerage, HSA. Contributions are inflation-adjusted each year and applied per tax bucket during the growth-to-retirement phase. Persisted in settings.
      - **Summary Cards** — projected portfolio at retirement, year-1 total income (portfolio + combined SS), effective tax rate, combined Social Security card (per-participant breakdown), portfolio longevity
+     - **Social Security Break-Even Chart** — SVG line chart comparing cumulative lifetime SS income at claiming ages 62/67/70. Shows crossover points where delayed claiming overtakes earlier claiming. Includes your chosen age marker, summary cards with monthly amounts and lifetime totals, and advantage/disadvantage comparison. Spouse break-even shown separately if enabled.
      - **Social Security Age Recommendation** — per-participant comparison tables showing benefits at ages 62/67/70 with monthly/annual amounts, % of FRA, years collecting, inflation-adjusted lifetime totals, and optimal claiming age recommendation based on each person's life expectancy
      - **Account Balance Projection Chart** — stacked bar chart showing Taxable/Tax-Deferred/Roth/HSA depletion over time (default chart, shown first among metric charts)
      - **Monte Carlo Analysis** — 500 randomized simulations with log-normal return distributions:
@@ -182,7 +196,6 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
        - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
        - **PDF Export**: Print-optimized layout with parameter summary and chart labels
        - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
-   - **Tax-Loss Harvesting** — Analyzes unrealized losses in taxable accounts: summary metric cards (harvestable losses, unrealized gains, net gain/loss, est. tax savings), harvestable positions table with replacement fund suggestions, wash sale warnings, cross-account duplicate flags. PDF export button.
    - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts (Account Balances default) with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence.
    - **Snapshot Diff** — Upload a previous Fidelity CSV to compare against the current report. Shows Previous/Current summary panels with source filenames, change banner (total change, % change, time span), allocation drift bar chart with percentage labels (≥5% segments labeled), and two hierarchical drilldown sections:
      - **By Category** — groups changed positions by investment category → account → symbol
@@ -208,8 +221,8 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
        - Equities: recommended 60-70% · Individual Stocks: ≤20% · International: 15-25% · Bonds: 15-30% · Cash: 3-5% · Sector/Thematic: ≤10%
      - **Category Deep Dive** — notes on each category (US stock fund overlap, target-date overlap, sector bets)
      - **Stock Risk Profile** — Growth ≤40%, High Risk ≤10%, Dividend/Value ≥20%, Blue Chip ≥25% recommendations; sector concentration flags
-8. **Settings Import/Export** — gear menu (top-right) with Save Settings (exports all user inputs from all tabs as a timestamped JSON file, e.g., `portfolio-settings-2026-03-13-01-30-00.json`) and Load Settings (imports JSON file to restore all inputs and update localStorage). Enables sharing configurations across report files.
-9. **PDF Export** — available on Withdrawals, Tax-Loss Harvesting, Scenarios, and Snapshot Diff tabs. Print-optimized CSS hides interactive controls.
+8. **Settings Import/Export** — gear menu (top-right) with Save Settings (exports all user inputs from all tabs as a timestamped JSON file, e.g., `portfolio-settings-2026-03-13-01-30-00.json`), Load Settings (imports JSON file to restore all inputs and update localStorage), Export Data (CSV) for downloading portfolio as a Fidelity-style CSV with timestamp, and a theme switcher (Cool Blue / Warm Coral / Dark Mode) with persistence across sessions. Enables sharing configurations across report files.
+9. **PDF Export** — available on all Holdings sub-tabs, Withdrawals, Scenarios, and Snapshot Diff tabs. Print-optimized CSS hides interactive controls.
 10. **Footer** — shows generation date and source CSV filename
 
 ### Account Type Grouping (By Account Type pivot)
@@ -273,6 +286,17 @@ python scripts/main.py "Portfolio_Positions.csv" --refresh-all
 If the cache doesn't exist on first run, it is fetched automatically. Static fallback lists in both `scripts/main.py` and `scripts/main.ps1` are used for any symbol not in the cache.
 
 **Dependencies**: Python 3 with `yfinance` package (`pip install yfinance`).
+
+### Helper Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/main.ps1` | PowerShell report generator — reads CSV, processes holdings, injects into template |
+| `scripts/main.py` | Python report generator — same purpose, cross-platform alternative |
+| `scripts/fetch_risk_data.py` | Fetches Yahoo Finance metrics (beta, P/E, market cap, margins, revenue growth) and writes `assets/risk_cache.json` for stock risk classification |
+| `scripts/fetch_suggestions.py` | Fetches fund metrics (returns, volatility, max drawdown) from Yahoo Finance and writes `assets/suggestions_cache.json` for the Suggestions tab |
+| `scripts/run-all-tests.ps1` | Unified test runner — discovers and runs all `test_*.js` files, reports per-file pass/fail with summary |
+| `scripts/test-helpers.js` | Shared test harness — mock DOM/browser environment, marker-based function extraction from template.html |
 
 ## Post-Generation: Self-Update Checklist
 
@@ -382,3 +406,72 @@ python scripts/main.py Portfolio.csv --output report_py.html
 4. **Verify restoration**: After adding a field, test: set a value → refresh page → navigate to tab → confirm value persists. If the tab re-renders from scratch (Withdrawals, Scenarios), `loadSettings()` or `saved._scenarios` restoration handles it. If restored from DOM cache, values are preserved automatically.
 
 5. **Edge case**: When old localStorage lacks the new field, `loadSettings` skips it (`s[f.id]!=null` check) and the HTML default value is used. Ensure the default in HTML is a reasonable fallback.
+
+### 9. Run Tests After Every Change (CRITICAL)
+
+**After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
+
+```powershell
+# Run the complete test suite (287 tests across 8 domain test files + 1 accuracy test)
+pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
+```
+
+The test suite validates:
+
+| Test File | Tests | What It Validates |
+|-----------|-------|-------------------|
+| `test_formatting.js` | 22 | `fmt`, `fmt2`, `esc`, `pct`, `ylink` formatting utilities |
+| `test_tax.js` | 53 | Federal tax brackets, LTCG rates, standard deduction, IRMAA, SS taxation, RMD table, SS age factors, percentile calculation |
+| `test_allocation.js` | 21 | Portfolio allocation buckets, rebalance drift, expense ratio formulas, TLH calculations, deep-loss hold rule |
+| `test_withdrawal.js` | 35 | Spending phases, 4% rule guardrails, RMD calculations, Monte Carlo engine (structure, success rate, percentile ordering), Roth conversion room, HSA rules, withdrawal sequencing |
+| `test_snapshot.js` | 43 | CSV parsing, currency parsing, symbol classification, account type inference, snapshot diff engine |
+| `test_csv_export.js` | 24 | CSV round-trip validation (6 checks × 4 sample files) |
+| `test_bounds.js` | 6 | Withdrawal solver upper-bound validation |
+| `test_ui.js` | 83 | DOM structure, tabs, sub-tabs, icons, placeholders, theme system, settings, print/export, CSS classes, backward compatibility |
+| `test_skill_accuracy.js` | 12 | Validates SKILL.md claims against template.html: tab structure, sub-tabs, settings menu, PDF scope, scripts, test counts |
+
+**If any test fails, DO NOT commit.** The agent MUST:
+1. Read the failure output to identify which test(s) failed and why
+2. Fix the code in `template.html` or `scripts/main.ps1` that caused the regression
+3. Re-run the full test suite to confirm all tests pass
+4. Repeat until the suite is fully green — only then proceed to commit
+
+If the failure is in a test itself (e.g., a new feature changed expected behavior), update the test to match the new correct behavior — but verify the new behavior is intentional, not a bug.
+
+**When adding new features:**
+- Add corresponding tests to the appropriate `test_*.js` file in `scripts/`
+- For new formulas: add to `test_tax.js`, `test_allocation.js`, or `test_withdrawal.js`
+- For new UI elements: add to `test_ui.js`
+- For new data transformations: add to `test_snapshot.js` or `test_csv_export.js`
+- Use the shared test harness `test-helpers.js` to extract functions from the template
+
+### 10. "Review and Commit" Workflow (MANDATORY)
+
+When the user says **"review and commit"** (or any variation like "commit", "review", "push changes"), the agent MUST follow this exact sequence:
+
+#### Step 1: Run Tests
+```powershell
+pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
+```
+- If any test fails → fix the code → re-run until all 287+ tests pass
+- Do NOT proceed to Step 2 until the suite is fully green
+
+#### Step 2: Run the 6-Round Multi-Model Review Gauntlet
+Invoke the `review-code` skill. This runs 6 review rounds with rotating models (Claude, GPT, Gemini) with escalating focus:
+1. Broad sweep (correctness, security, logic)
+2. Architecture & patterns
+3. Edge cases & robustness
+4. Detailed line-by-line correctness
+5. Testing & coverage
+6. Polish & hardening
+
+- Fix every issue found in each round
+- After fixing, re-run the test suite to ensure fixes didn't break anything
+- Proceed to next round only when tests are green
+
+#### Step 3: Commit
+Use the `write-commit` skill to generate an exhaustive commit message, then commit.
+
+**Summary: tests → review → tests → commit. Tests gate every transition.**
+
+**IMPORTANT: Keep SKILL.md in sync.** When adding/removing/renaming tabs, sub-tabs, settings menu items, scripts, or changing test counts, update SKILL.md accordingly. The `test_skill_accuracy.js` module validates SKILL.md claims against the actual template — if SKILL.md drifts, the test suite will fail and block the commit.
