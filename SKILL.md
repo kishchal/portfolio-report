@@ -418,7 +418,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 **After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
 
 ```powershell
-# Run the complete test suite (534 tests across 9 domain test files + 1 accuracy test file)
+# Run the complete test suite (576 tests across 9 domain test files + 1 accuracy test file)
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
 
@@ -430,11 +430,11 @@ The test suite validates:
 | `test_tax.js` | 53 | Federal tax brackets, LTCG rates, standard deduction, IRMAA, SS taxation, RMD table, SS age factors, percentile calculation |
 | `test_allocation.js` | 21 | Portfolio allocation buckets, rebalance drift, expense ratio formulas, TLH calculations, deep-loss hold rule |
 | `test_withdrawal.js` | 54 | Spending phases, glide schedule helpers, linear + step custom glide interpolation, historical backtesting, 4% rule guardrails, RMD calculations, Monte Carlo engine (structure, success rate, percentile ordering), Roth conversion room, HSA rules, withdrawal sequencing |
-| `test_engine.js` | 75 | Deterministic MC engine integration, cross-engine consistency (MC vs historical), edge cases (depletion, zero balances, Roth-only, HSA-only, long retirement), glide path blending, contribution schedules, Roth bracket limits, SS break-even, tax integration, RMD table, stochastic MC behavior, historical backtest validation, numerical edge cases (deflation, extreme longevity, negative returns, high volatility), 4% guardrail path, historical contributions, NaN/Infinity input validation (retAge, yearsToRetire, convBracketLimit, spendingPhases), RMD start age 73/75, spouse life-expectancy cutoff |
+| `test_engine.js` | 84 | Deterministic MC engine integration, cross-engine consistency (MC vs historical), edge cases (depletion, zero balances, Roth-only, HSA-only, long retirement), glide path blending, contribution schedules, Roth bracket limits, SS break-even, tax integration, RMD table, stochastic MC behavior, historical backtest validation, numerical edge cases (deflation, extreme longevity, negative returns, high volatility), 4% guardrail path, historical contributions, NaN/Infinity input validation (retAge, yearsToRetire, convBracketLimit, spendingPhases), RMD start age 73/75, spouse life-expectancy cutoff, one-time spendings (buildOneTimeSpendByAge, MC/Historical integration) |
 | `test_snapshot.js` | 43 | CSV parsing, currency parsing, symbol classification, account type inference, snapshot diff engine |
 | `test_csv_export.js` | 24 | CSV round-trip validation (6 checks × 4 sample files) |
 | `test_bounds.js` | 6 | Withdrawal solver upper-bound validation |
-| `test_ui.js` | 224 | DOM structure, tabs, sub-tabs, icons, placeholders, glide path + historical mode controls, interpolation toggle, chart styling, fixed return preservation, theme system, settings, print/export, CSS classes, backward compatibility, tooltip accuracy, section ordering, PV column, What-If alignment, 457/403b bucket, POST-RETIRE refresh, DCP help notes, global formatters, methodology panel scope safety, data-driven methodology content, collapsible panels, state persistence, tab-switch panel restore, results cache sync, scenario cache, year-by-year insertion, context-aware help system |
+| `test_ui.js` | 247 | DOM structure, tabs, sub-tabs, icons, placeholders, glide path + historical mode controls, interpolation toggle, chart styling, fixed return preservation, theme system, settings, print/export, CSS classes, backward compatibility, tooltip accuracy, section ordering, PV column, What-If alignment, 457/403b bucket, POST-RETIRE refresh, DCP help notes, global formatters, methodology panel scope safety, data-driven methodology content, collapsible panels, state persistence, tab-switch panel restore, results cache sync, scenario cache, year-by-year insertion, one-time spendings, context-aware help system |
 | `test_skill_accuracy.js` | 12 | Validates SKILL.md claims against template.html: tab structure, sub-tabs, settings menu, PDF scope, scripts, test counts |
 
 **If any test fails, DO NOT commit.** The agent MUST:
@@ -459,7 +459,7 @@ If the failure is in a test itself (e.g., a new feature changed expected behavio
 ```powershell
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
-- If any test fails → fix the code → re-run until all 534+ tests pass (and the accuracy test file stays green)
+- If any test fails → fix the code → re-run until all 566+ tests pass (and the accuracy test file stays green)
 - Do NOT proceed to Step 2 until the suite is fully green
 
 #### Step 2: Run the 6-Round Multi-Model Review Gauntlet

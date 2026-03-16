@@ -226,6 +226,7 @@ function extractSpendingFunctions(envOverrides = {}) {
       'PHASE_TAGS', 'getPhaseTag', 'getAnnualExpenseForAge',
       'blendGlideAllocation', 'buildGlideSchedule', 'getReturnForAge',
       'buildContribForAge', 'getContribSchedule',
+      'addOneTimeSpend', 'getOneTimeSpendSchedule', 'buildOneTimeSpendByAge',
     ],
     envOverrides
   );

@@ -109,8 +109,11 @@ const csvFiles = fs.readdirSync(inputsDir).filter(f => f.endsWith('.csv'));
 
 csvFiles.forEach(csvFile => {
   const baseName = csvFile.replace('.csv', '');
-  /* Try both naming conventions: BaseName.html (current) and BaseName_report.html (legacy) */
+  /* Try naming conventions: BaseName.html (current), BaseName-Report.html, BaseName_report.html (legacy) */
   let reportPath = path.join(reportsDir, baseName + '.html');
+  if (!fs.existsSync(reportPath)) {
+    reportPath = path.join(reportsDir, baseName + '-Report.html');
+  }
   if (!fs.existsSync(reportPath)) {
     reportPath = path.join(reportsDir, baseName + '_report.html');
   }

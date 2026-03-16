@@ -140,9 +140,9 @@ test('custom glide UI includes interpolation toggle controls', () => {
   assert.match(html, /function getGlideInterp\(/);
 });
 
-test('withdrawals template includes Monte Carlo and historical mode containers', () => {
-  assert.match(html, /id="simModeMC"/);
-  assert.match(html, /id="simModeHist"/);
+test('withdrawals template includes Monte Carlo and historical backtest sections', () => {
+  assert.match(html, /wd-sec-mc-analysis/);
+  assert.match(html, /wd-sec-hist-backtest/);
 });
 
 test('historical returns dataset is embedded in template', () => {
@@ -842,11 +842,6 @@ test('_wdToggleAll function exists', () => {
   assert.match(html, /function _wdToggleAll\(/);
 });
 
-test('Collapse All and Expand All buttons exist in toolbar', () => {
-  assert.match(html, /_wdToggleAll\(true\).*Expand All/);
-  assert.match(html, /_wdToggleAll\(false\).*Collapse All/);
-});
-
 test('Calculate button is outside the input panel', () => {
   const block = html.match(/_wdSecClose\(\)[\s\S]{0,300}computeWithdrawalPlan/);
   assert.ok(block, 'Calculate button should appear after _wdSecClose for the input panel');
@@ -968,6 +963,120 @@ test('Scenario cache uses settings fingerprint for staleness check', () => {
   assert.match(html, /_scenCacheFP===localStorage\.getItem\(SETTINGS_KEY\)/);
 });
 
+/* ==== One-Time Spendings ==== */
+suite('One-Time Spendings');
+
+test('addOneTimeSpend function exists', () => {
+  assert.match(html, /function addOneTimeSpend\(/);
+});
+
+test('getOneTimeSpendSchedule function exists', () => {
+  assert.match(html, /function getOneTimeSpendSchedule\(/);
+});
+
+test('buildOneTimeSpendByAge function exists', () => {
+  assert.match(html, /function buildOneTimeSpendByAge\(/);
+});
+
+test('One-Time Spendings toggle checkbox exists', () => {
+  assert.match(html, /id="wdOneTimeSpendToggle"/);
+});
+
+test('One-Time Spendings panel exists', () => {
+  assert.match(html, /id="wdOneTimeSpendPanel"/);
+});
+
+test('One-Time Spendings row container exists', () => {
+  assert.match(html, /id="oneTimeSpendRows"/);
+});
+
+test('One-Time Spendings has add button', () => {
+  assert.match(html, /addOneTimeSpend\(\);saveSettings\(\)/);
+});
+
+test('OTS rows have year, amount, and description fields', () => {
+  assert.match(html, /class="ots-year"/);
+  assert.match(html, /class="ots-amount"/);
+  assert.match(html, /class="ots-desc"/);
+});
+
+test('OTS rows have delete button that saves', () => {
+  const fn = html.match(/function addOneTimeSpend[\s\S]*?container\.appendChild/);
+  assert.ok(fn, 'addOneTimeSpend function found');
+  assert.ok(fn[0].includes('.remove();saveSettings()'), 'Delete should remove row and save settings');
+});
+
+test('OTS rows are sorted by year', () => {
+  const fn = html.match(/function addOneTimeSpend[\s\S]*?\n\}/);
+  assert.ok(fn, 'addOneTimeSpend function found');
+  assert.ok(fn[0].includes('insertBefore'), 'Should insert rows in sorted order');
+});
+
+test('OTS schedule allows duplicate years', () => {
+  const fn = html.match(/function addOneTimeSpend[\s\S]*?\n\}/);
+  assert.ok(fn);
+  assert.ok(!fn[0].includes('already exists'), 'Should NOT reject duplicate years (unlike contrib rows)');
+});
+
+test('saveSettings stores _oneTimeSpendings', () => {
+  assert.match(html, /s\._oneTimeSpendings\s*=\s*getOneTimeSpendSchedule\(\)/);
+});
+
+test('loadSettings restores one-time spendings', () => {
+  assert.match(html, /s\._oneTimeSpendings&&Array\.isArray\(s\._oneTimeSpendings\)/);
+  assert.match(html, /addOneTimeSpend\(r\.year,r\.amount,r\.desc\)/);
+});
+
+test('wdOneTimeSpendToggle is in SETTINGS_FIELDS', () => {
+  assert.match(html, /wdOneTimeSpendToggle/);
+  const settingsBlock = html.match(/SETTINGS_FIELDS\s*=\s*\[[\s\S]*?\]/);
+  assert.ok(settingsBlock, 'SETTINGS_FIELDS found');
+  assert.ok(settingsBlock[0].includes('wdOneTimeSpendToggle'), 'wdOneTimeSpendToggle should be in SETTINGS_FIELDS');
+});
+
+test('MC engine accepts oneTimeByAge param', () => {
+  const mcDestr = html.match(/function runMonteCarlo[\s\S]{0,600}=params;/);
+  assert.ok(mcDestr, 'runMonteCarlo destructuring found');
+  assert.ok(mcDestr[0].includes('oneTimeByAge'), 'MC should destructure oneTimeByAge');
+});
+
+test('Historical engine accepts oneTimeByAge param', () => {
+  const histDestr = html.match(/function runHistoricalBacktest[\s\S]{0,500}=params;/);
+  assert.ok(histDestr, 'runHistoricalBacktest destructuring found');
+  assert.ok(histDestr[0].includes('oneTimeByAge'), 'Historical should destructure oneTimeByAge');
+});
+
+test('MC engine adds one-time spendings to need', () => {
+  assert.match(html, /mcOts.*oneTimeByAge/);
+});
+
+test('Historical engine adds one-time spendings to need', () => {
+  assert.match(html, /histOts.*oneTimeByAge/);
+});
+
+test('Deterministic engine adds one-time spendings to totalSpendingNeed', () => {
+  assert.match(html, /otsForAge.*oneTimeByAge/);
+});
+
+test('Scenario engine adds one-time spendings', () => {
+  assert.match(html, /scnOts.*oneTimeByAge/);
+});
+
+test('OTS CSS styles defined', () => {
+  assert.match(html, /\.ots-row\s*\{/);
+  assert.match(html, /\.ots-row input/);
+});
+
+test('MC NaN guard includes oneTimeByAge validation', () => {
+  assert.match(html, /oneTimeByAge.*Object\.values.*isFinite/);
+});
+
+test('Historical NaN guard includes oneTimeByAge validation', () => {
+  const histBlock = html.match(/function runHistoricalBacktest[\s\S]*?const horizon/);
+  assert.ok(histBlock, 'Historical function found');
+  assert.ok(histBlock[0].includes('oneTimeByAge') && histBlock[0].includes('Object.values'), 'Historical should validate oneTimeByAge for NaN');
+});
+
 /* ==== Scenario cache fix ==== */
 suite('Scenario results cache persistence');
 
@@ -1067,6 +1176,82 @@ test('_showHelpForKey function exists for cross-page navigation', () => {
 test('Close button uses event listener (not inline onclick)', () => {
   assert.match(html, /id="helpCloseBtn"/);
   assert.match(html, /helpCloseBtn.*addEventListener/s);
+});
+
+/* ==== Result Sub-Tabs ==== */
+suite('Result Sub-Tabs');
+
+test('CSS: wd-result-tabs and wd-result-tab styles exist', () => {
+  assert.match(html, /\.wd-result-tabs\s*\{/);
+  assert.match(html, /\.wd-result-tab\s*\{/);
+  assert.match(html, /\.wd-result-tab\.active\s*\{/);
+  assert.match(html, /\.wd-result-tab-panel\s*\{/);
+  assert.match(html, /\.wd-result-tab-panel\.active\s*\{/);
+});
+
+test('CSS: sticky cards class exists', () => {
+  assert.match(html, /\.wd-sticky-cards\s*\{/);
+  assert.match(html, /position:\s*sticky/);
+});
+
+test('CSS: print shows all tab panels', () => {
+  assert.match(html, /@media\s+print[\s\S]*?\.wd-result-tab-panel\s*\{[^}]*display:\s*block\s*!important/);
+});
+
+test('JS: _wdSwitchResultTab function exists', () => {
+  assert.match(html, /function _wdSwitchResultTab\(tabId\)/);
+});
+
+test('JS: _wdSwitchResultTab persists state', () => {
+  const fn = html.match(/function _wdSwitchResultTab\([\s\S]*?\n\}/);
+  assert.ok(fn, '_wdSwitchResultTab function found');
+  assert.ok(fn[0].includes('_wdUIState.resultTab'), 'Persists resultTab in UI state');
+  assert.ok(fn[0].includes('_wdPersistUIState'), 'Calls _wdPersistUIState');
+});
+
+test('HTML: 4 result tabs rendered (overview, plan, sims, analysis)', () => {
+  assert.match(html, /data-tab="overview"/);
+  assert.match(html, /data-tab="plan"/);
+  assert.match(html, /data-tab="sims"/);
+  assert.match(html, /data-tab="analysis"/);
+});
+
+test('HTML: 4 tab panel containers rendered', () => {
+  assert.match(html, /id="wd-rtab-overview"/);
+  assert.match(html, /id="wd-rtab-plan"/);
+  assert.match(html, /id="wd-rtab-sims"/);
+  assert.match(html, /id="wd-rtab-analysis"/);
+});
+
+test('DOM reorganization moves sections into tab panels', () => {
+  const reorgBlock = html.match(/Move sections into their tab panels[\s\S]*?\}\)\(\)/);
+  assert.ok(reorgBlock, 'DOM reorganization IIFE exists');
+  assert.ok(reorgBlock[0].includes('wd-sec-metrics-charts'), 'Moves metrics charts to overview');
+  assert.ok(reorgBlock[0].includes('wd-sec-wd-schedule'), 'Moves schedule to plan');
+  assert.ok(reorgBlock[0].includes('wd-sec-mc-analysis'), 'Moves MC to sims');
+  assert.ok(reorgBlock[0].includes('wd-sec-hist-backtest'), 'Moves hist to sims');
+  assert.ok(reorgBlock[0].includes('wd-sec-ss-rec'), 'Moves SS rec to analysis');
+  assert.ok(reorgBlock[0].includes('wd-sec-ss-breakeven'), 'Moves SS breakeven to analysis');
+  assert.ok(reorgBlock[0].includes('wd-sec-roth-conv'), 'Moves roth conv to analysis');
+  assert.ok(reorgBlock[0].includes('wd-sec-irmaa'), 'Moves IRMAA to analysis');
+  assert.ok(reorgBlock[0].includes('wd-sec-wd-strategy'), 'Moves strategy to analysis');
+});
+
+test('Result tab restored in _wdRestoreUIState', () => {
+  const fn = html.match(/function _wdRestoreUIState\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdRestoreUIState function found');
+  assert.ok(fn[0].includes('resultTab'), 'Restores active result tab');
+  assert.ok(fn[0].includes('_wdSwitchResultTab'), 'Calls _wdSwitchResultTab');
+});
+
+test('Sticky cards wraps summary cards', () => {
+  assert.match(html, /class="wd-sticky-cards"[\s\S]*?class="wd-cards"/);
+});
+
+test('_wdSanitizeUIState handles subCollapsed', () => {
+  const fn = html.match(/function _wdSanitizeUIState[\s\S]*?\n\}/);
+  assert.ok(fn, 'sanitizer found');
+  assert.ok(fn[0].includes('subCollapsed'), 'Sanitizes subCollapsed');
 });
 
 summarize('UI Structure');

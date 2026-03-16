@@ -23,7 +23,8 @@ const spend = extractSpendingFunctions({
   localStorage: { getItem: () => null },
 });
 const { blendGlideAllocation, buildGlideSchedule, getReturnForAge,
-  buildContribForAge, getAnnualExpenseForAge, PHASE_TAGS } = spend;
+  buildContribForAge, getAnnualExpenseForAge, PHASE_TAGS,
+  buildOneTimeSpendByAge } = spend;
 
 /* Re-extract financial functions with spending helpers injected so MC/backtest can call them */
 const finFull = extractFinancialFunctions({
@@ -821,6 +822,101 @@ test('NaN spendingPhases amount in Historical returns 0% success', () => {
   p.spendingPhases = [{ age: 65, amount: NaN }];
   const result = runHistoricalBacktest(p);
   assert.strictEqual(result.successRate, 0, 'NaN spendingPhases in Historical should fail');
+});
+
+/* ==== One-Time Spendings ==== */
+suite('One-Time Spendings — buildOneTimeSpendByAge');
+
+test('buildOneTimeSpendByAge converts year-based schedule to age-keyed map', () => {
+  const schedule = [
+    { year: 2030, amount: 50000, desc: 'Home renovation' },
+    { year: 2035, amount: 20000, desc: 'New car' },
+  ];
+  const result = buildOneTimeSpendByAge(schedule, 50, 2025);
+  assert.strictEqual(result[55], 50000, 'Year 2030 with age 50 in 2025 = age 55');
+  assert.strictEqual(result[60], 20000, 'Year 2035 = age 60');
+  assert.strictEqual(result[65] || 0, 0, 'No spending at age 65');
+});
+
+test('buildOneTimeSpendByAge aggregates multiple entries for same year', () => {
+  const schedule = [
+    { year: 2030, amount: 30000, desc: 'Item 1' },
+    { year: 2030, amount: 20000, desc: 'Item 2' },
+  ];
+  const result = buildOneTimeSpendByAge(schedule, 50, 2025);
+  assert.strictEqual(result[55], 50000, 'Same year amounts should be summed');
+});
+
+test('buildOneTimeSpendByAge returns empty for null/empty schedule', () => {
+  assert.deepStrictEqual(buildOneTimeSpendByAge(null, 50, 2025), {});
+  assert.deepStrictEqual(buildOneTimeSpendByAge([], 50, 2025), {});
+});
+
+suite('One-Time Spendings — MC/Historical integration');
+
+test('MC: one-time spending increases withdrawal need at specific age', () => {
+  /* Run without one-time spendings */
+  const p1 = baseParams({ vol: 0, annualNeed: 60000, retireAge: 65, curAge: 65, lifeExp: 90 });
+  const mc1 = runMonteCarlo(p1);
+
+  /* Run with a $100k one-time spending at age 70 */
+  const p2 = baseParams({ vol: 0, annualNeed: 60000, retireAge: 65, curAge: 65, lifeExp: 90 });
+  p2.oneTimeByAge = { 70: 100000 };
+  const mc2 = runMonteCarlo(p2);
+
+  /* Median band at year 5 (age 70) should be lower with one-time spending */
+  const yr5NoOts = mc1.bands[2][5];
+  const yr5WithOts = mc2.bands[2][5];
+  assert.ok(yr5WithOts < yr5NoOts, `One-time spending should reduce balance at age 70: ${yr5WithOts} < ${yr5NoOts}`);
+});
+
+test('MC: one-time spending at non-retirement age has no effect on that year', () => {
+  const p = baseParams({ vol: 0, annualNeed: 60000, retireAge: 65, curAge: 65, lifeExp: 90 });
+  /* Age 30 is before retirement, so it has no effect (MC only runs retirement years) */
+  p.oneTimeByAge = { 30: 999999 };
+  const mc = runMonteCarlo(p);
+  assert.ok(mc.successRate > 0, 'Spending at pre-retirement age should not affect MC');
+});
+
+test('Historical: one-time spending reduces success rate for large amounts', () => {
+  /* Run without one-time spendings */
+  const p1 = baseParams({ annualNeed: 60000, retireAge: 65, curAge: 65, lifeExp: 90 });
+  const h1 = runHistoricalBacktest(p1);
+
+  /* Run with massive one-time spendings every year */
+  const p2 = baseParams({ annualNeed: 60000, retireAge: 65, curAge: 65, lifeExp: 90 });
+  const byAge = {};
+  for (let a = 65; a <= 90; a++) byAge[a] = 200000;
+  p2.oneTimeByAge = byAge;
+  const h2 = runHistoricalBacktest(p2);
+
+  assert.ok(h2.successRate <= h1.successRate, `Massive one-time spendings should reduce or maintain success rate: ${h2.successRate} <= ${h1.successRate}`);
+});
+
+test('MC: null/undefined oneTimeByAge causes no crash', () => {
+  const p = baseParams({ vol: 0 });
+  p.oneTimeByAge = undefined;
+  const mc = runMonteCarlo(p);
+  assert.ok(mc.successRate > 0, 'undefined oneTimeByAge should not crash');
+
+  const p2 = baseParams({ vol: 0 });
+  p2.oneTimeByAge = null;
+  const mc2 = runMonteCarlo(p2);
+  assert.ok(mc2.successRate > 0, 'null oneTimeByAge should not crash');
+});
+
+test('MC: NaN in oneTimeByAge returns 0% success', () => {
+  const p = baseParams({ vol: 0 });
+  p.oneTimeByAge = { 70: NaN };
+  const mc = runMonteCarlo(p);
+  assert.strictEqual(mc.successRate, 0, 'NaN in oneTimeByAge should be caught by guard');
+});
+
+test('Historical: NaN in oneTimeByAge returns 0% success', () => {
+  const p = baseParams();
+  p.oneTimeByAge = { 70: NaN };
+  const h = runHistoricalBacktest(p);
+  assert.strictEqual(h.successRate, 0, 'NaN in oneTimeByAge should be caught by Historical guard');
 });
 
 summarize('Withdrawal Engine Verification');
