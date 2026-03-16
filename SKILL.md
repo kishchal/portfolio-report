@@ -1,6 +1,6 @@
 ---
 name: portfolio-report
-description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account / By Account Type / By Investment Category / Fund X-Ray / Suggestions / Rebalance / Expenses / Tax-Loss eight sub-pivots), Withdrawals, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing and pre-retirement contribution modeling, Social Security income modeling with break-even analysis, BETR Roth conversion analysis, Monte Carlo simulation, Fund X-Ray overlap/concentration analysis with live Yahoo Finance holdings data, rebalancing trade list generator, fund expense drag analysis, tax-loss harvesting analysis, a what-if scenario comparator, and point-in-time portfolio snapshot comparison. Includes settings import/export for portable configuration, Export Data (CSV), three themes (Cool Blue, Warm Coral, Dark Mode), and PDF export on all tabs.
+description: Generate an interactive HTML portfolio analysis report from a Fidelity CSV export with a consolidated Holdings tab (By Account / By Account Type / By Investment Category / Fund X-Ray / Suggestions / Rebalance / Expenses / Tax-Loss eight sub-pivots), Withdrawals, Scenarios, and Snapshot Diff tabs. Features data-driven risk classification via yfinance, 3-level drill-down, auto-generated risk insights, investment suggestions with model portfolios, a retirement withdrawal planner with tax-efficient sequencing and pre-retirement contribution modeling, Social Security income modeling with break-even analysis, BETR Roth conversion analysis, Monte Carlo simulation, Retirement Glide Path, Historical Backtesting, Fund X-Ray overlap/concentration analysis with live Yahoo Finance holdings data, rebalancing trade list generator, fund expense drag analysis, tax-loss harvesting analysis, a what-if scenario comparator, and point-in-time portfolio snapshot comparison. Includes settings import/export for portable configuration, Export Data (CSV), three themes (Cool Blue, Warm Coral, Dark Mode), and PDF export on all tabs.
 allowed-tools: powershell python
 compatibility: Requires Python 3 with yfinance package. Works on Windows, macOS, and Linux.
 metadata:
@@ -164,39 +164,45 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
      - **Summary Cards** — projected portfolio at retirement, year-1 total income (portfolio + combined SS), effective tax rate, combined Social Security card (per-participant breakdown), portfolio longevity
      - **Social Security Break-Even Chart** — SVG line chart comparing cumulative lifetime SS income at claiming ages 62/67/70. Shows crossover points where delayed claiming overtakes earlier claiming. Includes your chosen age marker, summary cards with monthly amounts and lifetime totals, and advantage/disadvantage comparison. Spouse break-even shown separately if enabled.
      - **Social Security Age Recommendation** — per-participant comparison tables showing benefits at ages 62/67/70 with monthly/annual amounts, % of FRA, years collecting, inflation-adjusted lifetime totals, and optimal claiming age recommendation based on each person's life expectancy
-     - **Account Balance Projection Chart** — stacked bar chart showing Taxable/Tax-Deferred/Roth/HSA depletion over time (default chart, shown first among metric charts)
-     - **Monte Carlo Analysis** — 500 randomized simulations with log-normal return distributions:
-       - Summary cards: success rate (with visual ring), median ending balance, 10th/90th percentile outcomes
-       - Percentile fan chart (SVG): 10th–90th and 25th–75th percentile bands with median line and deterministic overlay
-       - Ending balance distribution histogram
-       - Interpretation notes with actionable guidance based on success rate
-       - Tax estimation in MC: simplified income tax + LTCG + HSA penalty per simulated year
-     - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), W/D % (annual withdrawal rate as percentage of beginning portfolio balance, color-coded: green ≤4%, amber 4-5%, red >5%), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated.
-     - **Spending Suggestions** — "See Spending Suggestions" button opens a modal with three scenarios: Die with Zero, Leave $2.50M Legacy, Leave $4.50M Legacy. All three use deterministic binary-search solvers (`_scenarioSim()` at the expected return rate) for consistent results every time. Monte Carlo success rate shown as informational risk indicator. Metrics include ending balance (nominal + PV), lifetime after-tax income, lifetime taxes, Roth conversions, BETR. "Compare in What-If Scenarios" button passes results to the Scenarios tab with full cache fingerprint validation (return%, inflation, SS, Roth strategy, ages, state tax).
-     - **Tab State Persistence** — Withdrawal results (summary cards, charts, year-by-year table) are cached after computation and restored when navigating back from other tabs, avoiding re-calculation.
-     - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules, standard deduction, HSA penalty rules), assumptions & methodology
-     - **Financial Engine**:
-       - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
-       - IRS Uniform Lifetime Table RMDs — dynamic start age: 75 for born 1960+ (SECURE 2.0), 73 for born 1951-1959, 72 for born ≤1950
-       - 2025 federal tax brackets (OBBBA) with age-aware standard deduction: base $31,500 MFJ / $15,750 Single + $1,600/person MFJ ($2,000 Single) at 65+ + OBBBA $6,000/person 65+ (2025-2028)
-       - Tiered LTCG rates: 0% up to $96,700 MFJ / $48,350 Single, 15% up to $600,050/$533,400, 20% above — stacked on ordinary taxable income
-       - SS taxation per IRS Pub 915 — combined income (AGI + LTCG + 50% of SS) determines 0%/50%/85% taxable thresholds ($32K/$44K MFJ, $25K/$34K Single)
-       - **IRMAA (Medicare surcharges)**: 2025 CMS brackets (6 tiers, MFJ + Single), Part B + Part D surcharges, 2-year MAGI lookback, per-person calculation for ages 65+
-       - HSA tax rules: tax-free for medical ($5K/yr inflation-adjusted at 65+), ordinary income after 65 for non-medical, 20% penalty + ordinary income before age 65
-       - **Roth Conversion Optimizer**: Compares None/Conservative(12%)/Moderate(22%)/Aggressive(24%)/Custom strategies with configurable conversion window (start/end ages); bracket room = ceiling + std deduction − ordinary income
-       - **Spending Phases**: User-defined spending by age (e.g., go-go/slow-go/no-go) with per-phase monthly amounts in today's dollars; auto-populated default = 4% of projected portfolio deflated to today's dollars; phases inflate from today; 4% guardrails disabled when phases active
-       - Excess RMD surplus reinvested into taxable brokerage account
-       - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
-       - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
-       - Monte Carlo engine (1000 sims, log-normal returns, Box-Muller transform) with tiered LTCG, age-aware deductions, IRMAA
-       - **Deterministic Spending Solvers**: Binary search on `_scenarioSim()` for spending amounts: DWZ targets ending balance = $0, legacy targets ending balance ≥ target FV. Both include SS income in upper bound. Zero-portfolio guard returns 0 when portfolio empty. Converges to $10/mo in 35 iterations with adaptive rounding.
-       - **Suggestion-to-Scenario Cache**: Full parameter fingerprint (return%, inflation, SS, Roth strategy, retire/life ages, state tax) ensures cached spending suggestions are invalidated when any assumption changes. Target metadata (`_target`/`_targetMonthly`) persisted in localStorage with spending-match validation.
-       - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, cumConvTax includes federal + state tax (consistent across all engines), BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
-       - **Account Selector**: Multi-select dropdown to choose which accounts to include; persisted in localStorage
-       - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
-       - **PDF Export**: Print-optimized layout with parameter summary and chart labels
-       - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
-   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts (Account Balances default) with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence.
+      - **Account Balance Projection Chart** — stacked bar chart showing Taxable/Tax-Deferred/Roth/HSA depletion over time (default chart, shown first among metric charts)
+      - **Glide Path** — age-based equity/bond allocation with three modes (Fixed, Glide Path, Custom Waypoints). Fixed uses a single return/volatility pair; Glide Path auto-de-risks with age; Custom Waypoints interpolates user-entered age/equity targets and previews them with a mini chart.
+      - **Simulation Mode Toggle** — switch between Monte Carlo and Historical Backtest while keeping the same retirement assumptions, withdrawal plan, Social Security inputs, and glide path.
+      - **Monte Carlo Analysis** — 500 randomized, glide-path-aware simulations with log-normal return distributions:
+        - Summary cards: success rate (with visual ring), median ending balance, 10th/90th percentile outcomes
+        - Percentile fan chart (SVG): 10th–90th and 25th–75th percentile bands with median line and deterministic overlay
+        - Ending balance distribution histogram
+        - Interpretation notes with actionable guidance based on success rate
+        - Tax estimation in MC: simplified income tax + LTCG + HSA penalty per simulated year
+      - **Historical Backtesting** — replays the retirement plan against 99 years of actual US market data (1926-2024), with success metrics, historical percentile bands, worst-period stress bars, and glide-path-aware stock/bond blending when a glide path is active
+      - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), W/D % (annual withdrawal rate as percentage of beginning portfolio balance, color-coded: green ≤4%, amber 4-5%, red >5%), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated.
+      - **Spending Suggestions** — "See Spending Suggestions" button opens a modal with three scenarios: Die with Zero, Leave $2.50M Legacy, Leave $4.50M Legacy. All three use deterministic binary-search solvers (`_scenarioSim()` at the expected return rate) for consistent results every time. Monte Carlo success rate shown as informational risk indicator. Metrics include ending balance (nominal + PV), lifetime after-tax income, lifetime taxes, Roth conversions, BETR. "Compare in What-If Scenarios" button passes results to the Scenarios tab with full cache fingerprint validation (return%, inflation, SS, Roth strategy, ages, state tax).
+      - **Tab State Persistence** — Withdrawal results (summary cards, charts, year-by-year table) are cached after computation and restored when navigating back from other tabs, avoiding re-calculation.
+      - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules, standard deduction, HSA penalty rules), assumptions & methodology
+      - **Financial Engine**:
+        - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
+        - IRS Uniform Lifetime Table RMDs — dynamic start age: 75 for born 1960+ (SECURE 2.0), 73 for born 1951-1959, 72 for born ≤1950
+        - 2025 federal tax brackets (OBBBA) with age-aware standard deduction: base $31,500 MFJ / $15,750 Single + $1,600/person MFJ ($2,000 Single) at 65+ + OBBBA $6,000/person 65+ (2025-2028)
+        - Tiered LTCG rates: 0% up to $96,700 MFJ / $48,350 Single, 15% up to $600,050/$533,400, 20% above — stacked on ordinary taxable income
+        - SS taxation per IRS Pub 915 — combined income (AGI + LTCG + 50% of SS) determines 0%/50%/85% taxable thresholds ($32K/$44K MFJ, $25K/$34K Single)
+        - **IRMAA (Medicare surcharges)**: 2025 CMS brackets (6 tiers, MFJ + Single), Part B + Part D surcharges, 2-year MAGI lookback, per-person calculation for ages 65+
+        - HSA tax rules: tax-free for medical ($5K/yr inflation-adjusted at 65+), ordinary income after 65 for non-medical, 20% penalty + ordinary income before age 65
+        - **Roth Conversion Optimizer**: Compares None/Conservative(12%)/Moderate(22%)/Aggressive(24%)/Custom strategies with configurable conversion window (start/end ages); bracket room = ceiling + std deduction − ordinary income
+        - **Spending Phases**: User-defined spending by age (e.g., go-go/slow-go/no-go) with per-phase monthly amounts in today's dollars; auto-populated default = 4% of projected portfolio deflated to today's dollars; phases inflate from today; 4% guardrails disabled when phases active
+        - **Glide Path Blending**: `buildGlideSchedule()` and `getReturnForAge()` generate age-based equity schedules and blend returns/volatility using `CMA` capital market assumptions (equity, bonds, cash)
+        - **Historical Return Data**: `HIST_RETURNS` embeds 99 years of annual stock, bond, and inflation data (1926-2024) for deterministic historical replay
+        - Excess RMD surplus reinvested into taxable brokerage account
+        - Dual-participant SS with independent benefit age scaling (62–70) and spouse age column in withdrawal table
+        - Household planning horizon extending to the longer-surviving spouse (with info banner when extended)
+        - Monte Carlo engine (1000 sims, log-normal returns, Box-Muller transform) with optional glide schedule, tiered LTCG, age-aware deductions, IRMAA
+        - Historical backtest engine (`runHistoricalBacktest`) evaluating every supported retirement start year with real return sequences, success-rate bands, and worst-period ranking
+        - **Deterministic Spending Solvers**: Binary search on `_scenarioSim()` for spending amounts: DWZ targets ending balance = $0, legacy targets ending balance ≥ target FV. Both include SS income in upper bound. Zero-portfolio guard returns 0 when portfolio empty. Converges to $10/mo in 35 iterations with adaptive rounding.
+        - **Suggestion-to-Scenario Cache**: Full parameter fingerprint (return%, inflation, SS, Roth strategy, retire/life ages, state tax) ensures cached spending suggestions are invalidated when any assumption changes. Target metadata (`_target`/`_targetMonthly`) persisted in localStorage with spending-match validation.
+        - **BETR (Break-Even Tax Rate)**: Vanguard-research-inspired Roth conversion analysis — State Tax % input, IRA Basis ($) input with pro-rata rule, cumConvTax includes federal + state tax (consistent across all engines), BETR column in optimizer table, Conv % column in year-by-year table, BETR insight card comparing BETR vs estimated retirement rate
+        - **Account Selector**: Multi-select dropdown to choose which accounts to include; persisted in localStorage
+        - **Interactive Metric Charts**: SVG bar charts with tab switching and PV/FV toggle (present value vs projected)
+        - **PDF Export**: Print-optimized layout with parameter summary and chart labels
+        - **Settings persistence**: All inputs saved to browser localStorage via `input`/`change` events and `beforeunload` handler. Auto-restore on reload.
+   - **Scenarios** — What-if scenario comparator: 3-scenario grid with per-scenario retirement age, life expectancy, SS claiming age, monthly SS income, annual return, inflation, Roth conversion strategy (None/Conservative/Moderate/Aggressive/Custom with bracket %, start/end age), state tax %, and multi-phase spending plans (age-based monthly spend phases with add/remove). Side-by-side comparison table (MC success, BETR, lifetime taxes/income, ending balance with PV). Per-scenario metric charts (Account Balances default) with global chart controls (Apply to All / Individual toggle for FV/PV and chart type). Tab state persistence (comparison results, charts cached across tab switches). PDF export, localStorage persistence. Includes an **Inherit Withdrawals Glide Path** option (`scSharedGlide`) that reuses the Withdrawals tab glide schedule and disables fixed return/volatility inputs when active.
    - **Snapshot Diff** — Upload a previous Fidelity CSV to compare against the current report. Shows Previous/Current summary panels with source filenames, change banner (total change, % change, time span), allocation drift bar chart with percentage labels (≥5% segments labeled), and two hierarchical drilldown sections:
      - **By Category** — groups changed positions by investment category → account → symbol
      - **By Account** — groups changed positions by account → symbol
@@ -221,7 +227,7 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
        - Equities: recommended 60-70% · Individual Stocks: ≤20% · International: 15-25% · Bonds: 15-30% · Cash: 3-5% · Sector/Thematic: ≤10%
      - **Category Deep Dive** — notes on each category (US stock fund overlap, target-date overlap, sector bets)
      - **Stock Risk Profile** — Growth ≤40%, High Risk ≤10%, Dividend/Value ≥20%, Blue Chip ≥25% recommendations; sector concentration flags
-8. **Settings Import/Export** — gear menu (top-right) with Save Settings (exports all user inputs from all tabs as a timestamped JSON file, e.g., `portfolio-settings-2026-03-13-01-30-00.json`), Load Settings (imports JSON file to restore all inputs and update localStorage), Export Data (CSV) for downloading portfolio as a Fidelity-style CSV with timestamp, and a theme switcher (Cool Blue / Warm Coral / Dark Mode) with persistence across sessions. Enables sharing configurations across report files.
+8. **Settings Import/Export** — gear menu (top-right) with Save Settings (exports all user inputs from all tabs as a timestamped JSON file, e.g., `portfolio-settings-2026-03-13-01-30-00.json`), Load Settings (imports JSON file to restore all inputs and update localStorage), Export Data (CSV) for downloading portfolio as a Fidelity-style CSV with timestamp, and a theme switcher (Cool Blue / Warm Coral / Dark Mode) with persistence across sessions. Key persisted planning controls include `wdGlideMode`, custom glide waypoints, the custom glide interpolation mode (gradual vs step/hold-flat), the Withdrawals simulation mode toggle, and `scSharedGlide` for scenario inheritance. Enables sharing configurations across report files.
 9. **PDF Export** — available on all Holdings sub-tabs, Withdrawals, Scenarios, and Snapshot Diff tabs. Print-optimized CSS hides interactive controls.
 10. **Footer** — shows generation date and source CSV filename
 
@@ -397,7 +403,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 
 **Checklist for new input fields:**
 
-1. **Add to `SETTINGS_FIELDS` array** (`template.html` ~line 1369): Include `{id:'fieldId', type:'number|select|checkbox'}` for Withdrawals tab fields. This handles save/restore via `saveSettings()` / `loadSettings()`.
+1. **Add to `SETTINGS_FIELDS` array** (`template.html` ~line 1369): Include `{id:'fieldId', type:'number|select|checkbox'}` for Withdrawals tab fields such as `wdGlideMode`. This handles save/restore via `saveSettings()` / `loadSettings()`. Composite controls such as custom glide waypoints and Scenario shared-glide selection (`scSharedGlide`) also need explicit save/restore wiring.
 
 2. **Event listeners are auto-attached**: Line ~1621 attaches `change` + `input` listeners to ALL inputs in the Withdrawals panel. Line ~3073 does the same for Scenario fields. The `beforeunload` handler also calls `saveSettings()`.
 
@@ -412,7 +418,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 **After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
 
 ```powershell
-# Run the complete test suite (287 tests across 8 domain test files + 1 accuracy test)
+# Run the complete test suite (534 tests across 9 domain test files + 1 accuracy test file)
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
 
@@ -423,11 +429,12 @@ The test suite validates:
 | `test_formatting.js` | 22 | `fmt`, `fmt2`, `esc`, `pct`, `ylink` formatting utilities |
 | `test_tax.js` | 53 | Federal tax brackets, LTCG rates, standard deduction, IRMAA, SS taxation, RMD table, SS age factors, percentile calculation |
 | `test_allocation.js` | 21 | Portfolio allocation buckets, rebalance drift, expense ratio formulas, TLH calculations, deep-loss hold rule |
-| `test_withdrawal.js` | 35 | Spending phases, 4% rule guardrails, RMD calculations, Monte Carlo engine (structure, success rate, percentile ordering), Roth conversion room, HSA rules, withdrawal sequencing |
+| `test_withdrawal.js` | 54 | Spending phases, glide schedule helpers, linear + step custom glide interpolation, historical backtesting, 4% rule guardrails, RMD calculations, Monte Carlo engine (structure, success rate, percentile ordering), Roth conversion room, HSA rules, withdrawal sequencing |
+| `test_engine.js` | 75 | Deterministic MC engine integration, cross-engine consistency (MC vs historical), edge cases (depletion, zero balances, Roth-only, HSA-only, long retirement), glide path blending, contribution schedules, Roth bracket limits, SS break-even, tax integration, RMD table, stochastic MC behavior, historical backtest validation, numerical edge cases (deflation, extreme longevity, negative returns, high volatility), 4% guardrail path, historical contributions, NaN/Infinity input validation (retAge, yearsToRetire, convBracketLimit, spendingPhases), RMD start age 73/75, spouse life-expectancy cutoff |
 | `test_snapshot.js` | 43 | CSV parsing, currency parsing, symbol classification, account type inference, snapshot diff engine |
 | `test_csv_export.js` | 24 | CSV round-trip validation (6 checks × 4 sample files) |
 | `test_bounds.js` | 6 | Withdrawal solver upper-bound validation |
-| `test_ui.js` | 83 | DOM structure, tabs, sub-tabs, icons, placeholders, theme system, settings, print/export, CSS classes, backward compatibility |
+| `test_ui.js` | 224 | DOM structure, tabs, sub-tabs, icons, placeholders, glide path + historical mode controls, interpolation toggle, chart styling, fixed return preservation, theme system, settings, print/export, CSS classes, backward compatibility, tooltip accuracy, section ordering, PV column, What-If alignment, 457/403b bucket, POST-RETIRE refresh, DCP help notes, global formatters, methodology panel scope safety, data-driven methodology content, collapsible panels, state persistence, tab-switch panel restore, results cache sync, scenario cache, year-by-year insertion, context-aware help system |
 | `test_skill_accuracy.js` | 12 | Validates SKILL.md claims against template.html: tab structure, sub-tabs, settings menu, PDF scope, scripts, test counts |
 
 **If any test fails, DO NOT commit.** The agent MUST:
@@ -441,19 +448,18 @@ If the failure is in a test itself (e.g., a new feature changed expected behavio
 **When adding new features:**
 - Add corresponding tests to the appropriate `test_*.js` file in `scripts/`
 - For new formulas: add to `test_tax.js`, `test_allocation.js`, or `test_withdrawal.js`
+- For engine integration tests (MC, historical backtest, cross-engine): add to `test_engine.js`
 - For new UI elements: add to `test_ui.js`
 - For new data transformations: add to `test_snapshot.js` or `test_csv_export.js`
 - Use the shared test harness `test-helpers.js` to extract functions from the template
 
 ### 10. "Review and Commit" Workflow (MANDATORY)
 
-When the user says **"review and commit"** (or any variation like "commit", "review", "push changes"), the agent MUST follow this exact sequence:
-
 #### Step 1: Run Tests
 ```powershell
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
-- If any test fails → fix the code → re-run until all 287+ tests pass
+- If any test fails → fix the code → re-run until all 534+ tests pass (and the accuracy test file stays green)
 - Do NOT proceed to Step 2 until the suite is fully green
 
 #### Step 2: Run the 6-Round Multi-Model Review Gauntlet

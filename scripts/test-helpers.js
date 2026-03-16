@@ -128,6 +128,9 @@ function extractBlock(startMarker, endMarker) {
   const text = fs.readFileSync(TEMPLATE_PATH, 'utf8');
   const startIdx = text.indexOf(startMarker);
   if (startIdx === -1) throw new Error(`Start marker not found: ${startMarker}`);
+  /* Guard: ensure marker is unique to prevent extracting wrong block */
+  const secondIdx = text.indexOf(startMarker, startIdx + 1);
+  if (secondIdx !== -1) throw new Error(`Start marker is not unique (found at ${startIdx} and ${secondIdx}): ${startMarker}`);
   const endIdx = endMarker ? text.indexOf(endMarker, startIdx) : text.length;
   if (endIdx === -1) throw new Error(`End marker not found: ${endMarker}`);
   return text.slice(startIdx, endIdx);
@@ -174,9 +177,10 @@ function extractFinancialFunctions(envOverrides = {}) {
       'EXTRA_STD_DED_MFJ', 'EXTRA_STD_DED_SINGLE',
       'OBBBA_SENIOR_DED', 'OBBBA_THRESHOLD_MFJ', 'OBBBA_THRESHOLD_SINGLE',
       'SS_AGE_FACTOR',
+      'CMA', 'HIST_RETURNS',
       'IRMAA_BRACKETS_MFJ', 'IRMAA_BRACKETS_SINGLE',
       'calcLTCG', 'getStdDeduction', 'calcIRMAA', 'calcSSTaxableAmount', 'calcTax',
-      'randNormal', 'runMonteCarlo', 'percentile',
+      'randNormal', 'runMonteCarlo', 'runHistoricalBacktest', 'percentile',
     ],
     envOverrides
   );
@@ -220,6 +224,8 @@ function extractSpendingFunctions(envOverrides = {}) {
     'function renderWithdrawals()',
     [
       'PHASE_TAGS', 'getPhaseTag', 'getAnnualExpenseForAge',
+      'blendGlideAllocation', 'buildGlideSchedule', 'getReturnForAge',
+      'buildContribForAge', 'getContribSchedule',
     ],
     envOverrides
   );
@@ -235,6 +241,18 @@ function extractAllocationFunctions(envOverrides = {}) {
     [
       'computeCurrentAlloc', 'allocBar',
     ],
+    envOverrides
+  );
+}
+
+/**
+ * Extract scenario helper functions (e.g. _computeCustomBracketLimit).
+ */
+function extractScenarioHelpers(envOverrides = {}) {
+  return extractFunctions(
+    '/* Compute bracket limit for custom percentage Roth conversion */',
+    'function runScenarioComparison()',
+    ['_computeCustomBracketLimit'],
     envOverrides
   );
 }
@@ -287,6 +305,7 @@ module.exports = {
   extractSnapshotFunctions,
   extractSpendingFunctions,
   extractAllocationFunctions,
+  extractScenarioHelpers,
   test,
   suite,
   summarize,

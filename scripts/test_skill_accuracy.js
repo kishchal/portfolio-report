@@ -127,7 +127,7 @@ test('All test files exist that SKILL.md references', () => {
   /* Domain test files (excluding this meta-test) should be in SKILL.md */
   const testFiles = fs.readdirSync(SCRIPTS_DIR)
     .filter(f => f.startsWith('test_') && f.endsWith('.js') && f !== 'test_skill_accuracy.js');
-  assert.ok(testFiles.length >= 8, `Should have at least 8 domain test files, found ${testFiles.length}`);
+  assert.ok(testFiles.length >= 9, `Should have at least 9 domain test files, found ${testFiles.length}`);
   for (const tf of testFiles) {
     assert.ok(SKILL.includes(tf), `SKILL.md should mention test file: ${tf}`);
   }
@@ -153,14 +153,16 @@ test('Total test count in SKILL.md is approximately correct', () => {
     'test_allocation.js': 21,
     'test_bounds.js': 6,
     'test_csv_export.js': 24,
+    'test_engine.js': 75,
     'test_formatting.js': 22,
+    'test_skill_accuracy.js': 12,
     'test_snapshot.js': 43,
     'test_tax.js': 53,
-    'test_ui.js': 83,
-    'test_withdrawal.js': 35,
+    'test_ui.js': 224,
+    'test_withdrawal.js': 54,
   };
-  const totalTests = Object.values(knownCounts).reduce((a, b) => a + b, 0); // 287
-  /* Find total count in SKILL.md — look for patterns like "287 tests" or "287+ tests" */
+  const totalTests = Object.values(knownCounts).reduce((a, b) => a + b, 0); // 318
+  /* Find total count in SKILL.md — look for patterns like "316 tests" or "316+ tests" */
   const countMatches = [...SKILL.matchAll(/(\d+)\+?\s*tests/g)].map(m => parseInt(m[1]));
   assert.ok(countMatches.length > 0, 'SKILL.md should mention total test count');
   /* At least one count reference should be within 10 of the actual total */

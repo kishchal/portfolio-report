@@ -5,8 +5,9 @@
 const { assert, test, suite, summarize, extractSpendingFunctions,
         extractFinancialFunctions } = require('./test-helpers');
 
-const { getAnnualExpenseForAge, PHASE_TAGS } = extractSpendingFunctions();
 const fin = extractFinancialFunctions();
+const spending = extractSpendingFunctions({ CMA: fin.CMA });
+const { getAnnualExpenseForAge, PHASE_TAGS, buildGlideSchedule, getReturnForAge } = spending;
 
 /* ==== getAnnualExpenseForAge ==== */
 suite('getAnnualExpenseForAge — phase-based spending');
@@ -270,8 +271,10 @@ suite('runMonteCarlo — behavioral tests');
 
 // runMonteCarlo calls getAnnualExpenseForAge which is in a different extraction block.
 // Inject it into the financial extraction environment.
-const finMC = extractFinancialFunctions({ getAnnualExpenseForAge });
+const finMC = extractFinancialFunctions({ getAnnualExpenseForAge, getReturnForAge });
 const { runMonteCarlo, TAX_BRACKETS_MFJ, TAX_BRACKETS_SINGLE } = finMC;
+const finHist = extractFinancialFunctions({ getAnnualExpenseForAge, getReturnForAge });
+const { runHistoricalBacktest, HIST_RETURNS, CMA } = finHist;
 
 // Base params for Monte Carlo — fill all destructured fields
 function mcParams(overrides = {}) {
@@ -289,9 +292,17 @@ function mcParams(overrides = {}) {
     brackets: TAX_BRACKETS_MFJ,
     RMD_START_AGE: 75,
     spendingPhases: [], hasPhases: false,
+    glideSchedule: null,
     stateTaxPct: 0,
     ...overrides,
   };
+}
+
+function sampleCustomGlideSchedule() {
+  return buildGlideSchedule(55, 85, 'custom', [
+    { age: 55, eqPct: 70 },
+    { age: 85, eqPct: 20 },
+  ], 55);
 }
 
 test('runMonteCarlo returns expected structure', () => {
@@ -336,6 +347,143 @@ test('percentile bands are monotonically ordered', () => {
         `Band ${result.pctiles[b]} should be <= ${result.pctiles[b+1]} at year ${yr}`);
     }
   }
+});
+
+test('mcParams defaults glideSchedule to null', () => {
+  assert.strictEqual(mcParams().glideSchedule, null);
+});
+
+/* ==== Glide path schedule helpers ==== */
+suite('buildGlideSchedule — age-based allocation schedule');
+
+test('fixed mode returns null', () => {
+  assert.strictEqual(buildGlideSchedule(65, 90, 'fixed', [], 55), null);
+});
+
+test('glidepath mode returns schedule entries with age, eqPct, ret, vol', () => {
+  const schedule = buildGlideSchedule(65, 90, 'glidepath', [], 55);
+  assert.ok(Array.isArray(schedule));
+  assert.ok(schedule.length > 0);
+  schedule.forEach(entry => {
+    assert.ok(typeof entry.age === 'number');
+    assert.ok(typeof entry.eqPct === 'number');
+    assert.ok(typeof entry.ret === 'number');
+    assert.ok(typeof entry.vol === 'number');
+  });
+});
+
+test('glidepath equity decreases with age', () => {
+  const schedule = buildGlideSchedule(65, 90, 'glidepath', [], 55);
+  assert.ok(schedule[0].eqPct > schedule[schedule.length - 1].eqPct);
+});
+
+test('glidepath equity stays between 20% and 80%', () => {
+  const schedule = buildGlideSchedule(65, 90, 'glidepath', [], 55);
+  schedule.forEach(entry => {
+    assert.ok(entry.eqPct >= 20 && entry.eqPct <= 80,
+      `Expected eqPct between 20 and 80, got ${entry.eqPct} at age ${entry.age}`);
+  });
+});
+
+test('custom mode uses supplied waypoints', () => {
+  const schedule = sampleCustomGlideSchedule();
+  assert.strictEqual(schedule[0].age, 55);
+  assert.strictEqual(schedule[0].eqPct, 70);
+  assert.strictEqual(schedule[schedule.length - 1].age, 85);
+  assert.strictEqual(schedule[schedule.length - 1].eqPct, 20);
+  assert.strictEqual(schedule.length, 31);
+});
+
+test('custom step interpolation holds equity flat until the next waypoint', () => {
+  const schedule = buildGlideSchedule(55, 75, 'custom', [
+    { age: 55, eqPct: 70 },
+    { age: 65, eqPct: 50 },
+    { age: 75, eqPct: 30 },
+  ], 55, 'step');
+  assert.strictEqual(getReturnForAge(schedule, 60).eqPct, 70);
+  assert.strictEqual(getReturnForAge(schedule, 65).eqPct, 70);
+  assert.strictEqual(getReturnForAge(schedule, 66).eqPct, 50);
+  assert.strictEqual(getReturnForAge(schedule, 75).eqPct, 30);
+});
+
+test('custom mode interpolates equity between waypoints', () => {
+  const schedule = sampleCustomGlideSchedule();
+  const age70 = schedule.find(entry => entry.age === 70);
+  assert.ok(age70, 'Expected an entry for age 70');
+  assert.ok(Math.abs(age70.eqPct - 45) < 0.001, `Expected ~45, got ${age70.eqPct}`);
+});
+
+suite('getReturnForAge — glide schedule lookup');
+
+test('null schedule returns fallback value', () => {
+  assert.strictEqual(getReturnForAge(null, 65, 0.07), 0.07);
+});
+
+test('schedule returns matching entry for age', () => {
+  const schedule = sampleCustomGlideSchedule();
+  const age70 = schedule.find(entry => entry.age === 70);
+  assert.deepStrictEqual(getReturnForAge(schedule, 70), age70);
+});
+
+test('age beyond schedule returns last entry', () => {
+  const schedule = sampleCustomGlideSchedule();
+  assert.deepStrictEqual(getReturnForAge(schedule, 95), schedule[schedule.length - 1]);
+});
+
+suite('runHistoricalBacktest — behavioral tests');
+
+test('HIST_RETURNS has 1926-based historical data', () => {
+  assert.ok(Array.isArray(HIST_RETURNS));
+  assert.ok(HIST_RETURNS.length > 90, `Expected >90 rows, got ${HIST_RETURNS.length}`);
+  assert.strictEqual(HIST_RETURNS[0][0], 1926);
+});
+
+test('runHistoricalBacktest returns expected structure', () => {
+  const result = runHistoricalBacktest(mcParams({ nSims: 10 }));
+  assert.ok(typeof result.nPeriods === 'number');
+  assert.ok(typeof result.successRate === 'number');
+  assert.ok(Array.isArray(result.bands));
+  assert.ok(Array.isArray(result.worst5));
+  assert.ok(Array.isArray(result.results));
+});
+
+test('historical backtest evaluates multiple periods', () => {
+  const result = runHistoricalBacktest(mcParams());
+  assert.ok(result.nPeriods > 0, `Expected historical periods, got ${result.nPeriods}`);
+});
+
+test('historical success rate stays between 0 and 100', () => {
+  const result = runHistoricalBacktest(mcParams());
+  assert.ok(result.successRate >= 0 && result.successRate <= 100,
+    `Expected successRate between 0 and 100, got ${result.successRate}`);
+});
+
+test('historical bands track each year of retirement', () => {
+  const params = mcParams({ yearsInRetirement: 7 });
+  const result = runHistoricalBacktest(params);
+  assert.strictEqual(result.bands.length, 5);
+  result.bands.forEach(band => assert.strictEqual(band.length, params.yearsInRetirement));
+});
+
+test('historical zero-spending plan succeeds in every period', () => {
+  const result = runHistoricalBacktest(mcParams({
+    spendingPhases: [{ age: 65, amount: 0 }],
+    hasPhases: true,
+  }));
+  assert.strictEqual(result.successRate, 100);
+});
+
+test('worst5 contains at most five results', () => {
+  const result = runHistoricalBacktest(mcParams());
+  assert.ok(result.worst5.length <= 5, `Expected at most 5 worst periods, got ${result.worst5.length}`);
+});
+
+test('historical backtest accepts glide schedules', () => {
+  const glideSchedule = buildGlideSchedule(65, 90, 'glidepath', [], 55);
+  const result = runHistoricalBacktest(mcParams({ glideSchedule }));
+  assert.ok(result.nPeriods > 0);
+  assert.ok(result.results.length === result.nPeriods);
+  assert.ok(CMA.equity.ret > CMA.bonds.ret);
 });
 
 summarize('Withdrawal & Retirement');
