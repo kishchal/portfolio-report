@@ -222,7 +222,7 @@ suite('Key function declarations present');
 
 const requiredFunctions = [
   'fmt', 'fmt2', 'esc', 'pct', 'ylink',
-  'buildMetricCharts', 'switchChart', 'toggleChartPV',
+  'buildMetricCharts', 'switchChart',
   'buildSSBreakEven',
   'renderAcctTypePivot', 'renderCategoryPivot', 'renderAcctNamePivot',
   'computeFundXRay', 'renderFundXRay',
@@ -467,12 +467,14 @@ test('optimizer results include endTotalPV and endRothPV fields', () => {
   assert.match(html, /endRothPV:lastRow\.bRoth\/Math\.pow\(1\+inflPct/);
 });
 
-test('optimizer table has Ending Total (PV) column header', () => {
-  assert.match(html, /Ending Total \(PV\)<\/th>/);
+test('Roth optimizer table uses pv-mid/pv-end data attributes for PV toggle', () => {
+  assert.match(html, /id="wd-roth-opt-tbl"/, 'Table has id for PV refresh');
+  assert.match(html, /class="pv-mid".*data-fv=/, 'Has pv-mid cells with data-fv');
+  assert.match(html, /class="pv-end".*data-fv=/, 'Has pv-end cells with data-fv');
 });
 
-test('PV cell is styled with muted italic', () => {
-  assert.match(html, /color:var\(--text-muted\);font-style:italic.*fmtK\(r\.endTotalPV\)/);
+test('Roth optimizer removed dedicated PV column', () => {
+  assert.ok(!html.includes('Ending Total (PV)</th>'), 'No dedicated PV column header');
 });
 
 /* ==== Regression: withdrawal input section order ==== */
@@ -958,9 +960,78 @@ test('addContribYear rejects duplicate years', () => {
   assert.ok(fn[0].includes('parseInt(el.value)===defYear') && fn[0].includes('return'), 'Should return early on duplicate year');
 });
 
-test('Scenario cache uses settings fingerprint for staleness check', () => {
-  assert.match(html, /_scenCacheFP.*localStorage\.getItem\(SETTINGS_KEY\)/);
-  assert.match(html, /_scenCacheFP===localStorage\.getItem\(SETTINGS_KEY\)/);
+test('Scenario cache uses scenario-specific fingerprint for staleness check', () => {
+  assert.match(html, /window\._scenFP/);
+  assert.match(html, /_scenCacheFP===window\._scenFP\(\)/);
+  assert.match(html, /sc-pv-toggle/);
+  assert.match(html, /pvTog\.style\.display.*flex/);
+});
+
+test('Scenario fingerprint covers withdrawal-inherited settings', () => {
+  assert.match(html, /_scenFP.*wdGlideToggle/);
+  assert.match(html, /_scenFP.*wdGlideMode/);
+  assert.match(html, /_scenFP.*wdIRABasis/);
+  assert.match(html, /_scenFP.*wdContribToggle/);
+  assert.match(html, /_scenFP.*wdContrib401k/);
+  assert.match(html, /_scenFP.*wdAge/);
+});
+
+test('Scenario fingerprint covers cross-tab dependencies', () => {
+  assert.match(html, /_scenFP.*_selectedAccounts/);
+  assert.match(html, /_scenFP.*_glideWaypoints/);
+  assert.match(html, /_scenFP.*_glideInterp/);
+  assert.match(html, /_scenFP.*_contribMode/);
+  assert.match(html, /_scenFP.*_contribSchedule/);
+  assert.match(html, /_scenFP.*_oneTimeSpendings/);
+});
+
+test('Scenario input change clears results DOM', () => {
+  const fn=html.split('const onScenarioInputChange')[1]?.split(/\n\s*};/)[0]||'';
+  assert.match(fn, /r\.innerHTML\s*=\s*['"][\s]*['"]/, 'onScenarioInputChange should clear scenResults DOM');
+});
+
+test('Collapsible comparison table panel exists', () => {
+  assert.match(html, /id="sc-compare-panel"/);
+  assert.match(html, /class="sc-compare-hdr"/);
+  assert.match(html, /class="sc-compare-body"/);
+  assert.match(html, /class="sc-chev"/);
+});
+
+test('Collapsible charts panel exists', () => {
+  assert.match(html, /id="sc-charts-panel"/);
+  assert.match(html, /class="sc-charts-hdr"/);
+  assert.match(html, /class="sc-charts-body"/);
+});
+
+test('Shared collapsible toggle helper exists', () => {
+  assert.match(html, /window\._scTogglePanel/);
+  assert.match(html, /onclick="_scTogglePanel\(this\)"/);
+});
+
+test('Settings import invalidates scenario cache', () => {
+  const fn=html.split('function importSettingsFromFile')[1]?.split(/\nfunction /)[0]||'';
+  assert.match(fn, /_scenResultsCache\s*=\s*['"]['"]/, 'importSettingsFromFile should clear scenario cache');
+});
+
+test('Spending suggestions invalidate scenario cache', () => {
+  const fn=html.split('window._applySuggestionsToScenarios=function')[1]?.split(/\nfunction /)[0]||'';
+  assert.match(fn, /_scenResultsCache\s*=\s*['"]['"]/, '_applySuggestionsToScenarios should clear scenario cache');
+});
+
+test('Account selection change invalidates scenario cache', () => {
+  const fn=html.split('function onAcctSelChange')[1]?.split(/\nfunction /)[0]||'';
+  assert.match(fn, /_scenResultsCache\s*=\s*['"]['"]/, 'onAcctSelChange should clear scenario cache');
+});
+
+test('Cache fingerprint captured synchronously before async delay', () => {
+  assert.match(html, /const _cacheFP=window\._scenFP\?window\._scenFP\(\):''/);
+  assert.match(html, /window\._scenCacheFP=_cacheFP/);
+});
+
+test('Cache restore forces panels expanded and derives chart IDs from DOM', () => {
+  assert.match(html, /sc-compare-body,\.sc-charts-body/);
+  assert.match(html, /querySelectorAll\('\[id\^="sc-chart-"\]\[id\$="-container"\]'\)/);
+  assert.match(html, /el\.id\.replace\('-container',''\)/, 'Should extract chart ID from container element');
 });
 
 /* ==== One-Time Spendings ==== */
@@ -1252,6 +1323,289 @@ test('_wdSanitizeUIState handles subCollapsed', () => {
   const fn = html.match(/function _wdSanitizeUIState[\s\S]*?\n\}/);
   assert.ok(fn, 'sanitizer found');
   assert.ok(fn[0].includes('subCollapsed'), 'Sanitizes subCollapsed');
+});
+
+/* ==== Income Breakdown Dialog ==== */
+suite('Income Breakdown Dialog');
+
+test('_wdShowIncomeBreakdown function exists', () => {
+  assert.match(html, /function _wdShowIncomeBreakdown\(rowIdx\)/);
+});
+
+test('Total Income cells have onclick for breakdown', () => {
+  assert.match(html, /_wdShowIncomeBreakdown\(/);
+});
+
+test('Total Income cells have tooltip with breakdown', () => {
+  assert.match(html, /_tiParts/);
+  assert.match(html, /_tiTip/);
+});
+
+test('_wdRenderedRows is exposed for breakdown dialog', () => {
+  assert.match(html, /window\._wdRenderedRows\s*=\s*rRows/);
+});
+
+test('Breakdown dialog shows all income source types', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('taxableW'), 'Shows taxable withdrawals');
+  assert.ok(fn[0].includes('deferredW'), 'Shows deferred withdrawals');
+  assert.ok(fn[0].includes('rothW'), 'Shows Roth withdrawals');
+  assert.ok(fn[0].includes('hsaW'), 'Shows HSA withdrawals');
+  assert.ok(fn[0].includes('ssIncome'), 'Shows Social Security');
+  assert.ok(fn[0].includes('postRetIncome'), 'Shows side income');
+});
+
+test('Breakdown dialog shows stacked bar chart', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('width:${pct}%'), 'Has percentage-width bar segments');
+});
+
+test('Breakdown dialog uses overlay pattern with close button', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('sugg-overlay'), 'Uses overlay pattern');
+  assert.ok(fn[0].includes('ov.remove()'), 'Close button removes overlay');
+});
+
+test('Breakdown dialog shows expense section with tax breakdown', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('Where It Goes'), 'Has expense section header');
+  assert.ok(fn[0].includes('Living Expenses'), 'Shows living expenses');
+  assert.ok(fn[0].includes('Federal Income Tax'), 'Shows federal income tax');
+  assert.ok(fn[0].includes('Capital Gains Tax'), 'Shows capital gains tax');
+  assert.ok(fn[0].includes('State Tax'), 'Shows state tax');
+  assert.ok(fn[0].includes('Medicare IRMAA'), 'Shows IRMAA');
+  assert.ok(fn[0].includes('Effective Tax Rate'), 'Shows effective tax rate');
+});
+
+test('Rendered rows include tax breakdown fields', () => {
+  assert.match(html, /incomeTax:incTax/, 'rRows has incomeTax');
+  assert.match(html, /capGainsTax:capTax/, 'rRows has capGainsTax');
+  assert.match(html, /hsaPenalty/, 'rRows has hsaPenalty');
+  assert.match(html, /stateTax:recStateTax/, 'rRows has stateTax');
+});
+
+test('Expense breakdown separates one-time spendings from regular living', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('Regular Living Expenses'), 'Shows regular living');
+  assert.ok(fn[0].includes('oneTimeItemsByAge'), 'Looks up OTS items by age');
+  assert.ok(fn[0].includes('otsAmount'), 'Uses otsAmount from row');
+  assert.ok(fn[0].includes('One-time'), 'Shows one-time label');
+});
+
+test('buildOneTimeItemsByAge function exists', () => {
+  assert.match(html, /function buildOneTimeItemsByAge\(schedule,curAge,curYear\)/);
+});
+
+test('oneTimeItemsByAge stored on ctx', () => {
+  assert.match(html, /oneTimeItemsByAge/, 'ctx has oneTimeItemsByAge');
+});
+
+/* ==== SS Income Breakdown Dialog ==== */
+suite('SS Income Breakdown Dialog');
+
+test('_wdShowSSBreakdown function exists', () => {
+  assert.match(html, /function _wdShowSSBreakdown\(rowIdx\)/);
+});
+
+test('SS cells have onclick for breakdown', () => {
+  assert.match(html, /_wdShowSSBreakdown\(/);
+});
+
+test('SS breakdown shows all source types', () => {
+  const fn = html.match(/function _wdShowSSBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('yourSS'), 'Shows your SS');
+  assert.ok(fn[0].includes('spouseSS'), 'Shows spouse SS');
+  assert.ok(fn[0].includes('postRetIncome'), 'Shows side income');
+});
+
+test('SS breakdown shows taxation note', () => {
+  const fn = html.match(/function _wdShowSSBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('taxable this year'), 'Shows SS taxation info');
+});
+
+/* ==== Year Column ==== */
+suite('Year Column in Withdrawal Table');
+
+test('Year column header exists in withdrawal table', () => {
+  assert.match(html, /Calendar year for each row/);
+});
+
+test('Year column uses _startYear variable', () => {
+  assert.match(html, /const _startYear/);
+  assert.match(html, /_startYear\+i/);
+});
+
+/* ==== FV/PV Toggle ==== */
+suite('FV/PV Global Toggle');
+
+test('_wdToggleTablePV function exists', () => {
+  assert.match(html, /function _wdToggleTablePV\(\)/);
+});
+
+test('Global PV toggle rendered above tabs with Future/Today labels', () => {
+  assert.match(html, /id="wd-pv-toggle"/, 'Has wd-pv-toggle container');
+  assert.match(html, /Future \$/, 'Has Future $ button');
+  assert.match(html, /Today's \$/, "Has Today's $ button");
+});
+
+test('No per-schedule pill toggle (removed)', () => {
+  /* The old schedule-local pill toggle was inside renderWdTable;
+     now only the global toggle exists above the tabs */
+  const fn = html.match(/function renderWdTable[\s\S]*?\nfunction /);
+  assert.ok(fn, 'renderWdTable function found');
+  assert.ok(!fn[0].includes('_wdToggleTablePV()'), 'No toggle button inside renderWdTable');
+});
+
+test('No per-chart PV/FV buttons in buildMetricCharts', () => {
+  const fn = html.match(/function buildMetricCharts[\s\S]*?\nfunction /);
+  assert.ok(fn, 'buildMetricCharts function found');
+  assert.ok(!fn[0].includes('toggleChartPV'), 'No toggleChartPV calls');
+  assert.ok(!fn[0].includes('Future Value</button>'), 'No Future Value button');
+  assert.ok(!fn[0].includes('Present Value</button>'), 'No Present Value button');
+});
+
+test('Charts initialize with global PV state', () => {
+  assert.match(html, /usePV:window\._wdUIState/, 'Charts read global PV state');
+});
+
+test('tablePV key in UI state sanitizer', () => {
+  assert.match(html, /tablePV/, 'tablePV referenced in state');
+});
+
+test('PV factor applied conditionally via _usePV', () => {
+  assert.match(html, /const _usePV/, '_usePV variable defined');
+  assert.match(html, /const pv=_usePV\?pvFactor:1/, 'pv multiplier uses _usePV');
+});
+
+test('Dedicated PV columns removed (After-Tax PV, Total Bal PV)', () => {
+  assert.ok(!html.includes('After-Tax (PV)</th>'), 'No After-Tax PV header column');
+  assert.ok(!html.includes('Total Bal (PV)</th>'), 'No Total Bal PV header column');
+});
+
+test('Toggle re-renders all charts via _chartRegistry', () => {
+  const fn = html.match(/function _wdToggleTablePV[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_chartRegistry'), 'Updates all chart registries');
+  assert.ok(fn[0].includes('_renderChart'), 'Re-renders charts');
+});
+
+test('Toggle refreshes simulation cards via _wdRefreshSimCards', () => {
+  const fn = html.match(/function _wdToggleTablePV[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_wdRefreshSimCards'), 'Calls sim card refresh');
+});
+
+test('_wdRefreshSimCards function exists and updates MC/Hist cards', () => {
+  const fn = html.match(/function _wdRefreshSimCards[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('wd-mc-cards'), 'Updates MC cards');
+  assert.ok(fn[0].includes('wd-hist-cards'), 'Updates hist cards');
+  assert.ok(fn[0].includes('pvFactor'), 'Uses pvFactor for conversion');
+});
+
+test('Simulation cards show single value (not both FV and PV)', () => {
+  /* Old pattern: "PV: $xxx" inline — should no longer exist */
+  assert.ok(!html.includes('>PV: ${fmtK(pv'), 'No inline PV: labels in sim cards');
+});
+
+test('wdOverride converts PV input back to FV', () => {
+  const fn = html.match(/function wdOverride[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('tablePV'), 'Checks PV mode');
+  assert.ok(fn[0].includes('dataset.pvf'), 'Reads pvf data attribute');
+});
+
+test('All withdrawal cells are read-only without popups', () => {
+  assert.ok(!html.includes('class="wd-ovr"'), 'No editable input cells');
+  /* mkCell no longer takes acctIdx or adds onclick */
+  const fn = html.match(/const mkCell=\(field,val\)=>\{[\s\S]*?\};/);
+  assert.ok(fn, 'mkCell has only field,val params (no acctIdx)');
+});
+
+test('_wdShowAccountBreakdown function exists', () => {
+  assert.match(html, /function _wdShowAccountBreakdown\(rowIdx,acctIdx\)/);
+});
+
+test('Account breakdown covers all 4 account types', () => {
+  const fn = html.match(/function _wdShowAccountBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('Taxable Account'), 'Has taxable');
+  assert.ok(fn[0].includes('Tax-Deferred'), 'Has deferred');
+  assert.ok(fn[0].includes('Roth Account'), 'Has Roth');
+  assert.ok(fn[0].includes('Health Savings Account'), 'Has HSA');
+});
+
+test('Account breakdown shows per-account sequential drain', () => {
+  const fn = html.match(/function _wdShowAccountBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_acctDetail'), 'Reads per-account drain detail');
+  assert.ok(fn[0].includes('sequential drain'), 'Shows sequential drain label');
+});
+
+test('acctBuckets stored on ctx', () => {
+  assert.match(html, /acctBuckets:\{taxable:/, 'ctx has acctBuckets');
+});
+
+test('Account popup is PV-aware', () => {
+  const fn = html.match(/function _wdShowAccountBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_wdUIState'), 'Reads PV state');
+  assert.ok(fn[0].includes('pvLabel'), 'Shows PV label');
+  assert.ok(fn[0].includes("today's dollars"), 'Has today dollars text');
+});
+
+test('SS popup is PV-aware', () => {
+  const fn = html.match(/function _wdShowSSBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_usePV'), 'Computes _usePV flag');
+  assert.ok(fn[0].includes('pvLabel'), 'Shows PV label');
+  assert.ok(fn[0].includes("today's dollars"), 'Has today dollars text');
+});
+
+test('Income popup is PV-aware', () => {
+  const fn = html.match(/function _wdShowIncomeBreakdown[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_usePV'), 'Computes _usePV flag');
+  assert.ok(fn[0].includes('pvLabel'), 'Shows PV label');
+  assert.ok(fn[0].includes("today's dollars"), 'Has today dollars text');
+});
+
+test('Scroll position preserved on PV toggle', () => {
+  const fn = html.match(/function _wdToggleTablePV[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('scrollLeft'), 'Saves/restores scrollLeft');
+  assert.ok(fn[0].includes('savedScroll'), 'Uses savedScroll variable');
+});
+
+test('Sequential drain tracking builds _acctDetail on rows', () => {
+  assert.match(html, /r\._acctDetail/, 'Rows have _acctDetail property');
+  assert.match(html, /_acctBals/, 'Account balances tracked per year');
+});
+
+test('_wdRefreshAnalysisPV function exists and updates pv-mid/pv-end cells', () => {
+  const fn = html.match(/function _wdRefreshAnalysisPV[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('pv-mid'), 'Updates pv-mid cells');
+  assert.ok(fn[0].includes('pv-end'), 'Updates pv-end cells');
+  assert.ok(fn[0].includes('midPvF'), 'Uses mid-point PV factor');
+  assert.ok(fn[0].includes('endPvF'), 'Uses end-point PV factor');
+});
+
+test('Toggle calls _wdRefreshAnalysisPV', () => {
+  const fn = html.match(/function _wdToggleTablePV[\s\S]*?\n\}/);
+  assert.ok(fn, 'function found');
+  assert.ok(fn[0].includes('_wdRefreshAnalysisPV'), 'Calls analysis PV refresh');
+});
+
+test('SS table lifetime totals are PV-aware', () => {
+  assert.match(html, /class="pv-mid".*data-fv=".*".*fmtK\(s\.lifetime/, 'SS lifetime cells have pv-mid class and data-fv');
 });
 
 summarize('UI Structure');

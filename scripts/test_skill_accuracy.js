@@ -158,7 +158,7 @@ test('Total test count in SKILL.md is approximately correct', () => {
     'test_skill_accuracy.js': 12,
     'test_snapshot.js': 43,
     'test_tax.js': 53,
-    'test_ui.js': 257,
+    'test_ui.js': 311,
     'test_withdrawal.js': 54,
   };
   const totalTests = Object.values(knownCounts).reduce((a, b) => a + b, 0); // 318

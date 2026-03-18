@@ -418,7 +418,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 **After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
 
 ```powershell
-# Run the complete test suite (576 tests across 9 domain test files + 1 accuracy test file)
+# Run the complete test suite (630 tests across 9 domain test files + 1 accuracy test file)
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
 
@@ -459,7 +459,7 @@ If the failure is in a test itself (e.g., a new feature changed expected behavio
 ```powershell
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
-- If any test fails → fix the code → re-run until all 566+ tests pass (and the accuracy test file stays green)
+- If any test fails → fix the code → re-run until all 630+ tests pass (and the accuracy test file stays green)
 - Do NOT proceed to Step 2 until the suite is fully green
 
 #### Step 2: Run the 6-Round Multi-Model Review Gauntlet
