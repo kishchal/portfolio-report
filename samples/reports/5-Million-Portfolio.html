@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>Portfolio Analysis &amp; Insights — Mar 17, 2026</title>
+<title>Portfolio Analysis &amp; Insights — Mar 18, 2026</title>
 <style>
   :root {
     --bg: #eef1f5; --bg-secondary: #e8ecf1; --card: #ffffff; --border: #dde3eb; --text: #1e293b;
@@ -783,7 +783,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 17, 2026 &middot; Report generated Mar 17, 2026 at 10:08 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 01:29 AM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -871,7 +871,7 @@
 </div>
 
 <div class="footer">
-  Generated on Mar 17, 2026<br>
+  Generated on Mar 18, 2026<br>
   Source: 5-Million-Portfolio.csv
 </div>
 
@@ -1918,7 +1918,7 @@ function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, series
         fv:rows.map(r=>typeof st.key==='function'?st.key(r):(r[st.key]||0)),
       }))};
     } else {
-      return {type:s.type||'line',label:s.label,color:s.color,
+      return {type:s.type||'line',label:s.label,color:s.color,cumTotal:!!s.cumTotal,
         fv:rows.map(r=>typeof s.key==='function'?s.key(r):(r[s.key]||0))};
     }
   });
@@ -1991,7 +1991,12 @@ function _renderChart(cid){
     svg+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
     ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
   }
-  svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
+  /* Show cumulative total for series that opt in via cumTotal flag */
+  if(s.cumTotal&&vals[0]){
+    const _total=vals[0].reduce((a,b)=>a+b,0);
+    if(_total>0) svg+=`<text x="${P.l+4}" y="14" font-size="10" fill="${s.color}" font-weight="700">Lifetime Total: ${fK(_total)}</text>`;
+  }
+  svg+=`<text x="${W-P.r-4}" y="14" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
   /* Draw target ending balance line — REMOVED (redundant with the balance trajectory) */
   svg+=`</svg>`;
   document.getElementById(cid+'-container').innerHTML=svg;
@@ -2481,7 +2486,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"FSKAX":{"h":{"TSLA":1.8,"MSFT":4.77,"NVDA":6.92,"AAPL":5.72,"AMZN":3.47,"AVGO":2.33,"META":2.33,"GOOGL":2.93,"GOOG":2.34,"BRK-B":1.31},"n":"Fidelity Total Market Index"},"FXAIX":{"h":{"TSLA":2.04,"MSFT":5.4,"NVDA":7.84,"AAPL":6.47,"AMZN":3.93,"AVGO":2.64,"META":2.63,"GOOGL":3.32,"GOOG":2.66,"BRK-B":1.49},"n":"Fidelity 500 Index"},"FZILX":{"h":{"9988.HK":1.09,"ASML.AS":1.49,"2330.TW":3.57,"ROG.SW":0.86,"0700.HK":1.26,"005930.KS":1.48,"000660.KS":0.92,"HSBA.L":0.81},"n":"Fidelity ZERO International Index"},"FSPTX":{"h":{"MRVL":4.31,"MSFT":9.1,"NVDA":25.92,"AAPL":10.98,"WDC":2.33,"ON":3.86,"CSCO":4.1,"GFS":2.3,"NXPI":5.01,"MU":4.09},"n":"Fidelity Select Technology"},"TQQQ":{"h":{"TSLA":2.29,"MSFT":3.33,"NVDA":4.91,"AAPL":4.45,"AMZN":2.56,"META":2.17,"IQMM":22.7},"n":"ProShares UltraPro QQQ"},"SCHD":{"h":{"VZ":4.31,"COP":4.32,"KO":4.03,"LMT":4.81,"PEP":4.01,"MO":4.13,"CVX":4.31,"TXN":4.06,"MRK":4.23,"BMY":4.28},"n":"Schwab U.S. Dividend Equity ETF"},"VFWSX":{"h":{"9988.HK":0.81,"ASML.AS":1.43,"AZN.L":0.79,"2330.TW":3.76,"ROG.SW":0.83,"0700.HK":1.01,"005930.KS":1.75,"NOVN.SW":0.8,"000660.KS":1.0,"HSBA.L":0.8},"n":"Vanguard FTSE All-World ex-US Index Fund"},"FTIHX":{"h":{"9988.HK":0.87,"ASML.AS":1.33,"2330.TW":3.24,"ROG.SW":0.76,"0700.HK":1.17,"005930.KS":1.24,"000660.KS":0.82},"n":"Fidelity Total International Index"},"PBW":{"h":{"DAR":2.54,"LAR.TO":2.34,"BELFB":2.12,"BE":2.71,"AEIS":2.48,"ESE":2.22,"CDLR":2.34,"PWR":2.1,"POWL":2.5,"ENPH":2.03},"n":"Invesco WilderHill Clean Energy ETF"},"VOOG":{"h":{"LLY":2.74,"MSFT":9.59,"AVGO":4.96,"AAPL":6.41,"AMZN":3.56,"META":4.64,"BRK-B":3.04,"GOOGL":5.96,"GOOG":4.76,"NVDA":14.15},"n":"Vanguard S&P 500 Growth Index Fund ETF Shares"}};
+const _FUND_LIVE = {"FXAIX":{"n":"Fidelity 500 Index","h":{"AVGO":2.64,"AAPL":6.47,"NVDA":7.84,"GOOG":2.66,"BRK-B":1.49,"TSLA":2.04,"AMZN":3.93,"META":2.63,"GOOGL":3.32,"MSFT":5.4}},"FTIHX":{"n":"Fidelity Total International Index","h":{"ASML.AS":1.33,"0700.HK":1.17,"005930.KS":1.24,"000660.KS":0.82,"9988.HK":0.87,"ROG.SW":0.76,"2330.TW":3.24}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"ASML.AS":1.43,"0700.HK":1.01,"005930.KS":1.75,"NOVN.SW":0.8,"000660.KS":1.0,"9988.HK":0.81,"ROG.SW":0.83,"2330.TW":3.76,"HSBA.L":0.8,"AZN.L":0.79}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"AVGO":2.33,"AAPL":5.72,"NVDA":6.92,"GOOG":2.34,"BRK-B":1.31,"TSLA":1.8,"AMZN":3.47,"META":2.33,"GOOGL":2.93,"MSFT":4.77}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"PEP":4.01,"CVX":4.31,"MO":4.13,"KO":4.03,"LMT":4.81,"MRK":4.23,"TXN":4.06,"BMY":4.28,"COP":4.32,"VZ":4.31}},"FSPTX":{"n":"Fidelity Select Technology","h":{"NXPI":5.01,"MRVL":4.31,"AAPL":10.98,"MU":4.09,"NVDA":25.92,"WDC":2.33,"CSCO":4.1,"GFS":2.3,"ON":3.86,"MSFT":9.1}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"BELFB":2.12,"LAR.TO":2.34,"PWR":2.1,"CDLR":2.34,"POWL":2.5,"BE":2.71,"ESE":2.22,"AEIS":2.48,"DAR":2.54,"ENPH":2.03}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"IQMM":22.7,"AAPL":4.45,"NVDA":4.91,"TSLA":2.29,"AMZN":2.56,"META":2.17,"MSFT":3.33}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"ASML.AS":1.49,"0700.HK":1.26,"005930.KS":1.48,"000660.KS":0.92,"9988.HK":1.09,"ROG.SW":0.86,"2330.TW":3.57,"HSBA.L":0.81}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"AVGO":4.96,"AAPL":6.41,"NVDA":14.15,"GOOG":4.76,"BRK-B":3.04,"LLY":2.74,"AMZN":3.56,"META":4.64,"GOOGL":5.96,"MSFT":9.59}}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -7483,6 +7488,7 @@ function computeWithdrawalPlan(){
       const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:depMagi;
       const depIrmaa=depNumMedicare>0?calcIRMAA(depIrmaaMagi,filing,depNumMedicare):0;
       const depTax=ssTax+depStateTax+depIrmaa;
+      cumTax+=depTax;
       bRoth=postRetRothContrib; bHSA=postRetHSAContrib;
       rows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome,totalW:ssIncome+postRetIncome,tax:depTax,afterTax:ssIncome+postRetIncome-depTax,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,rmd:0,depleted:(bRoth+bHSA)<=0,rothConv:0,convTax:0,convMarginalRate:0,irmaa:depIrmaa,stateTax:depStateTax,_magi:depMagi,otsAmount:0,yrRet});
@@ -7741,6 +7747,8 @@ function computeWithdrawalPlan(){
     if(spSSMonthly>0) ssSubParts.push(`Spouse: ${fmtK(spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1))}/yr @ ${spSSStartAge}`);
     html+=`<div class="wd-card" style="border-top:3px solid #6366f1"><div class="wd-card-label">\u{1F4B5} ${ssLabel}</div><div class="wd-card-value">${fmtK(ssYr1>0?ssYr1:(ssMonthly*12*(SS_AGE_FACTOR[ssStartAge]||1)+spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1)))}/yr</div><div class="wd-card-sub">${ssSubParts.join(' · ')} · Lifetime: ${fmtK(lifetimeSS)}</div></div>`;
   }
+  const _lifetimeTaxPV=rows.reduce((s,r)=>s+r.tax/Math.pow(1+inflPct,r.age-curAge),0);
+  html+=`<div class="wd-card" style="border-top:3px solid #dc2626"><div class="wd-card-label">🏛️ Lifetime Taxes</div><div class="wd-card-value">${fmtK(cumTax)}</div><div style="color:var(--hold);font-size:0.85em;font-weight:600">Today's $: ${fmtK(_lifetimeTaxPV)}</div><div class="wd-card-sub">Total estimated taxes over retirement</div></div>`;
   html+=`<div class="wd-card"><div class="wd-card-label">Portfolio Longevity</div><div class="wd-card-value">${portfolioDepleteAge?(hasSS?'Age '+portfolioDepleteAge.age+' *':'\u26A0\uFE0F Age '+portfolioDepleteAge.age):'\u2705 Lifetime'}</div><div class="wd-card-sub">${portfolioDepleteAge?(hasSS?'Portfolio depletes but SS continues':'Portfolio depletes before life expectancy'):'Funds last through age '+planEndAge}</div></div>`;
   if(!portfolioDepleteAge){
     const lastRow=rows[rows.length-1];
@@ -7926,10 +7934,10 @@ function computeWithdrawalPlan(){
       {key:'bHSA',label:'HSA',color:'#ec4899'},
     ]},
     {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
-    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
-    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar'},
-    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line'},
+    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
+    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar',cumTotal:true},
+    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line',cumTotal:true},
     {type:'stacked',label:'Withdrawals by Account',stack:[
       {key:'taxableW',label:'Taxable',color:'#f59e0b'},
       {key:'deferredW',label:'Deferred',color:'#3b82f6'},
@@ -7937,7 +7945,7 @@ function computeWithdrawalPlan(){
       {key:'hsaW',label:'HSA',color:'#ec4899'},
     ]},
   ];
-  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
+  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
   html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries);
   html+=_wdSecClose();
 
@@ -8558,7 +8566,7 @@ function renderWdTable(){
       const rdTax=ssTax+rdStateTax+rdIrmaa;
       bRoth=ovrPostRetRothContrib; bHSA=ovrPostRetHSAContrib;
       rRows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome:ovrPostRetIncome,
-        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
+        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,convMarginalRate:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,depleted:(bRoth+bHSA)<=0,overridden:false,yrRet});
       continue;
     }
@@ -8842,7 +8850,37 @@ function renderWdTable(){
     t+=`<td><strong>${fmtK(r.bTotal*pv)}</strong></td>`;
     t+=`</tr>`;
   });
-  t+=`</tbody></table></div>`;
+  /* Summary footer row — guarded for empty rRows */
+  if(rRows.length>0){
+  const _lastR=rRows[rRows.length-1];
+  const _curAge=ctx.curAge||ctx.retAge;
+  /* PV discount: 1/(1+infl)^(r.age - curAge) — uses row's actual age, not array index */
+  const _totalTax=rRows.reduce((s,r)=>s+r.tax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  const _totalAfterTax=rRows.reduce((s,r)=>s+r.afterTax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  /* Avg W/D%: exclude years where portfolio was already depleted (bb<=0) to avoid diluting the average */
+  let _wdSum=0,_wdCount=0;
+  rRows.forEach((r,i)=>{const bb=i===0?(bTaxableInit+bDeferredInit+bRothInit+bHSAInit):(rRows[i-1].bTotal);const pw=r.taxableW+r.deferredW+r.rothW+r.hsaW;if(bb>0){_wdSum+=pw/bb*100;_wdCount++;}});
+  const _avgWd=_wdCount>0?_wdSum/_wdCount:0;
+  const _lastPv=_usePV?1/Math.pow(1+inflPct,_lastR.age-_curAge):1;
+  let _colCount=15;
+  if(ctx.hasSpouse) _colCount++;
+  if(showRetCol) _colCount++;
+  if(hasConv) _colCount+=2;
+  if(hasSSData) _colCount++;
+  const _taxCol=_colCount-8;
+  t+=`<tfoot><tr style="background:var(--th-bg);font-weight:700;font-size:0.85em;border-top:2px solid var(--border)">`;
+  t+=`<td colspan="${_taxCol}" style="text-align:right;padding-right:12px;color:var(--text-muted)">Totals / Final</td>`;
+  t+=`<td style="background:var(--warning-bg);color:var(--warning-text);text-align:center;font-size:0.92em" title="Average withdrawal rate across ${_wdCount} non-depleted year${_wdCount!==1?'s':''}">Avg ${_avgWd.toFixed(1)}%</td>`;
+  t+=`<td style="color:var(--danger)">${fmtK(_totalTax)}</td>`;
+  t+=`<td style="color:var(--success)">${fmtK(_totalAfterTax)}</td>`;
+  t+=`<td>${fmtK(_lastR.bTaxable*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bDeferred*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bRoth*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bHSA*_lastPv)}</td>`;
+  t+=`<td><strong>${fmtK(_lastR.bTotal*_lastPv)}</strong></td>`;
+  t+=`</tr></tfoot>`;
+  }
+  t+=`</table></div>`;
   t+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:0 4px">`;
   t+=`<div style="font-size:0.8em;color:var(--text-muted)"><span style="color:var(--success)">✦</span> Tax-free — Roth &amp; HSA withdrawals do not affect income tax. &nbsp; <span style="color:var(--warning-dark)">⟳</span> Roth conversion auto-adjusted to fill tax bracket — total ordinary income unchanged, so tax stays the same.</div>`;
   t+=`<button onclick="downloadWdTableCSV()" style="padding:6px 14px;font-size:0.78em;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap;transition:all 0.15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">\u{1F4E5} Download CSV</button>`;
@@ -10630,8 +10668,8 @@ function runScenarioComparison(){
             {key:'bHSA',label:'HSA',color:'#ec4899'},
           ]},
           {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
-          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
         /* Add note when scenario came from spending suggestions */

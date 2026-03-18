@@ -6,7 +6,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<title>Portfolio Analysis &amp; Insights — Mar 17, 2026</title>
+<title>Portfolio Analysis &amp; Insights — Mar 18, 2026</title>
 <style>
   :root {
     --bg: #eef1f5; --bg-secondary: #e8ecf1; --card: #ffffff; --border: #dde3eb; --text: #1e293b;
@@ -783,7 +783,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 17, 2026 &middot; Report generated Mar 17, 2026 at 09:29 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 01:29 AM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -871,7 +871,7 @@
 </div>
 
 <div class="footer">
-  Generated on Mar 17, 2026<br>
+  Generated on Mar 18, 2026<br>
   Source: 3-Million-Portfolio.csv
 </div>
 
@@ -1918,7 +1918,7 @@ function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, series
         fv:rows.map(r=>typeof st.key==='function'?st.key(r):(r[st.key]||0)),
       }))};
     } else {
-      return {type:s.type||'line',label:s.label,color:s.color,
+      return {type:s.type||'line',label:s.label,color:s.color,cumTotal:!!s.cumTotal,
         fv:rows.map(r=>typeof s.key==='function'?s.key(r):(r[s.key]||0))};
     }
   });
@@ -1991,7 +1991,12 @@ function _renderChart(cid){
     svg+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
     ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
   }
-  svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
+  /* Show cumulative total for series that opt in via cumTotal flag */
+  if(s.cumTotal&&vals[0]){
+    const _total=vals[0].reduce((a,b)=>a+b,0);
+    if(_total>0) svg+=`<text x="${P.l+4}" y="14" font-size="10" fill="${s.color}" font-weight="700">Lifetime Total: ${fK(_total)}</text>`;
+  }
+  svg+=`<text x="${W-P.r-4}" y="14" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
   /* Draw target ending balance line — REMOVED (redundant with the balance trajectory) */
   svg+=`</svg>`;
   document.getElementById(cid+'-container').innerHTML=svg;
@@ -2481,7 +2486,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"MRK":4.23,"BMY":4.28,"KO":4.03,"COP":4.32,"MO":4.13,"VZ":4.31,"LMT":4.81,"PEP":4.01,"CVX":4.31,"TXN":4.06}},"FTIHX":{"n":"Fidelity Total International Index","h":{"005930.KS":1.24,"0700.HK":1.17,"9988.HK":0.87,"ASML.AS":1.33,"2330.TW":3.24,"000660.KS":0.82,"ROG.SW":0.76}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"TSLA":2.29,"AMZN":2.56,"NVDA":4.91,"IQMM":22.7,"MSFT":3.33,"META":2.17,"AAPL":4.45}},"FSPTX":{"n":"Fidelity Select Technology","h":{"GFS":2.3,"CSCO":4.1,"NXPI":5.01,"NVDA":25.92,"MRVL":4.31,"MSFT":9.1,"WDC":2.33,"MU":4.09,"AAPL":10.98,"ON":3.86}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"AVGO":4.96,"GOOGL":5.96,"AMZN":3.56,"BRK-B":3.04,"NVDA":14.15,"GOOG":4.76,"MSFT":9.59,"META":4.64,"AAPL":6.41,"LLY":2.74}},"FXAIX":{"n":"Fidelity 500 Index","h":{"AVGO":2.64,"GOOGL":3.32,"TSLA":2.04,"AMZN":3.93,"BRK-B":1.49,"NVDA":7.84,"GOOG":2.66,"MSFT":5.4,"META":2.63,"AAPL":6.47}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"005930.KS":1.48,"0700.HK":1.26,"9988.HK":1.09,"HSBA.L":0.81,"ASML.AS":1.49,"2330.TW":3.57,"000660.KS":0.92,"ROG.SW":0.86}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"AVGO":2.33,"GOOGL":2.93,"TSLA":1.8,"AMZN":3.47,"BRK-B":1.31,"NVDA":6.92,"GOOG":2.34,"MSFT":4.77,"META":2.33,"AAPL":5.72}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"PWR":2.1,"LAR.TO":2.34,"BE":2.71,"AEIS":2.48,"ENPH":2.03,"CDLR":2.34,"BELFB":2.12,"DAR":2.54,"POWL":2.5,"ESE":2.22}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"AZN.L":0.79,"005930.KS":1.75,"0700.HK":1.01,"9988.HK":0.81,"NOVN.SW":0.8,"ASML.AS":1.43,"HSBA.L":0.8,"000660.KS":1.0,"2330.TW":3.76,"ROG.SW":0.83}}};
+const _FUND_LIVE = {"FZILX":{"n":"Fidelity ZERO International Index","h":{"2330.TW":3.57,"9988.HK":1.09,"ROG.SW":0.86,"000660.KS":0.92,"0700.HK":1.26,"HSBA.L":0.81,"005930.KS":1.48,"ASML.AS":1.49}},"FTIHX":{"n":"Fidelity Total International Index","h":{"2330.TW":3.24,"9988.HK":0.87,"ROG.SW":0.76,"000660.KS":0.82,"0700.HK":1.17,"005930.KS":1.24,"ASML.AS":1.33}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"NVDA":14.15,"META":4.64,"LLY":2.74,"AAPL":6.41,"MSFT":9.59,"GOOGL":5.96,"BRK-B":3.04,"AMZN":3.56,"GOOG":4.76,"AVGO":4.96}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"NVDA":4.91,"META":2.17,"MSFT":3.33,"AAPL":4.45,"AMZN":2.56,"IQMM":22.7,"TSLA":2.29}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"NVDA":6.92,"META":2.33,"MSFT":4.77,"AAPL":5.72,"AMZN":3.47,"GOOGL":2.93,"BRK-B":1.31,"TSLA":1.8,"GOOG":2.34,"AVGO":2.33}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"DAR":2.54,"PWR":2.1,"ENPH":2.03,"BELFB":2.12,"ESE":2.22,"LAR.TO":2.34,"AEIS":2.48,"BE":2.71,"POWL":2.5,"CDLR":2.34}},"FXAIX":{"n":"Fidelity 500 Index","h":{"NVDA":7.84,"META":2.63,"MSFT":5.4,"AAPL":6.47,"AMZN":3.93,"GOOGL":3.32,"BRK-B":1.49,"TSLA":2.04,"GOOG":2.66,"AVGO":2.64}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"AZN.L":0.79,"2330.TW":3.76,"9988.HK":0.81,"ROG.SW":0.83,"000660.KS":1.0,"0700.HK":1.01,"HSBA.L":0.8,"NOVN.SW":0.8,"005930.KS":1.75,"ASML.AS":1.43}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"MO":4.13,"LMT":4.81,"KO":4.03,"TXN":4.06,"VZ":4.31,"MRK":4.23,"PEP":4.01,"BMY":4.28,"CVX":4.31,"COP":4.32}},"FSPTX":{"n":"Fidelity Select Technology","h":{"NVDA":25.92,"CSCO":4.1,"MRVL":4.31,"AAPL":10.98,"MSFT":9.1,"NXPI":5.01,"GFS":2.3,"MU":4.09,"ON":3.86,"WDC":2.33}}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -5035,6 +5040,7 @@ function importSettingsFromFile(file){
       if(typeof data!=='object'||data===null) throw new Error('Invalid settings file');
       /* Write to localStorage */
       localStorage.setItem(SETTINGS_KEY,JSON.stringify(data));
+      window._scenResultsCache=''; /* invalidate scenario cache on settings import */
       /* Restore theme from imported file */
       if(data._theme) setTheme(data._theme);
       /* Apply to current UI */
@@ -7141,6 +7147,7 @@ function onAcctSelChange(){
       `<span style="color:${buckets.hsa.color}">\u25CF HSA ${fmt(buckets.hsa.total)}</span>`;
   }
   saveSettings();
+  window._scenResultsCache=''; /* invalidate scenario cache when accounts change */
 }
 function toggleAllAccounts(){
   const selAll=document.getElementById('acctSelAll');
@@ -7481,6 +7488,7 @@ function computeWithdrawalPlan(){
       const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:depMagi;
       const depIrmaa=depNumMedicare>0?calcIRMAA(depIrmaaMagi,filing,depNumMedicare):0;
       const depTax=ssTax+depStateTax+depIrmaa;
+      cumTax+=depTax;
       bRoth=postRetRothContrib; bHSA=postRetHSAContrib;
       rows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome,totalW:ssIncome+postRetIncome,tax:depTax,afterTax:ssIncome+postRetIncome-depTax,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,rmd:0,depleted:(bRoth+bHSA)<=0,rothConv:0,convTax:0,convMarginalRate:0,irmaa:depIrmaa,stateTax:depStateTax,_magi:depMagi,otsAmount:0,yrRet});
@@ -7739,6 +7747,8 @@ function computeWithdrawalPlan(){
     if(spSSMonthly>0) ssSubParts.push(`Spouse: ${fmtK(spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1))}/yr @ ${spSSStartAge}`);
     html+=`<div class="wd-card" style="border-top:3px solid #6366f1"><div class="wd-card-label">\u{1F4B5} ${ssLabel}</div><div class="wd-card-value">${fmtK(ssYr1>0?ssYr1:(ssMonthly*12*(SS_AGE_FACTOR[ssStartAge]||1)+spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1)))}/yr</div><div class="wd-card-sub">${ssSubParts.join(' · ')} · Lifetime: ${fmtK(lifetimeSS)}</div></div>`;
   }
+  const _lifetimeTaxPV=rows.reduce((s,r)=>s+r.tax/Math.pow(1+inflPct,r.age-curAge),0);
+  html+=`<div class="wd-card" style="border-top:3px solid #dc2626"><div class="wd-card-label">🏛️ Lifetime Taxes</div><div class="wd-card-value">${fmtK(cumTax)}</div><div style="color:var(--hold);font-size:0.85em;font-weight:600">Today's $: ${fmtK(_lifetimeTaxPV)}</div><div class="wd-card-sub">Total estimated taxes over retirement</div></div>`;
   html+=`<div class="wd-card"><div class="wd-card-label">Portfolio Longevity</div><div class="wd-card-value">${portfolioDepleteAge?(hasSS?'Age '+portfolioDepleteAge.age+' *':'\u26A0\uFE0F Age '+portfolioDepleteAge.age):'\u2705 Lifetime'}</div><div class="wd-card-sub">${portfolioDepleteAge?(hasSS?'Portfolio depletes but SS continues':'Portfolio depletes before life expectancy'):'Funds last through age '+planEndAge}</div></div>`;
   if(!portfolioDepleteAge){
     const lastRow=rows[rows.length-1];
@@ -7924,10 +7934,10 @@ function computeWithdrawalPlan(){
       {key:'bHSA',label:'HSA',color:'#ec4899'},
     ]},
     {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
-    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
-    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar'},
-    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line'},
+    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
+    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar',cumTotal:true},
+    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line',cumTotal:true},
     {type:'stacked',label:'Withdrawals by Account',stack:[
       {key:'taxableW',label:'Taxable',color:'#f59e0b'},
       {key:'deferredW',label:'Deferred',color:'#3b82f6'},
@@ -7935,7 +7945,7 @@ function computeWithdrawalPlan(){
       {key:'hsaW',label:'HSA',color:'#ec4899'},
     ]},
   ];
-  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
+  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
   html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries);
   html+=_wdSecClose();
 
@@ -8556,7 +8566,7 @@ function renderWdTable(){
       const rdTax=ssTax+rdStateTax+rdIrmaa;
       bRoth=ovrPostRetRothContrib; bHSA=ovrPostRetHSAContrib;
       rRows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome:ovrPostRetIncome,
-        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
+        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,convMarginalRate:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,depleted:(bRoth+bHSA)<=0,overridden:false,yrRet});
       continue;
     }
@@ -8840,7 +8850,37 @@ function renderWdTable(){
     t+=`<td><strong>${fmtK(r.bTotal*pv)}</strong></td>`;
     t+=`</tr>`;
   });
-  t+=`</tbody></table></div>`;
+  /* Summary footer row — guarded for empty rRows */
+  if(rRows.length>0){
+  const _lastR=rRows[rRows.length-1];
+  const _curAge=ctx.curAge||ctx.retAge;
+  /* PV discount: 1/(1+infl)^(r.age - curAge) — uses row's actual age, not array index */
+  const _totalTax=rRows.reduce((s,r)=>s+r.tax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  const _totalAfterTax=rRows.reduce((s,r)=>s+r.afterTax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  /* Avg W/D%: exclude years where portfolio was already depleted (bb<=0) to avoid diluting the average */
+  let _wdSum=0,_wdCount=0;
+  rRows.forEach((r,i)=>{const bb=i===0?(bTaxableInit+bDeferredInit+bRothInit+bHSAInit):(rRows[i-1].bTotal);const pw=r.taxableW+r.deferredW+r.rothW+r.hsaW;if(bb>0){_wdSum+=pw/bb*100;_wdCount++;}});
+  const _avgWd=_wdCount>0?_wdSum/_wdCount:0;
+  const _lastPv=_usePV?1/Math.pow(1+inflPct,_lastR.age-_curAge):1;
+  let _colCount=15;
+  if(ctx.hasSpouse) _colCount++;
+  if(showRetCol) _colCount++;
+  if(hasConv) _colCount+=2;
+  if(hasSSData) _colCount++;
+  const _taxCol=_colCount-8;
+  t+=`<tfoot><tr style="background:var(--th-bg);font-weight:700;font-size:0.85em;border-top:2px solid var(--border)">`;
+  t+=`<td colspan="${_taxCol}" style="text-align:right;padding-right:12px;color:var(--text-muted)">Totals / Final</td>`;
+  t+=`<td style="background:var(--warning-bg);color:var(--warning-text);text-align:center;font-size:0.92em" title="Average withdrawal rate across ${_wdCount} non-depleted year${_wdCount!==1?'s':''}">Avg ${_avgWd.toFixed(1)}%</td>`;
+  t+=`<td style="color:var(--danger)">${fmtK(_totalTax)}</td>`;
+  t+=`<td style="color:var(--success)">${fmtK(_totalAfterTax)}</td>`;
+  t+=`<td>${fmtK(_lastR.bTaxable*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bDeferred*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bRoth*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bHSA*_lastPv)}</td>`;
+  t+=`<td><strong>${fmtK(_lastR.bTotal*_lastPv)}</strong></td>`;
+  t+=`</tr></tfoot>`;
+  }
+  t+=`</table></div>`;
   t+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:0 4px">`;
   t+=`<div style="font-size:0.8em;color:var(--text-muted)"><span style="color:var(--success)">✦</span> Tax-free — Roth &amp; HSA withdrawals do not affect income tax. &nbsp; <span style="color:var(--warning-dark)">⟳</span> Roth conversion auto-adjusted to fill tax bracket — total ordinary income unchanged, so tax stays the same.</div>`;
   t+=`<button onclick="downloadWdTableCSV()" style="padding:6px 14px;font-size:0.78em;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap;transition:all 0.15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">\u{1F4E5} Download CSV</button>`;
@@ -9812,6 +9852,7 @@ window._applySuggestionsToScenarios=function(){
   });
   saved._scenarios=scArr;
   localStorage.setItem(SETTINGS_KEY,JSON.stringify(saved));
+  window._scenResultsCache=''; /* invalidate stale scenario cache */
   /* Switch to scenarios tab */
   const scBtn=document.querySelector('.pivot-tab[data-pivot="scenarios"]');
   if(scBtn) scBtn.click();
@@ -10069,6 +10110,9 @@ function renderScenarios(){
     saveSettings();
   };
 
+  /* Shared collapsible panel toggle */
+  window._scTogglePanel=function(hdr){var b=hdr.nextElementSibling,a=hdr.querySelector('.sc-chev');if(b.style.display==='none'){b.style.display='';a.textContent='▼';}else{b.style.display='none';a.textContent='▶';}};
+
   /* Global chart controls */
   window._scGlobalCharts=true;
   window._scToggleGlobalCharts=function(isGlobal){
@@ -10120,18 +10164,25 @@ function renderScenarios(){
   const onScenarioInputChange=()=>{
     saveSettings();
     window._scenResultsCache='';
-    window._scenChartCount=0;
     const r=document.getElementById('scenResults');
     if(r) r.innerHTML='';
   };
   window._scPhaseChanged=onScenarioInputChange;
   el.querySelectorAll('#scenGrid input, #scenGrid select, #scenPhases input, #scSharedAge, #scSharedFiling, #scSharedVol, #scSharedGlide, #scSharedSpouse, #scSharedSpAge, #scSharedSpLife, #scSharedSpSS, #scSharedSpSSAge').forEach(inp=>{inp.addEventListener('change',onScenarioInputChange);inp.addEventListener('input',onScenarioInputChange);});
   /* Restore cached results if available and settings haven't changed */
-  if(window._scenResultsCache&&window._scenCacheFP===localStorage.getItem(SETTINGS_KEY)){
+  window._scenFP=()=>{try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return JSON.stringify({sc:s._scenarios||[],age:s.scSharedAge,fil:s.scSharedFiling,vol:s.scSharedVol,gl:s.scSharedGlide,sp:s.scSharedSpouse,spA:s.scSharedSpAge,spL:s.scSharedSpLife,spS:s.scSharedSpSS,spSA:s.scSharedSpSSAge,sel:s._selectedAccounts,gw:s._glideWaypoints,gi:s._glideInterp,cm:s._contribMode,cs:s._contribSchedule,ots:s._oneTimeSpendings,otsOn:s.wdOneTimeSpendToggle,glt:s.wdGlideToggle,glm:s.wdGlideMode,ira:s.wdIRABasis,ct:s.wdContribToggle,c4:s.wdContrib401k,cM:s.wdContribMatch,cI:s.wdContribIRA,cT:s.wdContribTaxable,cH:s.wdContribHSA,cSa:s.wdContribStartAge,cEa:s.wdContribEndAge,wa:s.wdAge,wf:s.wdFiling});}catch(e){return '';}};
+  if(window._scenResultsCache&&window._scenCacheFP===window._scenFP()){
     const r=document.getElementById('scenResults');
-    if(r){r.innerHTML=window._scenResultsCache;}
-    const n=window._scenChartCount||0;
-    setTimeout(()=>{for(let i=0;i<n;i++){if(window._chartRegistry&&window._chartRegistry['sc-chart-'+i])_renderChart('sc-chart-'+i);}},0);
+    if(r){
+      r.innerHTML=window._scenResultsCache;
+      /* Force collapsible panels expanded so charts render at correct size */
+      r.querySelectorAll('.sc-compare-body,.sc-charts-body').forEach(b=>{b.style.display='';const ch=b.previousElementSibling?.querySelector('.sc-chev');if(ch)ch.textContent='▼';});
+      const pvTog=document.getElementById('sc-pv-toggle');
+      if(pvTog) pvTog.style.display='flex';
+      if(window._scPV){const fb=document.getElementById('sc-fv-btn'),pb=document.getElementById('sc-pv-btn');if(fb){fb.style.background='var(--card)';fb.style.color='var(--text-muted)';}if(pb){pb.style.background='var(--primary)';pb.style.color='white';}}
+      const charts=r.querySelectorAll('[id^="sc-chart-"][id$="-container"]');
+      setTimeout(()=>{charts.forEach(el=>{const cid=el.id.replace('-container','');if(window._chartRegistry&&window._chartRegistry[cid])_renderChart(cid);});},0);
+    }
   }
 }
 
@@ -10512,9 +10563,13 @@ function runScenarioComparison(){
     // Build comparison output
     let out=``;
 
-    // Comparison table
-    out+=`<h3 style="margin-bottom:12px">\u{1F4CA} Side-by-Side Comparison</h3>`;
-    out+=`<div style="overflow-x:auto"><table class="wd-tbl" style="font-size:0.9em"><thead><tr><th style="min-width:200px">Metric</th>`;
+    // Comparison table (collapsible)
+    out+=`<div id="sc-compare-panel" style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-bottom:16px;overflow:hidden">`;
+    out+=`<div onclick="_scTogglePanel(this)" class="sc-compare-hdr" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--th-bg);cursor:pointer;user-select:none">`;
+    out+=`<h3 style="margin:0;font-size:1.05em">\u{1F4CA} Side-by-Side Comparison</h3>`;
+    out+=`<span class="sc-chev" style="font-size:0.85em;color:var(--text-muted)">▼</span></div>`;
+    out+=`<div class="sc-compare-body">`;
+    out+=`<div style="overflow-x:auto;padding:12px"><table class="wd-tbl" style="font-size:0.9em"><thead><tr><th style="min-width:200px">Metric</th>`;
     results.forEach(r=>out+=`<th style="text-align:center;background:${r.color};color:white">${esc(r.name)}</th>`);
     out+=`</tr></thead><tbody>`;
 
@@ -10576,14 +10631,18 @@ function runScenarioComparison(){
       });
       out+=`</tr>`;
     });
-    out+=`</tbody></table></div>`;
+    out+=`</tbody></table></div></div></div>`;
 
     // Per-scenario interactive metric charts
     const validResults=results.filter(r=>!r.error && r.rows && r.rows.length>0);
     if(validResults.length>0){
-      /* Global vs Individual chart control toggle */
+      /* Global vs Individual chart control toggle (collapsible) */
       const chartLabels=['Account Balances','Total Balance','Annual Taxes','After-Tax Income'];
-      out+=`<h3 style="margin:24px 0 8px">\u{1F4CA} Chart Controls</h3>`;
+      out+=`<div id="sc-charts-panel" style="border:1px solid var(--border);border-radius:var(--radius-sm);margin-top:16px;overflow:hidden">`;
+      out+=`<div onclick="_scTogglePanel(this)" class="sc-charts-hdr" style="display:flex;align-items:center;justify-content:space-between;padding:10px 16px;background:var(--th-bg);cursor:pointer;user-select:none">`;
+      out+=`<h3 style="margin:0;font-size:1.05em">\u{1F4CA} Charts &amp; Controls</h3>`;
+      out+=`<span class="sc-chev" style="font-size:0.85em;color:var(--text-muted)">▼</span></div>`;
+      out+=`<div class="sc-charts-body" style="padding:12px">`;
       out+=`<div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;flex-wrap:wrap">`;
       out+=`<button id="sc-global-btn" onclick="_scToggleGlobalCharts(true)" style="padding:4px 14px;border-radius:4px;border:1px solid var(--border);font-size:0.82em;font-weight:600;cursor:pointer;background:var(--primary);color:white">Apply to All</button>`;
       out+=`<button id="sc-indiv-btn" onclick="_scToggleGlobalCharts(false)" style="padding:4px 14px;border-radius:4px;border:1px solid var(--border);font-size:0.82em;font-weight:600;cursor:pointer;background:var(--card);color:var(--text-muted)">Individual</button>`;
@@ -10609,8 +10668,8 @@ function runScenarioComparison(){
             {key:'bHSA',label:'HSA',color:'#ec4899'},
           ]},
           {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
-          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
         /* Add note when scenario came from spending suggestions */
@@ -10632,6 +10691,7 @@ function runScenarioComparison(){
         }
         out+=`</div>`;
       });
+      out+=`</div></div>`; /* close sc-charts-body + sc-charts-panel */
     }
 
     // Strategy notes
@@ -10679,12 +10739,11 @@ function runScenarioComparison(){
     const pvTog=document.getElementById('sc-pv-toggle');
     if(pvTog) pvTog.style.display='flex';
     /* Render per-scenario metric charts */
+    const _cacheFP=window._scenFP?window._scenFP():''; /* capture fingerprint synchronously before any async delay */
     setTimeout(()=>{
       validResults.forEach((r,ri)=>_renderChart('sc-chart-'+ri));
       /* Cache results for tab persistence */
-      window._scenChartCount=validResults.length;
-      window._scenCacheFP=localStorage.getItem(SETTINGS_KEY)||'';
-      setTimeout(()=>{const r=document.getElementById('scenResults');if(r)window._scenResultsCache=r.innerHTML;},100);
+      setTimeout(()=>{const r=document.getElementById('scenResults');if(r){window._scenResultsCache=r.innerHTML;window._scenCacheFP=_cacheFP;}},100);
     },0);
   },50);
 }

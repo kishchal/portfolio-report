@@ -1238,7 +1238,7 @@ function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, series
         fv:rows.map(r=>typeof st.key==='function'?st.key(r):(r[st.key]||0)),
       }))};
     } else {
-      return {type:s.type||'line',label:s.label,color:s.color,
+      return {type:s.type||'line',label:s.label,color:s.color,cumTotal:!!s.cumTotal,
         fv:rows.map(r=>typeof s.key==='function'?s.key(r):(r[s.key]||0))};
     }
   });
@@ -1311,7 +1311,12 @@ function _renderChart(cid){
     svg+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
     ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
   }
-  svg+=`<text x="${W-P.r-4}" y="${P.t+12}" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
+  /* Show cumulative total for series that opt in via cumTotal flag */
+  if(s.cumTotal&&vals[0]){
+    const _total=vals[0].reduce((a,b)=>a+b,0);
+    if(_total>0) svg+=`<text x="${P.l+4}" y="14" font-size="10" fill="${s.color}" font-weight="700">Lifetime Total: ${fK(_total)}</text>`;
+  }
+  svg+=`<text x="${W-P.r-4}" y="14" text-anchor="end" font-size="10" fill="${usePV?'var(--hold)':'var(--text-muted)'}" font-weight="600">${usePV?"Present Value (today's $)":'Future Value (nominal $)'}</text>`;
   /* Draw target ending balance line — REMOVED (redundant with the balance trajectory) */
   svg+=`</svg>`;
   document.getElementById(cid+'-container').innerHTML=svg;
@@ -6803,6 +6808,7 @@ function computeWithdrawalPlan(){
       const depIrmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:depMagi;
       const depIrmaa=depNumMedicare>0?calcIRMAA(depIrmaaMagi,filing,depNumMedicare):0;
       const depTax=ssTax+depStateTax+depIrmaa;
+      cumTax+=depTax;
       bRoth=postRetRothContrib; bHSA=postRetHSAContrib;
       rows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome,totalW:ssIncome+postRetIncome,tax:depTax,afterTax:ssIncome+postRetIncome-depTax,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,rmd:0,depleted:(bRoth+bHSA)<=0,rothConv:0,convTax:0,convMarginalRate:0,irmaa:depIrmaa,stateTax:depStateTax,_magi:depMagi,otsAmount:0,yrRet});
@@ -7061,6 +7067,8 @@ function computeWithdrawalPlan(){
     if(spSSMonthly>0) ssSubParts.push(`Spouse: ${fmtK(spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1))}/yr @ ${spSSStartAge}`);
     html+=`<div class="wd-card" style="border-top:3px solid #6366f1"><div class="wd-card-label">\u{1F4B5} ${ssLabel}</div><div class="wd-card-value">${fmtK(ssYr1>0?ssYr1:(ssMonthly*12*(SS_AGE_FACTOR[ssStartAge]||1)+spSSMonthly*12*(SS_AGE_FACTOR[spSSStartAge]||1)))}/yr</div><div class="wd-card-sub">${ssSubParts.join(' · ')} · Lifetime: ${fmtK(lifetimeSS)}</div></div>`;
   }
+  const _lifetimeTaxPV=rows.reduce((s,r)=>s+r.tax/Math.pow(1+inflPct,r.age-curAge),0);
+  html+=`<div class="wd-card" style="border-top:3px solid #dc2626"><div class="wd-card-label">🏛️ Lifetime Taxes</div><div class="wd-card-value">${fmtK(cumTax)}</div><div style="color:var(--hold);font-size:0.85em;font-weight:600">Today's $: ${fmtK(_lifetimeTaxPV)}</div><div class="wd-card-sub">Total estimated taxes over retirement</div></div>`;
   html+=`<div class="wd-card"><div class="wd-card-label">Portfolio Longevity</div><div class="wd-card-value">${portfolioDepleteAge?(hasSS?'Age '+portfolioDepleteAge.age+' *':'\u26A0\uFE0F Age '+portfolioDepleteAge.age):'\u2705 Lifetime'}</div><div class="wd-card-sub">${portfolioDepleteAge?(hasSS?'Portfolio depletes but SS continues':'Portfolio depletes before life expectancy'):'Funds last through age '+planEndAge}</div></div>`;
   if(!portfolioDepleteAge){
     const lastRow=rows[rows.length-1];
@@ -7246,10 +7254,10 @@ function computeWithdrawalPlan(){
       {key:'bHSA',label:'HSA',color:'#ec4899'},
     ]},
     {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
-    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
-    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar'},
-    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line'},
+    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
+    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar',cumTotal:true},
+    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line',cumTotal:true},
     {type:'stacked',label:'Withdrawals by Account',stack:[
       {key:'taxableW',label:'Taxable',color:'#f59e0b'},
       {key:'deferredW',label:'Deferred',color:'#3b82f6'},
@@ -7257,7 +7265,7 @@ function computeWithdrawalPlan(){
       {key:'hsaW',label:'HSA',color:'#ec4899'},
     ]},
   ];
-  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar'});
+  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
   html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries);
   html+=_wdSecClose();
 
@@ -7878,7 +7886,7 @@ function renderWdTable(){
       const rdTax=ssTax+rdStateTax+rdIrmaa;
       bRoth=ovrPostRetRothContrib; bHSA=ovrPostRetHSAContrib;
       rRows.push({age,spouseAge,taxableW:0,deferredW:0,rothW:0,hsaW:0,ssIncome,yourSS,spouseSS,postRetIncome:ovrPostRetIncome,
-        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
+        totalW:ssIncome+ovrPostRetIncome,tax:rdTax,afterTax:ssIncome+ovrPostRetIncome-rdTax,rothConv:0,convTax:0,convMarginalRate:0,rmd:0,irmaa:rdIrmaa,stateTax:rdStateTax,incomeTax:ssTax,capGainsTax:0,hsaPenalty:0,rmdSurplus:0,otsAmount:0,_magi:rdMagi,
         bTaxable:0,bDeferred:0,bRoth:bRoth,bHSA:bHSA,bTotal:bRoth+bHSA,depleted:(bRoth+bHSA)<=0,overridden:false,yrRet});
       continue;
     }
@@ -8162,7 +8170,37 @@ function renderWdTable(){
     t+=`<td><strong>${fmtK(r.bTotal*pv)}</strong></td>`;
     t+=`</tr>`;
   });
-  t+=`</tbody></table></div>`;
+  /* Summary footer row — guarded for empty rRows */
+  if(rRows.length>0){
+  const _lastR=rRows[rRows.length-1];
+  const _curAge=ctx.curAge||ctx.retAge;
+  /* PV discount: 1/(1+infl)^(r.age - curAge) — uses row's actual age, not array index */
+  const _totalTax=rRows.reduce((s,r)=>s+r.tax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  const _totalAfterTax=rRows.reduce((s,r)=>s+r.afterTax*(_usePV?1/Math.pow(1+inflPct,r.age-_curAge):1),0);
+  /* Avg W/D%: exclude years where portfolio was already depleted (bb<=0) to avoid diluting the average */
+  let _wdSum=0,_wdCount=0;
+  rRows.forEach((r,i)=>{const bb=i===0?(bTaxableInit+bDeferredInit+bRothInit+bHSAInit):(rRows[i-1].bTotal);const pw=r.taxableW+r.deferredW+r.rothW+r.hsaW;if(bb>0){_wdSum+=pw/bb*100;_wdCount++;}});
+  const _avgWd=_wdCount>0?_wdSum/_wdCount:0;
+  const _lastPv=_usePV?1/Math.pow(1+inflPct,_lastR.age-_curAge):1;
+  let _colCount=15;
+  if(ctx.hasSpouse) _colCount++;
+  if(showRetCol) _colCount++;
+  if(hasConv) _colCount+=2;
+  if(hasSSData) _colCount++;
+  const _taxCol=_colCount-8;
+  t+=`<tfoot><tr style="background:var(--th-bg);font-weight:700;font-size:0.85em;border-top:2px solid var(--border)">`;
+  t+=`<td colspan="${_taxCol}" style="text-align:right;padding-right:12px;color:var(--text-muted)">Totals / Final</td>`;
+  t+=`<td style="background:var(--warning-bg);color:var(--warning-text);text-align:center;font-size:0.92em" title="Average withdrawal rate across ${_wdCount} non-depleted year${_wdCount!==1?'s':''}">Avg ${_avgWd.toFixed(1)}%</td>`;
+  t+=`<td style="color:var(--danger)">${fmtK(_totalTax)}</td>`;
+  t+=`<td style="color:var(--success)">${fmtK(_totalAfterTax)}</td>`;
+  t+=`<td>${fmtK(_lastR.bTaxable*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bDeferred*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bRoth*_lastPv)}</td>`;
+  t+=`<td>${fmtK(_lastR.bHSA*_lastPv)}</td>`;
+  t+=`<td><strong>${fmtK(_lastR.bTotal*_lastPv)}</strong></td>`;
+  t+=`</tr></tfoot>`;
+  }
+  t+=`</table></div>`;
   t+=`<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:0 4px">`;
   t+=`<div style="font-size:0.8em;color:var(--text-muted)"><span style="color:var(--success)">✦</span> Tax-free — Roth &amp; HSA withdrawals do not affect income tax. &nbsp; <span style="color:var(--warning-dark)">⟳</span> Roth conversion auto-adjusted to fill tax bracket — total ordinary income unchanged, so tax stays the same.</div>`;
   t+=`<button onclick="downloadWdTableCSV()" style="padding:6px 14px;font-size:0.78em;font-weight:600;border:1.5px solid var(--border);border-radius:var(--radius-sm);background:var(--card);color:var(--text);cursor:pointer;white-space:nowrap;transition:all 0.15s" onmouseover="this.style.borderColor='var(--primary)';this.style.color='var(--primary)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text)'">\u{1F4E5} Download CSV</button>`;
@@ -9950,8 +9988,8 @@ function runScenarioComparison(){
             {key:'bHSA',label:'HSA',color:'#ec4899'},
           ]},
           {key:row=>row.bTaxable+row.bDeferred+row.bRoth+row.bHSA,label:'Total Balance',color:r.color,type:'line'},
-          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar'},
-          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line'},
+          {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+          {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
         ];
         out+=`<div style="margin-top:20px"><h4 style="margin-bottom:6px;color:${r.color}">\u{1F4CA} ${esc(r.name)} — Detailed Charts</h4>`;
         /* Add note when scenario came from spending suggestions */

@@ -1608,4 +1608,82 @@ test('SS table lifetime totals are PV-aware', () => {
   assert.match(html, /class="pv-mid".*data-fv=".*".*fmtK\(s\.lifetime/, 'SS lifetime cells have pv-mid class and data-fv');
 });
 
+/* ==== Lifetime Taxes Banner & Tfoot Summary ==== */
+suite('Lifetime Taxes Banner & Table Footer');
+
+test('Lifetime Taxes banner card exists with PV subline', () => {
+  assert.match(html, /Lifetime Taxes/, 'Banner card label present');
+  assert.match(html, /fmtK\(cumTax\)/, 'Banner shows cumTax FV');
+  assert.match(html, /_lifetimeTaxPV/, 'Banner computes PV of lifetime taxes');
+  assert.match(html, /border-top:3px solid #dc2626/, 'Banner has red top border');
+});
+
+test('Lifetime Taxes PV uses r.age not array index', () => {
+  assert.match(html, /rows\.reduce\(\(s,r\)=>s\+r\.tax\/Math\.pow\(1\+inflPct,r\.age-curAge\)/, 'Banner PV uses r.age-curAge');
+});
+
+test('cumTax includes depleted-year taxes', () => {
+  const depBlock = html.split('portfolio depleted')[1]?.split('continue')[0] || '';
+  assert.match(depBlock, /cumTax\+=depTax/, 'cumTax accumulates depTax in depleted branch');
+});
+
+test('tfoot guarded for empty rRows', () => {
+  assert.match(html, /if\(rRows\.length>0\)\{[\s\S]*?<tfoot>/, 'tfoot wrapped in rRows length guard');
+});
+
+test('tfoot PV uses r.age for discount factor', () => {
+  const tfootBlock = html.split('Summary footer row')[1]?.split('</tfoot>')[0] || '';
+  assert.match(tfootBlock, /r\.age-_curAge/, 'tfoot PV uses r.age - _curAge');
+  assert.doesNotMatch(tfootBlock, /i\+yearsToRetire/, 'tfoot does NOT use array index for PV');
+});
+
+test('tfoot avg W/D% excludes depleted years', () => {
+  const tfootBlock = html.split('Summary footer row')[1]?.split('</tfoot>')[0] || '';
+  assert.match(tfootBlock, /if\(bb>0\)\{_wdSum/, 'Only accumulates W/D for non-depleted years');
+  assert.match(tfootBlock, /_wdCount>0\?_wdSum\/_wdCount:0/, 'Divides by non-depleted year count');
+});
+
+test('tfoot shows "Avg" label for W/D% cell', () => {
+  assert.match(html, /Avg \$\{_avgWd\.toFixed\(1\)\}%/, 'W/D cell prefixed with Avg');
+});
+
+test('tfoot column count accounts for all optional columns', () => {
+  const tfootBlock = html.split('Summary footer row')[1]?.split('</tfoot>')[0] || '';
+  assert.match(tfootBlock, /let _colCount=15/, 'Base column count is 15');
+  assert.match(tfootBlock, /ctx\.hasSpouse.*_colCount\+\+/, 'Adds spouse column');
+  assert.match(tfootBlock, /showRetCol.*_colCount\+\+/, 'Adds return % column');
+  assert.match(tfootBlock, /hasConv.*_colCount\+=2/, 'Adds 2 conversion columns');
+  assert.match(tfootBlock, /hasSSData.*_colCount\+\+/, 'Adds SS column');
+  assert.match(tfootBlock, /_colCount-8/, 'Colspan = total - 8 trailing cells');
+});
+
+/* ==== Chart cumTotal Opt-In ==== */
+suite('Chart cumTotal Annotation');
+
+test('cumTotal flag propagated through buildMetricCharts', () => {
+  assert.match(html, /cumTotal:!!s\.cumTotal/, 'buildMetricCharts propagates cumTotal flag');
+});
+
+test('Chart annotation gated by s.cumTotal flag', () => {
+  assert.match(html, /if\(s\.cumTotal&&vals\[0\]\)/, 'Annotation requires cumTotal opt-in');
+  assert.doesNotMatch(html, /s\.type==='bar'\|\|s\.type==='line'.*Lifetime Total/, 'No type-based annotation check');
+});
+
+test('Flow series have cumTotal:true, balance series do not', () => {
+  const taxSeries = html.match(/key:'tax'[^}]+}/);
+  assert.ok(taxSeries && taxSeries[0].includes('cumTotal:true'), 'Annual Taxes has cumTotal');
+  const afterTaxSeries = html.match(/key:'afterTax'[^}]+}/);
+  assert.ok(afterTaxSeries && afterTaxSeries[0].includes('cumTotal:true'), 'After-Tax Income has cumTotal');
+  const ssSeries = html.match(/key:'ssIncome'[^}]+}/);
+  assert.ok(ssSeries && ssSeries[0].includes('cumTotal:true'), 'Social Security has cumTotal');
+  const rmdSeries = html.match(/key:'rmd'[^}]+}/);
+  assert.ok(rmdSeries && rmdSeries[0].includes('cumTotal:true'), 'RMD has cumTotal');
+  const balSeries = html.match(/key:'bTotal'[^}]+}/);
+  assert.ok(balSeries && !balSeries[0].includes('cumTotal'), 'Total Balance does NOT have cumTotal');
+});
+
+test('Override depleted rows include convMarginalRate:0', () => {
+  assert.match(html, /rdTax,afterTax:.*rothConv:0,convTax:0,convMarginalRate:0,rmd:0,irmaa:rdIrmaa/, 'Override depleted rows have convMarginalRate:0');
+});
+
 summarize('UI Structure');
