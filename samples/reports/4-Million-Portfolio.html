@@ -783,7 +783,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 11:12 PM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 11:52 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -1902,10 +1902,10 @@ function _wdSecOpen(id, icon, title, extraTitleHtml){
 }
 function _wdSecClose(){ return `</div></div>`; }
 
-function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, seriesDefs){
+function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, seriesDefs, curAge){
   const ages=rows.map(r=>r.age);
   const minAge=ages[0], maxAge=ages[ages.length-1];
-  const W=900, H=260, Pad={t:30,r:30,b:36,l:75};
+  const W=900, H=272, Pad={t:30,r:30,b:48,l:75};
   const pw=W-Pad.l-Pad.r, ph=H-Pad.t-Pad.b;
   const xRange=maxAge-minAge||1;
   const barW=Math.max(2,Math.min(12,pw/rows.length-1));
@@ -1925,7 +1925,8 @@ function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, series
   const pvFactors=rows.map(r=>+(1/Math.pow(1+inflPct,(r.age-retAge)+yearsToRetire)).toFixed(6));
 
   /* Register chart state — usePV reads global toggle */
-  window._chartRegistry[chartId]={data:chartData,ages,pvF:pvFactors,W,H,P:Pad,pw,ph,xR:xRange,bW:barW,minAge,maxAge,usePV:window._wdUIState?.tablePV||false,activeIdx:0};
+  const baseYear=curAge?new Date().getFullYear()-curAge:null;
+  window._chartRegistry[chartId]={data:chartData,ages,pvF:pvFactors,W,H,P:Pad,pw,ph,xR:xRange,bW:barW,minAge,maxAge,usePV:window._wdUIState?.tablePV||false,activeIdx:0,baseYear};
 
   let html='';
   /* Chart selector tabs */
@@ -1943,9 +1944,10 @@ function buildMetricCharts(rows, inflPct, retAge, yearsToRetire, chartId, series
 function _renderChart(cid){
   const c=window._chartRegistry[cid];
   if(!c||!document.getElementById(cid+'-container')) return;
-  const {data,ages,pvF,W,H,P,pw,ph,xR,bW,minAge,maxAge,usePV,activeIdx}=c;
+  const {data,ages,pvF,W,H,P,pw,ph,xR,bW,minAge,maxAge,usePV,activeIdx,baseYear}=c;
   const s=data[activeIdx];
   const xS=a=>(a-minAge)/xR*pw+P.l;
+  const yr=a=>baseYear?(baseYear+a):'';
   const fK=v=>v>=1e6?'$'+(v/1e6).toFixed(1)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v).toLocaleString();
   let vals,totals;
   if(s.type==='stacked'){
@@ -1964,15 +1966,17 @@ function _renderChart(cid){
     svg+=`<text x="${P.l-8}" y="${y+4}" text-anchor="end" font-size="10" fill="var(--text-muted)">${fK(val)}</text>`;
   }
   for(let a=minAge;a<=maxAge;a+=5){
-    svg+=`<text x="${xS(a).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${a}</text>`;
+    svg+=`<text x="${xS(a).toFixed(1)}" y="${H-20}" text-anchor="middle" font-size="10" fill="var(--text-muted)">${a}</text>`;
+    if(baseYear) svg+=`<text x="${xS(a).toFixed(1)}" y="${H-8}" text-anchor="middle" font-size="9" fill="var(--text-muted)">${baseYear+a}</text>`;
   }
+  const _tip=a=>baseYear?`Age ${a} (${baseYear+a})`:`Age ${a}`;
   if(s.type==='stacked'){
     ages.forEach((a,i)=>{
       let cumH=0;
       s.stack.forEach((st,si)=>{
         const v=vals[si][i];
         const h=maxV>0?(v/maxV*ph):0;
-        svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-cumH-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${st.color}" opacity="0.85"><title>Age ${a} ${st.label}: ${fK(v)}</title></rect>`;
+        svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-cumH-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${st.color}" opacity="0.85"><title>${_tip(a)} ${st.label}: ${fK(v)}</title></rect>`;
         cumH+=h;
       });
     });
@@ -1984,12 +1988,12 @@ function _renderChart(cid){
     ages.forEach((a,i)=>{
       const v=vals[0][i];
       const h=maxV>0?(v/maxV*ph):0;
-      svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${s.color}" opacity="0.8"><title>Age ${a}: ${fK(v)}</title></rect>`;
+      svg+=`<rect x="${(xS(a)-bW/2).toFixed(1)}" y="${(P.t+ph-h).toFixed(1)}" width="${bW}" height="${Math.max(0,h).toFixed(1)}" fill="${s.color}" opacity="0.8"><title>${_tip(a)}: ${fK(v)}</title></rect>`;
     });
   } else {
     const pts=ages.map((a,i)=>`${xS(a).toFixed(1)},${yS(vals[0][i]).toFixed(1)}`).join(' ');
     svg+=`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2.5" stroke-linejoin="round"/>`;
-    ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>Age ${a}: ${fK(vals[0][i])}</title></circle>`;});
+    ages.forEach((a,i)=>{if(i%5===0||i===ages.length-1) svg+=`<circle cx="${xS(a).toFixed(1)}" cy="${yS(vals[0][i]).toFixed(1)}" r="3" fill="${s.color}"><title>${_tip(a)}: ${fK(vals[0][i])}</title></circle>`;});
   }
   /* Show cumulative total for series that opt in via cumTotal flag */
   if(s.cumTotal&&vals[0]){
@@ -2486,7 +2490,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"FSKAX":{"h":{"META":2.33,"GOOGL":2.93,"AMZN":3.47,"BRK-B":1.31,"GOOG":2.34,"TSLA":1.8,"AAPL":5.72,"MSFT":4.77,"NVDA":6.92,"AVGO":2.33},"n":"Fidelity Total Market Index"},"TQQQ":{"h":{"META":2.17,"IQMM":22.7,"AMZN":2.56,"TSLA":2.29,"AAPL":4.45,"MSFT":3.33,"NVDA":4.91},"n":"ProShares UltraPro QQQ"},"FXAIX":{"h":{"META":2.63,"GOOGL":3.32,"AMZN":3.93,"BRK-B":1.49,"GOOG":2.66,"TSLA":2.04,"AAPL":6.47,"MSFT":5.4,"NVDA":7.84,"AVGO":2.64},"n":"Fidelity 500 Index"},"FSPTX":{"h":{"WDC":2.33,"GFS":2.3,"CSCO":4.1,"MRVL":4.31,"NXPI":5.01,"ON":3.86,"AAPL":10.98,"MSFT":9.1,"NVDA":25.92,"MU":4.09},"n":"Fidelity Select Technology"},"PBW":{"h":{"POWL":2.5,"BE":2.71,"AEIS":2.48,"LAR.TO":2.34,"ENPH":2.03,"DAR":2.54,"CDLR":2.34,"ESE":2.22,"BELFB":2.12,"PWR":2.1},"n":"Invesco WilderHill Clean Energy ETF"},"FTIHX":{"h":{"000660.KS":0.82,"9988.HK":0.87,"0700.HK":1.17,"005930.KS":1.24,"ASML.AS":1.33,"ROG.SW":0.76,"2330.TW":3.24},"n":"Fidelity Total International Index"},"VFWSX":{"h":{"005930.KS":1.75,"2330.TW":3.76,"0700.HK":1.01,"ASML.AS":1.43,"HSBA.L":0.8,"ROG.SW":0.83,"AZN.L":0.79,"9988.HK":0.81,"NOVN.SW":0.8,"000660.KS":1.0},"n":"Vanguard FTSE All-World ex-US Index Fund"},"VOOG":{"h":{"META":4.64,"LLY":2.74,"GOOGL":5.96,"AMZN":3.56,"BRK-B":3.04,"GOOG":4.76,"AAPL":6.41,"MSFT":9.59,"NVDA":14.15,"AVGO":4.96},"n":"Vanguard S&P 500 Growth Index Fund ETF Shares"},"SCHD":{"h":{"BMY":4.28,"VZ":4.31,"PEP":4.01,"MRK":4.23,"KO":4.03,"CVX":4.31,"TXN":4.06,"LMT":4.81,"COP":4.32,"MO":4.13},"n":"Schwab U.S. Dividend Equity ETF"},"FZILX":{"h":{"000660.KS":0.92,"9988.HK":1.09,"HSBA.L":0.81,"0700.HK":1.26,"005930.KS":1.48,"ASML.AS":1.49,"ROG.SW":0.86,"2330.TW":3.57},"n":"Fidelity ZERO International Index"}};
+const _FUND_LIVE = {"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"CVX":4.31,"PEP":4.01,"MO":4.13,"LMT":4.81,"BMY":4.28,"VZ":4.31,"MRK":4.23,"KO":4.03,"TXN":4.06,"COP":4.32}},"FSPTX":{"n":"Fidelity Select Technology","h":{"CSCO":4.1,"ON":3.86,"MSFT":9.1,"NVDA":25.92,"MRVL":4.31,"GFS":2.3,"WDC":2.33,"AAPL":10.98,"MU":4.09,"NXPI":5.01}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"LLY":2.74,"MSFT":9.59,"GOOGL":5.96,"NVDA":14.15,"META":4.64,"AMZN":3.56,"AAPL":6.41,"BRK-B":3.04,"GOOG":4.76,"AVGO":4.96}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"TSLA":1.8,"MSFT":4.77,"GOOGL":2.93,"NVDA":6.92,"GOOG":2.34,"META":2.33,"AAPL":5.72,"BRK-B":1.31,"AMZN":3.47,"AVGO":2.33}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"TSLA":2.29,"MSFT":3.33,"NVDA":4.91,"META":2.17,"AMZN":2.56,"AAPL":4.45,"IQMM":22.7}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"AZN.L":0.79,"0700.HK":1.01,"9988.HK":0.81,"ASML.AS":1.43,"NOVN.SW":0.8,"2330.TW":3.76,"000660.KS":1.0,"HSBA.L":0.8,"ROG.SW":0.83,"005930.KS":1.75}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"BE":2.71,"POWL":2.5,"LAR.TO":2.34,"ESE":2.22,"CDLR":2.34,"BELFB":2.12,"PWR":2.1,"ENPH":2.03,"AEIS":2.48,"DAR":2.54}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"0700.HK":1.26,"9988.HK":1.09,"ASML.AS":1.49,"2330.TW":3.57,"000660.KS":0.92,"HSBA.L":0.81,"ROG.SW":0.86,"005930.KS":1.48}},"FTIHX":{"n":"Fidelity Total International Index","h":{"0700.HK":1.17,"9988.HK":0.87,"ASML.AS":1.33,"2330.TW":3.24,"000660.KS":0.82,"ROG.SW":0.76,"005930.KS":1.24}},"FXAIX":{"n":"Fidelity 500 Index","h":{"TSLA":2.04,"MSFT":5.4,"GOOGL":3.32,"NVDA":7.84,"GOOG":2.66,"META":2.63,"AAPL":6.47,"BRK-B":1.49,"AMZN":3.93,"AVGO":2.64}}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -4338,7 +4342,7 @@ function runMonteCarlo(params){
 
       /* Simplified tax-efficient sequencing */
       let wT=0,wD=0,wR=0,wH=0,rem=target;
-      const annMed=params.hcCostFn?mcHc.qualifiedMedical:(age>=65?5000*inflMult:0);
+      const annMed=(params.hcCostFn&&mcHc.qualifiedMedical>0)?mcHc.qualifiedMedical:(age>=65?5000*inflMult:0);
       if(bH>0&&annMed>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
       if(age>=RMD_START_AGE){
         wD=Math.min(rmd,bD); rem-=wD;
@@ -4354,16 +4358,23 @@ function runMonteCarlo(params){
       /* Last resort: drain remaining HSA */
       if(rem>0&&bH>wH){ const moreH=Math.min(rem,bH-wH); wH+=moreH; rem-=moreH; }
 
-      /* Simplified Roth conversion in MC — fill bracket room in pre-RMD years */
+      /* Roth conversion in MC — binary search for bracket-safe amount including SS re-taxation */
       let mcRothConv=0,mcTaxableConv=0;
       if(rothConvStrategy&&rothConvStrategy!=='none'&&age>=mcConvStart&&age<=mcConvEnd&&age<RMD_START_AGE&&bD>wD){
-        const mcOrdBeforeConv=wD+Math.max(0,(wH||0)-annMed)+mcPostRetIncome;
-        const mcSSBeforeConv=ssIncome>0?calcSSTaxableAmount(ssIncome,mcOrdBeforeConv+wT,filing):0;
+        const mcHsaNonMedC=Math.max(0,(wH||0)-annMed);
+        const mcOrdBase=wD+mcHsaNonMedC+mcPostRetIncome;
         const totalIRA=bD;
         const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-        const mcBracketRoom=Math.max(0,convBracketLimit+stdDedMC-mcOrdBeforeConv-mcSSBeforeConv);
-        const mcEffectiveRoom=basisFraction<1?mcBracketRoom/(1-basisFraction):Infinity;
-        mcRothConv=Math.min(mcEffectiveRoom,bD-wD);
+        const mcMaxAvail=bD-wD;
+        let lo=0, hi=basisFraction<1?Math.min(mcMaxAvail,(convBracketLimit+stdDedMC-mcOrdBase)/(1-basisFraction)*1.5):mcMaxAvail;
+        hi=Math.min(hi,mcMaxAvail); if(hi<=0) hi=0;
+        for(let it=0;it<15&&hi-lo>500;it++){
+          const mid=(lo+hi)/2;
+          const tConv=mid*(1-basisFraction);
+          const ssM=ssIncome>0?calcSSTaxableAmount(ssIncome,mcOrdBase+tConv+wT,filing):0;
+          if(mcOrdBase+tConv+ssM<=convBracketLimit+stdDedMC) lo=mid; else hi=mid;
+        }
+        mcRothConv=Math.min(Math.max(0,Math.floor(lo)),mcMaxAvail);
         if(mcRothConv>0){
           mcTaxableConv=mcRothConv*(1-basisFraction);
           remainingBasis=Math.max(0,remainingBasis-mcRothConv*basisFraction);
@@ -4531,7 +4542,7 @@ function runHistoricalBacktest(params){
       }
 
       let wT=0,wD=0,wR=0,wH=0,rem=target;
-      const annMed=params.hcCostFn?histHc.qualifiedMedical:(age>=65?5000*histInflFactor:0);
+      const annMed=(params.hcCostFn&&histHc.qualifiedMedical>0)?histHc.qualifiedMedical:(age>=65?5000*histInflFactor:0);
       if(bH>0&&annMed>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
       if(age>=RMD_START_AGE){
         wD=Math.min(rmd,bD); rem-=wD;
@@ -4548,13 +4559,20 @@ function runHistoricalBacktest(params){
 
       let histRothConv=0,histTaxableConv=0;
       if(rothConvStrategy&&rothConvStrategy!=='none'&&convBracketLimit>0&&age>=histConvStart&&age<=histConvEnd&&age<RMD_START_AGE&&bD>wD){
-        const histOrdBeforeConv=wD+Math.max(0,(wH||0)-annMed)+histPostRetIncome;
-        const histSSBeforeConv=ssIncome>0?calcSSTaxableAmount(ssIncome,histOrdBeforeConv+wT,filing):0;
+        const histHsaNonMedC=Math.max(0,(wH||0)-annMed);
+        const histOrdBase=wD+histHsaNonMedC+histPostRetIncome;
         const totalIRA=bD;
         const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-        const histBracketRoom=Math.max(0,convBracketLimit+stdDedHist-histOrdBeforeConv-histSSBeforeConv);
-        const histEffectiveRoom=basisFraction<1?histBracketRoom/(1-basisFraction):Infinity;
-        histRothConv=Math.min(histEffectiveRoom,bD-wD);
+        const histMaxAvail=bD-wD;
+        let lo=0, hi=basisFraction<1?Math.min(histMaxAvail,(convBracketLimit+stdDedHist-histOrdBase)/(1-basisFraction)*1.5):histMaxAvail;
+        hi=Math.min(hi,histMaxAvail); if(hi<=0) hi=0;
+        for(let it=0;it<15&&hi-lo>500;it++){
+          const mid=(lo+hi)/2;
+          const tConv=mid*(1-basisFraction);
+          const ssM=ssIncome>0?calcSSTaxableAmount(ssIncome,histOrdBase+tConv+wT,filing):0;
+          if(histOrdBase+tConv+ssM<=convBracketLimit+stdDedHist) lo=mid; else hi=mid;
+        }
+        histRothConv=Math.min(Math.max(0,Math.floor(lo)),histMaxAvail);
         if(histRothConv>0){
           histTaxableConv=histRothConv*(1-basisFraction);
           remainingBasis=Math.max(0,remainingBasis-histRothConv*basisFraction);
@@ -7660,10 +7678,13 @@ function computeWithdrawalPlan(){
     let remaining=targetWithdraw;
 
     /* HSA: use for qualified medical expenses first (tax-free).
-       If healthcare modeling is enabled, qualifiedMedical = actual healthcare cost.
+       If healthcare modeling provides non-zero qualifiedMedical, use that amount.
        Otherwise, legacy estimate: $5K/yr after 65, inflation-adjusted.
+       This ensures HSA gets drawn down even when HC toggle is off (user's medical
+       costs are embedded in their regular spending amount).
        HSA is also used as last-resort for any remaining need (taxed as ordinary income after 65). */
-    const annualMedical=hcCostFn?hcCost.qualifiedMedical:(age>=65?5000*Math.pow(1+inflPct,age-curAge):0);
+    const legacyMedical=age>=65?5000*Math.pow(1+inflPct,age-curAge):0;
+    const annualMedical=(hcCostFn&&hcCost.qualifiedMedical>0)?hcCost.qualifiedMedical:legacyMedical;
     if(bHSA>0&&annualMedical>0){
       wHSA=Math.min(annualMedical,bHSA,remaining);
       remaining-=wHSA;
@@ -7736,17 +7757,30 @@ function computeWithdrawalPlan(){
       /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
       const totalIRA=bDeferred;
       const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-      const bracketRoom=Math.max(0,simConvLimit+stdDeduction-ordinaryBeforeConv);
-      /* Each $1 converted adds only $(1-F) taxable income, so effective room is larger */
-      const effectiveRoom=basisFraction<1?bracketRoom/(1-basisFraction):Infinity;
-      rothConv=Math.min(effectiveRoom,bDeferred-wDeferred);
+      const maxAvail=bDeferred-wDeferred;
+      /* Binary search for optimal conversion: find largest amount where total taxable income
+         (including SS re-taxation triggered by the conversion) stays within bracket limit.
+         This prevents oversized conversions that push into higher brackets due to SS interaction. */
+      const _targetTaxable=simConvLimit; /* bracket ceiling (e.g., 96950 for conservative MFJ) */
+      const _ordBase=wDeferred+hsaNonMedForConv+postRetIncome;
+      let lo=0, hi=basisFraction<1?Math.min(maxAvail,(simConvLimit+stdDeduction-ordinaryBeforeConv)/(1-basisFraction)*1.5):maxAvail;
+      hi=Math.min(hi,maxAvail);
+      if(hi<=0) hi=0;
+      for(let iter=0;iter<20&&hi-lo>100;iter++){
+        const mid=(lo+hi)/2;
+        const taxableConvMid=mid*(1-basisFraction);
+        const ssWithMid=ssIncome>0?calcSSTaxableAmount(ssIncome,_ordBase+taxableConvMid+wTaxable,filing):0;
+        const totalOrdMid=_ordBase+taxableConvMid+ssWithMid;
+        if(totalOrdMid<=_targetTaxable+stdDeduction) lo=mid; else hi=mid;
+      }
+      rothConv=Math.min(Math.max(0,Math.floor(lo)),maxAvail);
       if(rothConv>0){
         const taxableConv=rothConv*(1-basisFraction);
         taxableConvAmt=taxableConv;
         /* Reduce remaining basis proportionally */
         remainingBasis=Math.max(0,remainingBasis-rothConv*basisFraction);
         /* Compute conv tax using differential method that captures SS re-taxation */
-        const ordBase=wDeferred+hsaNonMedForConv+postRetIncome;
+        const ordBase=_ordBase;
         const ssWithout=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+wTaxable,filing):0;
         const txWithout=calcTax(Math.max(0,ordBase+ssWithout-stdDeduction),brackets);
         const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+taxableConv+wTaxable,filing):0;
@@ -7771,8 +7805,9 @@ function computeWithdrawalPlan(){
     const incomeTax=calcTax(taxableIncome,brackets);
     const capitalGainsTax=calcLTCG(Math.min(wTaxable,Math.max(0,totalOrdinaryIncome+wTaxable-stdDeduction)),taxableIncome,filing); /* LTCG reduced by unused deduction per IRS QD&CG worksheet */
     const totalTaxPreIRMAA=incomeTax+capitalGainsTax+hsaPenalty;
-    /* State tax: flat rate on taxable income (simplified — no state-specific deductions) */
-    const stateTax=stateTaxPct>0?taxableIncome*stateTaxPct:0;
+    /* State tax: flat rate on total income including LTCG (most states tax capital gains as ordinary income) */
+    const stateIncome=taxableIncome+Math.min(wTaxable,Math.max(0,totalOrdinaryIncome+wTaxable-stdDeduction));
+    const stateTax=stateTaxPct>0?stateIncome*stateTaxPct:0;
     /* IRMAA: Medicare surcharge based on MAGI (2-year lookback) */
     const magiForIRMAA=agiForSS+ssTaxableAmt; /* MAGI ≈ total AGI (ordinary + LTCG + taxable SS) */
     const irmaaMagi=yr>=2&&rows[yr-2]?rows[yr-2]._magi:magiForIRMAA; /* 2-year lookback */
@@ -8084,7 +8119,7 @@ function computeWithdrawalPlan(){
     ]},
   ];
   if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
-  html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries);
+  html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries,curAge);
   html+=_wdSecClose();
 
   /* ---- SS Break-Even Chart ---- */
@@ -8713,7 +8748,7 @@ function renderWdTable(){
     const ov=overrides[i];
     let wTaxable,wDeferred,wRoth,wHSA,overridden=false;
     const ovHc=ctx.hcCostFn?ctx.hcCostFn(age):{total:0,qualifiedMedical:0};
-    const annualMedical=ctx.hcCostFn?ovHc.qualifiedMedical:(age>=65?5000*inflMult:0);
+    const annualMedical=(ctx.hcCostFn&&ovHc.qualifiedMedical>0)?ovHc.qualifiedMedical:(age>=65?5000*inflMult:0);
     if(ov){
       overridden=true;
       wTaxable=Math.min(ov.taxableW!=null?ov.taxableW:br.taxableW,bTaxable);
@@ -8754,24 +8789,28 @@ function renderWdTable(){
       if(rem>0&&bHSA>wHSA){ const moreHSA=Math.min(rem,bHSA-wHSA); wHSA+=moreHSA; rem-=moreHSA; }
     }
 
-    /* Roth conversion — compute for all rows (overridden rows still get conversions) */
+    /* Roth conversion — binary search for bracket-safe amount including SS re-taxation */
     let rothConv=0,convTax=0,convMarginalRate=0,taxableConvAmt=0;
     if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&convBracketLimit>0){
       const hsaNonMedR=Math.max(0,wHSA-annualMedical);
-      const ssTaxForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedR+ovrPostRetIncome,filing):0;
-      const ordBefore=wDeferred+ovrPostRetIncome+ssTaxForConv+hsaNonMedR;
-      /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
       const totalIRA=bDeferred;
       const basisFrR=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-      const room=Math.max(0,convBracketLimit+stdDeduction-ordBefore);
-      const effectiveRoom=basisFrR<1?room/(1-basisFrR):Infinity;
-      rothConv=Math.min(effectiveRoom,bDeferred-wDeferred);
+      const ordBaseR=wDeferred+hsaNonMedR+ovrPostRetIncome;
+      const maxAvailR=bDeferred-wDeferred;
+      let lo=0, hi=basisFrR<1?Math.min(maxAvailR,(convBracketLimit+stdDeduction-ordBaseR)/(1-basisFrR)*1.5):maxAvailR;
+      hi=Math.min(hi,maxAvailR); if(hi<=0) hi=0;
+      for(let it=0;it<20&&hi-lo>100;it++){
+        const mid=(lo+hi)/2;
+        const tConv=mid*(1-basisFrR);
+        const ssM=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBaseR+tConv+wTaxable,filing):0;
+        if(ordBaseR+tConv+ssM<=convBracketLimit+stdDeduction) lo=mid; else hi=mid;
+      }
+      rothConv=Math.min(Math.max(0,Math.floor(lo)),maxAvailR);
       if(rothConv>0){
         const taxableConvR=rothConv*(1-basisFrR);
         taxableConvAmt=taxableConvR;
         remainingBasis=Math.max(0,remainingBasis-rothConv*basisFrR);
         /* Differential method capturing SS re-taxation */
-        const ordBaseR=wDeferred+hsaNonMedR+ovrPostRetIncome;
         const ssWithoutR=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBaseR+wTaxable,filing):0;
         const txWithoutR=calcTax(Math.max(0,ordBaseR+ssWithoutR-stdDeduction),brackets);
         const ssWithConvR=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBaseR+taxableConvR+wTaxable,filing):0;
@@ -10407,7 +10446,7 @@ function _scenarioSim(p){
     let rmd=0;
     if(age>=RMD_AGE&&bD>0){const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));rmd=bD/div;}
     let wTx=0,wDf=0,wRo=0,wHs=0,rem=target;
-    const annMed=p.hcCostFn?scnHc.qualifiedMedical:(age>=65?5000*Math.pow(1+inflPct,age-curAge):0);
+    const annMed=(p.hcCostFn&&scnHc.qualifiedMedical>0)?scnHc.qualifiedMedical:(age>=65?5000*Math.pow(1+inflPct,age-curAge):0);
     if(bH>0&&annMed>0){wHs=Math.min(annMed,bH,rem);rem-=wHs;}
     if(age>=RMD_AGE){wDf=Math.min(rmd,bD);rem-=wDf;if(rem>0){const ft=Math.min(rem,bT);wTx=ft;rem-=ft;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}}
     else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(filing==='mfj'?206700:103350)+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
@@ -10415,21 +10454,25 @@ function _scenarioSim(p){
     let rothConv=0,taxableConvAmt=0;
     const hsaNM=Math.max(0,wHs-annMed);
     if(rothConvStrategy!=='none'&&age>=convStartAge&&age<=convEndAge&&bD>wDf&&convLimit>0){
-      const stFC=ssIncome>0?calcSSTaxableAmount(ssIncome,wDf+wTx+hsaNM+postRetIncome,filing):0;
-      const ordBC=wDf+postRetIncome+stFC+hsaNM;
-      /* IRA basis pro-rata — size conversion correctly for basis */
+      const ordBase=wDf+hsaNM+postRetIncome;
       const totalIRA=bD;
       const basisFr=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-      const room=Math.max(0,convLimit+stdDed-ordBC);
-      const effectiveRoom=basisFr<1?room/(1-basisFr):Infinity;
-      rothConv=Math.min(effectiveRoom,bD-wDf);
+      const scMaxAvail=bD-wDf;
+      let lo=0, hi=basisFr<1?Math.min(scMaxAvail,(convLimit+stdDed-ordBase)/(1-basisFr)*1.5):scMaxAvail;
+      hi=Math.min(hi,scMaxAvail); if(hi<=0) hi=0;
+      for(let it=0;it<15&&hi-lo>500;it++){
+        const mid=(lo+hi)/2;
+        const tConv=mid*(1-basisFr);
+        const ssM=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+tConv+wTx,filing):0;
+        if(ordBase+tConv+ssM<=convLimit+stdDed) lo=mid; else hi=mid;
+      }
+      rothConv=Math.min(Math.max(0,Math.floor(lo)),scMaxAvail);
       if(rothConv>0){
         const taxableConv=rothConv*(1-basisFr);
         taxableConvAmt=taxableConv;
         remainingBasis=Math.max(0,remainingBasis-rothConv*basisFr);
         totalConversions+=rothConv;
         /* Estimate conv tax using differential method with SS re-taxation */
-        const ordBase=wDf+hsaNM+postRetIncome;
         const ssWithout=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+wTx,filing):0;
         const txWithout=calcTax(Math.max(0,ordBase+ssWithout-stdDed),brackets);
         const ssWithConv=ssIncome>0?calcSSTaxableAmount(ssIncome,ordBase+taxableConv+wTx,filing):0;
@@ -10855,7 +10898,7 @@ function runScenarioComparison(){
           else out+=`<strong>\u{1F3AF} Legacy Target:</strong> Spending of $${r.spend.toLocaleString()}/mo is calibrated for ~${r.mcSuccess.toFixed(0)}% Monte Carlo confidence. The chart shows a deterministic ${r.ret}% fixed return path.`;
           out+=`</div>`;
         }
-        const chartHtml=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries);
+        const chartHtml=buildMetricCharts(r.rows,scInflPct,r.retire,scYearsToRetire,'sc-chart-'+ri,scSeries,scAge);
         /* Target line registry removed — no longer drawn */
         /* Wrap the FV/PV + tabs controls in sc-per-chart-ctrl for global toggle */
         const containerIdx=chartHtml.indexOf('<div id="sc-chart-'+ri+'-label"');
