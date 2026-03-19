@@ -420,7 +420,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 **After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
 
 ```powershell
-# Run the complete test suite (642 tests across 9 domain test files + 1 accuracy test file)
+# Run the complete test suite (706 tests across 9 domain test files + 1 accuracy test file)
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
 

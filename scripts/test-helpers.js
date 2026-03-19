@@ -227,6 +227,7 @@ function extractSpendingFunctions(envOverrides = {}) {
       'blendGlideAllocation', 'buildGlideSchedule', 'getReturnForAge',
       'buildContribForAge', 'getContribSchedule',
       'addOneTimeSpend', 'getOneTimeSpendSchedule', 'buildOneTimeSpendByAge',
+      'buildHealthcareCostForAge', 'buildHealthcareCostFromSettings', '_buildSettingsFp',
     ],
     envOverrides
   );

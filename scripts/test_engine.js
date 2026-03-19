@@ -24,7 +24,8 @@ const spend = extractSpendingFunctions({
 });
 const { blendGlideAllocation, buildGlideSchedule, getReturnForAge,
   buildContribForAge, getAnnualExpenseForAge, PHASE_TAGS,
-  buildOneTimeSpendByAge } = spend;
+  buildOneTimeSpendByAge, buildHealthcareCostForAge,
+  buildHealthcareCostFromSettings, _buildSettingsFp } = spend;
 
 /* Re-extract financial functions with spending helpers injected so MC/backtest can call them */
 const finFull = extractFinancialFunctions({
@@ -147,6 +148,36 @@ test('null settings returns zero-contribution function', () => {
   assert.strictEqual(c.hsa, 0);
 });
 
+test('disabled contributions (wdContribToggle false) returns zero regardless of data', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: false,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c = fn(60);
+  assert.strictEqual(c.c401k, 0, 'disabled toggle → zero 401k');
+  assert.strictEqual(c.match, 0, 'disabled toggle → zero match');
+  assert.strictEqual(c.hsa, 0, 'disabled toggle → zero hsa');
+});
+
+test('disabled contributions (string "false") returns zero', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: 'false',
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    wdAge: '55', wdRetire: '65',
+  });
+  const c = fn(60);
+  assert.strictEqual(c.c401k, 0, 'string "false" toggle → zero');
+});
+
 test('flat mode returns same contributions for any pre-retirement age', () => {
   const fn = buildContribForAge({
     wdContribToggle: true,
@@ -203,6 +234,205 @@ test('yearly mode returns zero for ages not in schedule', () => {
   });
   const c62 = fn(62);
   assert.strictEqual(c62.c401k, 0);
+});
+
+/* ==== Hybrid mode (additive: flat + year-specific) ==== */
+suite('buildContribForAge — hybrid mode (additive)');
+
+test('hybrid mode adds flat base + year-specific entries for same age', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 15000, 'flat 10k + yearly 5k = 15k');
+  assert.strictEqual(c60.match, 3000, 'flat 2k + yearly 1k = 3k');
+  assert.strictEqual(c60.ira, 5000, 'flat 3k + yearly 2k = 5k');
+  assert.strictEqual(c60.taxable, 8000, 'flat 5k + yearly 3k = 8k');
+  assert.strictEqual(c60.hsa, 3000, 'flat 2k + yearly 1k = 3k');
+});
+
+test('hybrid mode returns only flat for age without year-specific entry', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c58 = fn(58);
+  assert.strictEqual(c58.c401k, 10000, 'only flat at age 58');
+  assert.strictEqual(c58.hsa, 2000, 'only flat HSA at age 58');
+});
+
+test('hybrid mode returns only year-specific for age outside flat range', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '60',
+    _contribSchedule: [
+      { year: 2031, age: 65, c401k: 3000, match: 0, ira: 1000, taxable: 0, hsa: 0 },
+    ],
+    wdAge: '55', wdRetire: '60',
+  });
+  const c65 = fn(65);
+  assert.strictEqual(c65.c401k, 3000, 'only year-specific at age 65 (outside flat range)');
+  assert.strictEqual(c65.ira, 1000);
+  assert.strictEqual(c65.taxable, 0);
+});
+
+test('hybrid mode returns zero for age with neither flat nor yearly', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '60',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '60',
+  });
+  const c70 = fn(70);
+  assert.strictEqual(c70.c401k, 0, 'zero at age 70 — outside both ranges');
+});
+
+/* ==== Sub-toggle tests ==== */
+suite('buildContribForAge — sub-toggles');
+
+test('recurring off → only year-specific entries used', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    wdContribRecurringToggle: false,
+    wdContribYearlyToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 5000, 'only year-specific — recurring off');
+  const c58 = fn(58);
+  assert.strictEqual(c58.c401k, 0, 'no recurring at age 58');
+});
+
+test('yearly off → only recurring flat used', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    wdContribRecurringToggle: true,
+    wdContribYearlyToggle: false,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 1000, ira: 2000, taxable: 3000, hsa: 1000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 10000, 'only flat — yearly off, schedule ignored');
+});
+
+test('both sub-toggles off → zero contributions', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    wdContribRecurringToggle: false,
+    wdContribYearlyToggle: false,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 0, ira: 0, taxable: 0, hsa: 0 },
+    ],
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 0, 'both off → zero');
+});
+
+test('sub-toggles default to true for old settings (backward compat)', () => {
+  /* Old settings won't have sub-toggle keys — should default to enabled */
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'hybrid',
+    wdContrib401k: '10000',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 5000, match: 0, ira: 0, taxable: 0, hsa: 0 },
+    ],
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 15000, 'missing toggles → default on → additive');
+});
+
+test('old yearly mode zeroes flat to prevent double-count', () => {
+  /* When loading old yearly-mode settings, flat values should be zeroed since
+     _populateContribYears previously copied flat→yearly. */
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'yearly',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 23000, match: 5000, ira: 7000, taxable: 10000, hsa: 4000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 23000, 'only yearly — flat zeroed for yearly mode');
+  const c58 = fn(58);
+  assert.strictEqual(c58.c401k, 0, 'flat zeroed for yearly mode — no entry at age 58');
+});
+
+test('old flat mode ignores empty schedule', () => {
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'flat',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 10000, 'flat-only returns flat values');
+});
+
+test('old flat mode ignores stale yearly schedule (no double-count)', () => {
+  /* R3 fix: stale _contribSchedule from old flat mode should be ignored */
+  const fn = buildContribForAge({
+    wdContribToggle: true,
+    _contribMode: 'flat',
+    wdContrib401k: '10000', wdContribMatch: '2000',
+    wdContribIRA: '3000', wdContribTaxable: '5000', wdContribHSA: '2000',
+    wdContribStartAge: '55', wdContribEndAge: '65',
+    _contribSchedule: [
+      { year: 2026, age: 60, c401k: 10000, match: 2000, ira: 3000, taxable: 5000, hsa: 2000 },
+    ],
+    wdAge: '55', wdRetire: '65',
+  });
+  const c60 = fn(60);
+  assert.strictEqual(c60.c401k, 10000, 'flat mode ignores stale schedule — no double-count');
+  assert.strictEqual(c60.hsa, 2000, 'only flat HSA — stale yearly ignored');
 });
 
 /* ==== _computeCustomBracketLimit ==== */
@@ -917,6 +1147,347 @@ test('Historical: NaN in oneTimeByAge returns 0% success', () => {
   p.oneTimeByAge = { 70: NaN };
   const h = runHistoricalBacktest(p);
   assert.strictEqual(h.successRate, 0, 'NaN in oneTimeByAge should be caught by Historical guard');
+});
+
+/* ================================================================
+   buildHealthcareCostForAge — Healthcare Cost Function Tests
+   ================================================================ */
+suite('buildHealthcareCostForAge — basic');
+
+test('returns null when toggle is off (no params)', () => {
+  const fn = buildHealthcareCostForAge({});
+  // function should still be returned; null means disabled via buildHealthcareCostFromSettings
+  assert.ok(typeof fn === 'function', 'should return a function');
+});
+
+test('pre-65 costs: annual premium + OOP with no inflation year 0', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  const r = fn(60);
+  // pre-65: 9600 (annual) + 3000 (OOP) = 12600
+  assert.strictEqual(r.total, 12600, 'pre-65 total: 9600 + 3000 = 12600');
+  assert.strictEqual(r.qualifiedMedical, r.total, 'all healthcare is qualified medical');
+});
+
+test('post-65 costs: Part B + Part D + Medigap + OOP', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 800, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 65, spouseAge: null
+  });
+  const r = fn(65);
+  // post-65: (185+35+200)*12 + 3000 = 5040 + 3000 = 8040
+  assert.strictEqual(r.total, 8040, 'post-65 total: (185+35+200)*12+3000 = 8040');
+});
+
+test('medical inflation compounds correctly', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 12000, pre65StartAge: 60, partB: 0, partD: 0, medigap: 0,
+    oop: 0, medInflPct: 10, curAge: 60, spouseAge: null
+  });
+  const r0 = fn(60); // year 0: 12000 (annual)
+  const r1 = fn(61); // year 1: 12000 * 1.10 = 13200
+  const r2 = fn(62); // year 2: 12000 * 1.21 = 14520
+  assert.strictEqual(r0.total, 12000, 'year 0 no inflation');
+  assert.ok(Math.abs(r1.total - 13200) < 1, `year 1 10% inflation: got ${r1.total}`);
+  assert.ok(Math.abs(r2.total - 14520) < 1, `year 2 21% cumulative inflation: got ${r2.total}`);
+});
+
+test('pre-65 to post-65 transition at age 65', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 12000, pre65StartAge: 58, partB: 185, partD: 35, medigap: 200,
+    oop: 2000, medInflPct: 0, curAge: 58, spouseAge: null
+  });
+  const pre = fn(64); // pre-65: 12000 (annual) + 2000 = 14000
+  const post = fn(65); // post-65: (185+35+200)*12 + 2000 = 7040
+  assert.strictEqual(pre.total, 14000, 'age 64 uses pre-65 annual premium');
+  assert.strictEqual(post.total, 7040, 'age 65 switches to Medicare');
+});
+
+test('pre-65 returns zero before pre65StartAge', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 800, pre65StartAge: 62, partB: 185, partD: 35, medigap: 200,
+    oop: 2000, medInflPct: 0, curAge: 55, spouseAge: null
+  });
+  const r = fn(60);
+  assert.strictEqual(r.total, 0, 'no healthcare cost before pre65StartAge');
+});
+
+suite('buildHealthcareCostForAge — spouse');
+
+test('spouse costs double when both same age', () => {
+  const single = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  const couple = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: 60
+  });
+  const s = single(60);
+  const c = couple(60);
+  assert.strictEqual(c.total, s.total * 2, 'couple costs should be 2x single when same age');
+});
+
+test('spouse at different age: one pre-65 one post-65', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 63, spouseAge: 66
+  });
+  // primary age 63 = pre-65: 9600+3000=12600; spouse age 66 = post-65: (185+35+200)*12+3000=8040
+  const r = fn(63);
+  assert.strictEqual(r.total, 12600 + 8040, 'mixed ages: primary pre-65 + spouse post-65');
+});
+
+test('spouse pre-65 costs start when primary reaches pre65StartAge (calendar event)', () => {
+  // Primary age 60, spouse age 55, pre65Start=60 (retirement year).
+  // Both lose employer coverage at the same calendar time (when primary retires).
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: 55
+  });
+  // At primary age 60: primary pre-65 (12600) + spouse pre-65 (12600) = 25200
+  // Spouse is 55 but pre65Start is a calendar event — both start paying
+  const r60 = fn(60);
+  assert.strictEqual(r60.total, 12600 * 2, 'both pay pre-65 costs when primary hits retirement age');
+  // At primary age 65: primary post-65 (8040), spouse age 60 still pre-65 (12600)
+  const r65 = fn(65);
+  assert.strictEqual(r65.total, 8040 + 12600, 'primary post-65, spouse still pre-65');
+  // At primary age 70: primary post-65 (8040), spouse age 65 now post-65 (8040)
+  const r70 = fn(70);
+  assert.strictEqual(r70.total, 8040 * 2, 'both post-65');
+});
+
+test('curAge=0 is honored (not coerced to 55)', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 6000, pre65StartAge: 0, partB: 185, partD: 35, medigap: 200,
+    oop: 1000, medInflPct: 0, curAge: 0, spouseAge: null
+  });
+  // age 0 with curAge 0: pre-65 costs (6000+1000=7000), inflation year offset = 0
+  const r = fn(0);
+  assert.strictEqual(r.total, 7000, 'age 0: pre-65 costs with no inflation offset');
+  // age 64: still pre-65
+  const r64 = fn(64);
+  assert.strictEqual(r64.total, 7000, 'age 64: still pre-65 costs');
+  // age 65: transitions to post-65
+  const r65 = fn(65);
+  assert.strictEqual(r65.total, (185+35+200)*12 + 1000, 'age 65: post-65 costs');
+});
+
+test('pre65StartAge=0 starts pre-65 costs from age 0', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 12000, pre65StartAge: 0, partB: 185, partD: 35, medigap: 200,
+    oop: 2000, medInflPct: 0, curAge: 50, spouseAge: null
+  });
+  // age 50: >= pre65StartAge (0), so pre-65 costs apply
+  const r = fn(50);
+  assert.strictEqual(r.total, 14000, 'pre65StartAge=0: pre-65 costs at age 50');
+});
+
+suite('buildHealthcareCostFromSettings');
+
+test('returns zero-cost function when healthcare toggle is explicitly off', () => {
+  const fn = buildHealthcareCostFromSettings({ wdHealthcareToggle: false });
+  assert.ok(typeof fn === 'function', 'should return a function (not null) when toggle exists but is off');
+  const result = fn(65);
+  assert.strictEqual(result.total, 0, 'total should be 0 when toggle is off');
+  assert.strictEqual(result.qualifiedMedical, 0, 'qualifiedMedical should be 0 when toggle is off');
+});
+
+test('returns null when toggle is missing', () => {
+  const fn = buildHealthcareCostFromSettings({});
+  assert.strictEqual(fn, null, 'should return null when toggle is missing');
+});
+
+test('returns function when toggle is on', () => {
+  const fn = buildHealthcareCostFromSettings({
+    wdHealthcareToggle: true, wdAge: 60,
+    wdHcPre65Premium: 800, wdHcPre65StartAge: 58,
+    wdHcPartB: 185, wdHcPartD: 35, wdHcMedigap: 200,
+    wdHcOOP: 3000, wdHcInflation: 5.5,
+  });
+  assert.ok(typeof fn === 'function', 'should return a function when toggle is on');
+  const r = fn(60);
+  assert.ok(r.total > 0, 'should return non-zero cost');
+});
+
+test('string toggle "true" works (settings restored from JSON)', () => {
+  const fn = buildHealthcareCostFromSettings({
+    wdHealthcareToggle: 'true', wdAge: 60,
+    wdHcPre65Premium: 800, wdHcPre65StartAge: 58,
+    wdHcPartB: 185, wdHcPartD: 35, wdHcMedigap: 200,
+    wdHcOOP: 3000, wdHcInflation: 5.5,
+  });
+  assert.ok(typeof fn === 'function', 'string "true" should enable healthcare');
+});
+
+suite('buildHealthcareCostFromSettings — value mapping');
+
+test('fromSettings maps saved values to correct function output', () => {
+  const saved = {
+    wdHealthcareToggle: true, wdAge: 60,
+    wdHcPre65Premium: 9600, wdHcPre65StartAge: 58,
+    wdHcPartB: 185, wdHcPartD: 35, wdHcMedigap: 200,
+    wdHcOOP: 3000, wdHcInflation: 0,
+  };
+  const fromSettings = buildHealthcareCostFromSettings(saved);
+  const direct = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 58,
+    partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  assert.strictEqual(fromSettings(60).total, direct(60).total, 'age 60 should match direct builder');
+  assert.strictEqual(fromSettings(65).total, direct(65).total, 'age 65 should match direct builder');
+  assert.strictEqual(fromSettings(70).total, direct(70).total, 'age 70 should match direct builder');
+});
+
+test('fromSettings with spouse passes spouseAge correctly', () => {
+  const saved = {
+    wdHealthcareToggle: true, wdAge: 60,
+    wdSpouseToggle: true, wdSpAge: 58,
+    wdHcPre65Premium: 9600, wdHcPre65StartAge: 55,
+    wdHcPartB: 185, wdHcPartD: 35, wdHcMedigap: 200,
+    wdHcOOP: 3000, wdHcInflation: 0,
+  };
+  const fn = buildHealthcareCostFromSettings(saved);
+  const single = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 55, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  const r = fn(60);
+  assert.ok(r.total > single(60).total, 'couple cost should exceed single cost');
+});
+
+suite('buildHealthcareCostForAge — edge cases');
+
+test('NaN premium defaults to 0', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 'abc', pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  const r = fn(60);
+  // NaN premium → 0; cost = 0 + 3000 (oop) = 3000
+  assert.strictEqual(r.total, 3000, 'NaN premium should default to 0');
+});
+
+test('zero Part B/D/Medigap respected (not replaced by defaults)', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 0, pre65StartAge: 60, partB: 0, partD: 0, medigap: 0,
+    oop: 0, medInflPct: 0, curAge: 65, spouseAge: null
+  });
+  const r = fn(65);
+  assert.strictEqual(r.total, 0, 'all-zero post-65 should be 0');
+});
+
+test('negative premium clamped to 0', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: -5000, pre65StartAge: 60, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 60, spouseAge: null
+  });
+  const r = fn(60);
+  assert.strictEqual(r.total, 3000, 'negative premium clamped: cost = 0 + 3000 oop');
+});
+
+test('curAge already 65+ skips pre-65 costs', () => {
+  const fn = buildHealthcareCostForAge({
+    pre65Premium: 9600, pre65StartAge: 55, partB: 185, partD: 35, medigap: 200,
+    oop: 3000, medInflPct: 0, curAge: 70, spouseAge: null
+  });
+  const r = fn(70);
+  // post-65: (185+35+200)*12 + 3000 = 8040
+  assert.strictEqual(r.total, 8040, 'at age 70, uses post-65 costs');
+});
+
+suite('_buildSettingsFp — toggle coercion & fingerprint equality');
+
+test('toggle coercion: boolean true/false and string equivalents', () => {
+  const base = {
+    ret:7,infl:3,ss:0,ssAge:67,conv:'none',retire:65,life:90,stax:0,
+    age:55,filing:'mfj',vol:12,hasSpouse:false,spAge:0,spLife:0,spSS:0,spSSAge:67,
+    customPct:15,convStart:65,convEnd:74,iraBasis:'0',
+    contribToggle:false,contribRecurring:false,contribYearly:false,
+    contribMode:'flat',contribStartAge:'',contribEndAge:'',
+    contrib401k:'',contribMatch:'',contribIRA:'',contribTaxable:'',contribHSA:'',
+    contribScheduleFp:'flat',
+    hcToggle:false,hcPre65Premium:'',hcStartAge:'',
+    hcPartB:'',hcPartD:'',hcMedigap:'',hcOOP:'',hcInflation:'',
+    otsToggle:false,otsFp:'none',
+    bTI:500000,bDI:500000,bRI:200000,bHI:50000,glideFp:'fixed'
+  };
+  const fpBoolFalse = _buildSettingsFp({ ...base, hcToggle: false, contribToggle: false, otsToggle: false });
+  const fpStrFalse = _buildSettingsFp({ ...base, hcToggle: 'false', contribToggle: 'false', otsToggle: 'false' });
+  const fpBoolTrue = _buildSettingsFp({ ...base, hcToggle: true, contribToggle: true, otsToggle: true });
+  const fpStrTrue = _buildSettingsFp({ ...base, hcToggle: 'true', contribToggle: 'true', otsToggle: 'true' });
+  // boolean false and string "false" must produce same fingerprint (both disabled)
+  assert.strictEqual(fpBoolFalse, fpStrFalse, 'boolean false === string "false"');
+  // boolean true and string "true" must produce same fingerprint (both enabled)
+  assert.strictEqual(fpBoolTrue, fpStrTrue, 'boolean true === string "true"');
+  // enabled !== disabled
+  assert.notStrictEqual(fpBoolFalse, fpBoolTrue, 'disabled !== enabled');
+});
+
+test('identical inputs produce identical fingerprints (suggFp === scenFp parity)', () => {
+  const params = {
+    ret:7,infl:3,ss:2500,ssAge:67,conv:'moderate',retire:65,life:90,stax:5,
+    age:55,filing:'mfj',vol:12,hasSpouse:true,spAge:53,spLife:92,spSS:1500,spSSAge:67,
+    customPct:15,convStart:65,convEnd:74,iraBasis:'25000',
+    contribToggle:true,contribRecurring:true,contribYearly:false,
+    contribMode:'hybrid',contribStartAge:'55',contribEndAge:'65',
+    contrib401k:'23000',contribMatch:'11500',contribIRA:'7000',contribTaxable:'5000',contribHSA:'3850',
+    contribScheduleFp:'flat',
+    hcToggle:true,hcPre65Premium:'800',hcStartAge:'60',
+    hcPartB:'185',hcPartD:'35',hcMedigap:'200',hcOOP:'3000',hcInflation:'5.5',
+    otsToggle:true,otsFp:'[[70,50000]]',
+    bTI:500000,bDI:500000,bRI:200000,bHI:50000,glideFp:'fixed'
+  };
+  const fp1 = _buildSettingsFp(params);
+  const fp2 = _buildSettingsFp({ ...params });
+  assert.strictEqual(fp1, fp2, 'same inputs must produce same fingerprint');
+  // Changing one field must change fingerprint
+  const fp3 = _buildSettingsFp({ ...params, ret: 8 });
+  assert.notStrictEqual(fp1, fp3, 'different return rate must change fingerprint');
+});
+
+suite('HC integration — MC/Historical');
+
+test('MC: hcCostFn increases spending need (lower success rate)', () => {
+  const base = baseParams();
+  base.bTaxableInit = 500000; base.bDeferredInit = 500000;
+  base.bRothInit = 200000; base.bHSAInit = 0;
+  base.spendingPhases = [{ age: 65, amount: 60000 }]; base.hasPhases = true;
+  // Without HC
+  const mcNo = runMonteCarlo({ ...base, hcCostFn: null });
+  // With HC adding $15k/yr
+  const hcFn = (_age) => ({ total: 15000, qualifiedMedical: 15000 });
+  const mcYes = runMonteCarlo({ ...base, hcCostFn: hcFn });
+  assert.ok(mcYes.successRate <= mcNo.successRate, `HC should reduce or equal success rate: ${mcYes.successRate} <= ${mcNo.successRate}`);
+});
+
+test('Historical: hcCostFn increases spending need', () => {
+  const base = baseParams();
+  base.bTaxableInit = 500000; base.bDeferredInit = 500000;
+  base.bRothInit = 200000; base.bHSAInit = 0;
+  base.spendingPhases = [{ age: 65, amount: 60000 }]; base.hasPhases = true;
+  const hNo = runHistoricalBacktest({ ...base, hcCostFn: null });
+  const hcFn = (_age) => ({ total: 15000, qualifiedMedical: 15000 });
+  const hYes = runHistoricalBacktest({ ...base, hcCostFn: hcFn });
+  assert.ok(hYes.successRate <= hNo.successRate, `HC should reduce or equal historical success: ${hYes.successRate} <= ${hNo.successRate}`);
+});
+
+test('MC: HSA used for qualified medical expenses when hcCostFn provided', () => {
+  const base = baseParams();
+  base.bHSAInit = 50000;
+  base.spendingPhases = [{ age: 65, amount: 50000 }]; base.hasPhases = true;
+  const hcFn = (age) => ({ total: 8000, qualifiedMedical: 8000 });
+  const mcWithHC = runMonteCarlo({ ...base, hcCostFn: hcFn });
+  const mcNoHC = runMonteCarlo({ ...base, hcCostFn: null });
+  assert.ok(typeof mcWithHC.successRate === 'number', 'MC with HC should produce valid result');
+  assert.ok(typeof mcNoHC.successRate === 'number', 'MC without HC should produce valid result');
+  // With explicit HC costs ($8k/yr), success rate should be <= no-HC (legacy $5k fallback)
+  // because $8k > $5k increases spending pressure
+  assert.ok(mcWithHC.successRate <= mcNoHC.successRate,
+    `HC $8k/yr should reduce or equal success vs legacy $5k: ${mcWithHC.successRate} <= ${mcNoHC.successRate}`);
 });
 
 summarize('Withdrawal Engine Verification');

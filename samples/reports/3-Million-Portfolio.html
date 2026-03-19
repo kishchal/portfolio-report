@@ -591,7 +591,7 @@
   .glide-chart-toggle { background: none; border: none; padding: 0; margin-top: 8px; color: var(--primary); font-size: 0.8em; font-weight: 600; cursor: pointer; text-decoration: underline; }
   .glide-chart-toggle:hover { opacity: 0.85; }
   .wd-sub-header { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
-  .wd-sub-chevron { cursor:pointer; font-size:1em; color:var(--text-muted); padding:2px 8px; border-radius:4px;
+  .wd-sub-chevron { cursor:pointer; font-size:0.85em; color:var(--text-muted); padding:2px 8px; border-radius:4px;
     user-select:none; transition:color 0.15s, background 0.15s, opacity 0.15s; line-height:1; }
   .wd-sub-chevron:hover { color:var(--primary); background:var(--bg-secondary); }
   .wd-sub-chevron.disabled { opacity:0; pointer-events:none; }
@@ -783,7 +783,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 01:29 AM</div>
+      <div class="subtitle">Fidelity Investments &middot; Mar 18, 2026 &middot; Report generated Mar 18, 2026 at 11:12 PM</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -1809,7 +1809,7 @@ function _wdSubCheckChanged(checkId,panelId,extra){
   panel.style.display=(cb.checked&&!window._wdSubCollapsed[panelId])?'block':'none';
   const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
   if(ch){
-    ch.textContent=(!cb.checked||window._wdSubCollapsed[panelId])?'▸':'▾';
+    ch.textContent=(!cb.checked||window._wdSubCollapsed[panelId])?'▶':'▼';
     if(cb.checked) ch.classList.remove('disabled'); else ch.classList.add('disabled');
   }
   if(extra) extra(cb.checked);
@@ -1824,7 +1824,7 @@ function _wdSubToggle(checkId,panelId){
   const panel=document.getElementById(panelId);
   if(panel) panel.style.display=window._wdSubCollapsed[panelId]?'none':'block';
   const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
-  if(ch) ch.textContent=window._wdSubCollapsed[panelId]?'▸':'▾';
+  if(ch) ch.textContent=window._wdSubCollapsed[panelId]?'▶':'▼';
   window._wdUIState.subCollapsed=Object.assign({},window._wdSubCollapsed);
   _wdPersistUIState();
   saveSettings();
@@ -1836,7 +1836,7 @@ function _wdSubRestoreCollapse(){
     const panel=document.getElementById(panelId);
     if(panel&&panel.style.display==='block') panel.style.display='none';
     const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
-    if(ch) ch.textContent='▸';
+    if(ch) ch.textContent='▶';
   });
 }
 
@@ -2486,7 +2486,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"FZILX":{"n":"Fidelity ZERO International Index","h":{"2330.TW":3.57,"9988.HK":1.09,"ROG.SW":0.86,"000660.KS":0.92,"0700.HK":1.26,"HSBA.L":0.81,"005930.KS":1.48,"ASML.AS":1.49}},"FTIHX":{"n":"Fidelity Total International Index","h":{"2330.TW":3.24,"9988.HK":0.87,"ROG.SW":0.76,"000660.KS":0.82,"0700.HK":1.17,"005930.KS":1.24,"ASML.AS":1.33}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"NVDA":14.15,"META":4.64,"LLY":2.74,"AAPL":6.41,"MSFT":9.59,"GOOGL":5.96,"BRK-B":3.04,"AMZN":3.56,"GOOG":4.76,"AVGO":4.96}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"NVDA":4.91,"META":2.17,"MSFT":3.33,"AAPL":4.45,"AMZN":2.56,"IQMM":22.7,"TSLA":2.29}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"NVDA":6.92,"META":2.33,"MSFT":4.77,"AAPL":5.72,"AMZN":3.47,"GOOGL":2.93,"BRK-B":1.31,"TSLA":1.8,"GOOG":2.34,"AVGO":2.33}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"DAR":2.54,"PWR":2.1,"ENPH":2.03,"BELFB":2.12,"ESE":2.22,"LAR.TO":2.34,"AEIS":2.48,"BE":2.71,"POWL":2.5,"CDLR":2.34}},"FXAIX":{"n":"Fidelity 500 Index","h":{"NVDA":7.84,"META":2.63,"MSFT":5.4,"AAPL":6.47,"AMZN":3.93,"GOOGL":3.32,"BRK-B":1.49,"TSLA":2.04,"GOOG":2.66,"AVGO":2.64}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"AZN.L":0.79,"2330.TW":3.76,"9988.HK":0.81,"ROG.SW":0.83,"000660.KS":1.0,"0700.HK":1.01,"HSBA.L":0.8,"NOVN.SW":0.8,"005930.KS":1.75,"ASML.AS":1.43}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"MO":4.13,"LMT":4.81,"KO":4.03,"TXN":4.06,"VZ":4.31,"MRK":4.23,"PEP":4.01,"BMY":4.28,"CVX":4.31,"COP":4.32}},"FSPTX":{"n":"Fidelity Select Technology","h":{"NVDA":25.92,"CSCO":4.1,"MRVL":4.31,"AAPL":10.98,"MSFT":9.1,"NXPI":5.01,"GFS":2.3,"MU":4.09,"ON":3.86,"WDC":2.33}}};
+const _FUND_LIVE = {"TQQQ":{"h":{"META":2.17,"TSLA":2.29,"MSFT":3.33,"AMZN":2.56,"AAPL":4.45,"NVDA":4.91,"IQMM":22.7},"n":"ProShares UltraPro QQQ"},"FSKAX":{"h":{"META":2.33,"GOOGL":2.93,"GOOG":2.34,"BRK-B":1.31,"MSFT":4.77,"AMZN":3.47,"AVGO":2.33,"AAPL":5.72,"NVDA":6.92,"TSLA":1.8},"n":"Fidelity Total Market Index"},"FZILX":{"h":{"9988.HK":1.09,"HSBA.L":0.81,"ASML.AS":1.49,"2330.TW":3.57,"000660.KS":0.92,"005930.KS":1.48,"0700.HK":1.26,"ROG.SW":0.86},"n":"Fidelity ZERO International Index"},"FSPTX":{"h":{"NXPI":5.01,"MU":4.09,"CSCO":4.1,"ON":3.86,"MSFT":9.1,"GFS":2.3,"MRVL":4.31,"AAPL":10.98,"NVDA":25.92,"WDC":2.33},"n":"Fidelity Select Technology"},"VFWSX":{"h":{"0700.HK":1.01,"9988.HK":0.81,"HSBA.L":0.8,"ASML.AS":1.43,"2330.TW":3.76,"005930.KS":1.75,"000660.KS":1.0,"AZN.L":0.79,"ROG.SW":0.83,"NOVN.SW":0.8},"n":"Vanguard FTSE All-World ex-US Index Fund"},"PBW":{"h":{"BELFB":2.12,"ESE":2.22,"BE":2.71,"LAR.TO":2.34,"AEIS":2.48,"ENPH":2.03,"POWL":2.5,"CDLR":2.34,"PWR":2.1,"DAR":2.54},"n":"Invesco WilderHill Clean Energy ETF"},"SCHD":{"h":{"PEP":4.01,"KO":4.03,"COP":4.32,"CVX":4.31,"LMT":4.81,"MO":4.13,"TXN":4.06,"VZ":4.31,"MRK":4.23,"BMY":4.28},"n":"Schwab U.S. Dividend Equity ETF"},"FXAIX":{"h":{"META":2.63,"GOOGL":3.32,"GOOG":2.66,"BRK-B":1.49,"MSFT":5.4,"AMZN":3.93,"AVGO":2.64,"AAPL":6.47,"NVDA":7.84,"TSLA":2.04},"n":"Fidelity 500 Index"},"VOOG":{"h":{"GOOGL":5.96,"GOOG":4.76,"BRK-B":3.04,"MSFT":9.59,"LLY":2.74,"META":4.64,"AVGO":4.96,"AAPL":6.41,"NVDA":14.15,"AMZN":3.56},"n":"Vanguard S&P 500 Growth Index Fund ETF Shares"},"FTIHX":{"h":{"9988.HK":0.87,"ASML.AS":1.33,"2330.TW":3.24,"000660.KS":0.82,"005930.KS":1.24,"0700.HK":1.17,"ROG.SW":0.76},"n":"Fidelity Total International Index"}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -4322,7 +4322,10 @@ function runMonteCarlo(params){
       /* Add one-time spendings */
       const mcOts=oneTimeByAge?oneTimeByAge[age]:0;
       if(mcOts>0) need+=mcOts*inflMult;
-      const ssSurplus=Math.max(0,ssIncome+mcPostRetIncome-need); /* excess SS+side income reinvested into taxable */
+      /* Add healthcare costs to spending need (before ssSurplus so surplus is accurate) */
+      const mcHc=params.hcCostFn?params.hcCostFn(age):{total:0,qualifiedMedical:0};
+      if(mcHc.total>0) need+=mcHc.total;
+      const ssSurplus=Math.max(0,ssIncome+mcPostRetIncome-need);
       let target=Math.max(0,need-ssIncome-mcPostRetIncome);
       target=Math.min(target,curTotal);
 
@@ -4335,8 +4338,8 @@ function runMonteCarlo(params){
 
       /* Simplified tax-efficient sequencing */
       let wT=0,wD=0,wR=0,wH=0,rem=target;
-      const annMed=age>=65?5000*inflMult:0;
-      if(age>=65&&bH>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
+      const annMed=params.hcCostFn?mcHc.qualifiedMedical:(age>=65?5000*inflMult:0);
+      if(bH>0&&annMed>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
       if(age>=RMD_START_AGE){
         wD=Math.min(rmd,bD); rem-=wD;
         if(rem>0){ const f=Math.min(rem,bT); wT=f; rem-=f; }
@@ -4354,7 +4357,7 @@ function runMonteCarlo(params){
       /* Simplified Roth conversion in MC — fill bracket room in pre-RMD years */
       let mcRothConv=0,mcTaxableConv=0;
       if(rothConvStrategy&&rothConvStrategy!=='none'&&age>=mcConvStart&&age<=mcConvEnd&&age<RMD_START_AGE&&bD>wD){
-        const mcOrdBeforeConv=wD+Math.max(0,(wH||0)-(age>=65?5000*inflMult:0))+mcPostRetIncome;
+        const mcOrdBeforeConv=wD+Math.max(0,(wH||0)-annMed)+mcPostRetIncome;
         const mcSSBeforeConv=ssIncome>0?calcSSTaxableAmount(ssIncome,mcOrdBeforeConv+wT,filing):0;
         const totalIRA=bD;
         const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
@@ -4514,6 +4517,9 @@ function runHistoricalBacktest(params){
       /* Add one-time spendings */
       const histOts=oneTimeByAge?oneTimeByAge[age]:0;
       if(histOts>0) need+=histOts*histInflFactor;
+      /* Add healthcare costs before ssSurplus */
+      const histHc=params.hcCostFn?params.hcCostFn(age):{total:0,qualifiedMedical:0};
+      if(histHc.total>0) need+=histHc.total;
       const ssSurplus=Math.max(0,ssIncome+histPostRetIncome-need);
       let target=Math.max(0,need-ssIncome-histPostRetIncome);
       target=Math.min(target,curTotal);
@@ -4525,8 +4531,8 @@ function runHistoricalBacktest(params){
       }
 
       let wT=0,wD=0,wR=0,wH=0,rem=target;
-      const annMed=age>=65?5000*histInflFactor:0;
-      if(age>=65&&bH>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
+      const annMed=params.hcCostFn?histHc.qualifiedMedical:(age>=65?5000*histInflFactor:0);
+      if(bH>0&&annMed>0){ const med=Math.min(annMed,bH,rem); wH=med; rem-=med; }
       if(age>=RMD_START_AGE){
         wD=Math.min(rmd,bD); rem-=wD;
         if(rem>0){ const f=Math.min(rem,bT); wT=f; rem-=f; }
@@ -4542,7 +4548,7 @@ function runHistoricalBacktest(params){
 
       let histRothConv=0,histTaxableConv=0;
       if(rothConvStrategy&&rothConvStrategy!=='none'&&convBracketLimit>0&&age>=histConvStart&&age<=histConvEnd&&age<RMD_START_AGE&&bD>wD){
-        const histOrdBeforeConv=wD+Math.max(0,(wH||0)-(age>=65?5000*histInflFactor:0))+histPostRetIncome;
+        const histOrdBeforeConv=wD+Math.max(0,(wH||0)-annMed)+histPostRetIncome;
         const histSSBeforeConv=ssIncome>0?calcSSTaxableAmount(ssIncome,histOrdBeforeConv+wT,filing):0;
         const totalIRA=bD;
         const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
@@ -4749,8 +4755,11 @@ const SETTINGS_FIELDS=[
   {id:'wdSpLife',type:'number'},{id:'wdSpSSIncome',type:'number'},{id:'wdSpSSAge',type:'select'},
   {id:'wdContrib401k',type:'number'},{id:'wdContribMatch',type:'number'},{id:'wdContribIRA',type:'number'},
   {id:'wdContribTaxable',type:'number'},{id:'wdContribHSA',type:'number'},
-  {id:'wdContribToggle',type:'checkbox'},{id:'wdContribMode',type:'text'},{id:'wdContribStartAge',type:'number'},{id:'wdContribEndAge',type:'number'},
-  {id:'wdOneTimeSpendToggle',type:'checkbox'}
+  {id:'wdContribToggle',type:'checkbox'},{id:'wdContribRecurringToggle',type:'checkbox'},{id:'wdContribYearlyToggle',type:'checkbox'},{id:'wdContribMode',type:'text'},{id:'wdContribStartAge',type:'number'},{id:'wdContribEndAge',type:'number'},
+  {id:'wdOneTimeSpendToggle',type:'checkbox'},
+  {id:'wdHealthcareToggle',type:'checkbox'},{id:'wdHcPre65Premium',type:'number'},{id:'wdHcPre65StartAge',type:'number'},
+  {id:'wdHcPartB',type:'number'},{id:'wdHcPartD',type:'number'},{id:'wdHcMedigap',type:'number'},
+  {id:'wdHcOOP',type:'number'},{id:'wdHcInflation',type:'number'}
 ];
 function setGlideDisplayAttribute(el,usingGlide){
   if(!el) return;
@@ -4780,8 +4789,9 @@ function saveSettings(){
     if(getEffectiveWdGlideMode()==='fixed'){
       const retEl=document.getElementById('wdReturn');
       const volEl=document.getElementById('wdVol');
-      if(retEl){ window._savedFixedReturn=retEl.value; retEl.setAttribute('data-fixed-return',retEl.value); }
-      if(volEl){ window._savedFixedVol=volEl.value; volEl.setAttribute('data-fixed-vol',volEl.value); }
+      /* Only capture if the field is NOT still showing a glide-computed value (transition guard) */
+      if(retEl&&!retEl.hasAttribute('data-glide-display')){ window._savedFixedReturn=retEl.value; retEl.setAttribute('data-fixed-return',retEl.value); }
+      if(volEl&&!volEl.hasAttribute('data-glide-display')){ window._savedFixedVol=volEl.value; volEl.setAttribute('data-fixed-vol',volEl.value); }
     } else {
       /* When glide is active, also persist data attributes from current window values */
       const retEl=document.getElementById('wdReturn');
@@ -4795,13 +4805,11 @@ function saveSettings(){
     s._activeSubPivot=_activeSubPivot;
     const phases=getSpendPhases();
     if(phases.length>0||document.getElementById('spendPhasesContainer')) s._spendPhases=phases;
-    /* Save contribution mode + year-by-year schedule */
-    const contribModeEl=document.getElementById('wdContribMode');
-    if(contribModeEl){
-      s._contribMode=contribModeEl.value;
-      const schedule=getContribSchedule();
-      if(schedule) s._contribSchedule=schedule;
-    }
+    /* Save contribution year-specific schedule */
+    s._contribMode='hybrid';
+    const schedule=getContribSchedule();
+    if(schedule) s._contribSchedule=schedule;
+    else delete s._contribSchedule;
     /* Save one-time spendings */
     const otsRows=document.querySelectorAll('#oneTimeSpendRows .ots-row');
     if(otsRows.length>0||document.getElementById('oneTimeSpendRows')) s._oneTimeSpendings=getOneTimeSpendSchedule();
@@ -4885,30 +4893,38 @@ function loadSettings(){
       const retEl=document.getElementById('wdReturn');
       if(retEl) retEl.setAttribute('data-fixed-return',s._savedFixedReturn);
     }
-    else if(s.wdReturn!=null&&!(s.wdGlideToggle===true||s.wdGlideToggle==='true')) window._savedFixedReturn=s.wdReturn;
+    else if(s.wdReturn!=null){
+      /* Legacy settings or glide-off: use wdReturn as fallback */
+      if(!(s.wdGlideToggle===true||s.wdGlideToggle==='true')) window._savedFixedReturn=s.wdReturn;
+      /* If glide was on and no _savedFixedReturn was saved, use HTML default as last resort */
+      else { const retEl=document.getElementById('wdReturn'); window._savedFixedReturn=retEl?.defaultValue??'6'; }
+    }
     if(s._savedFixedVol!=null){
       window._savedFixedVol=s._savedFixedVol;
       const volEl=document.getElementById('wdVol');
       if(volEl) volEl.setAttribute('data-fixed-vol',s._savedFixedVol);
     }
-    else if(s.wdVol!=null&&!(s.wdGlideToggle===true||s.wdGlideToggle==='true')) window._savedFixedVol=s.wdVol;
+    else if(s.wdVol!=null){
+      if(!(s.wdGlideToggle===true||s.wdGlideToggle==='true')) window._savedFixedVol=s.wdVol;
+      else { const volEl=document.getElementById('wdVol'); window._savedFixedVol=volEl?.defaultValue??'15'; }
+    }
     const savedGlideToggle=s.wdGlideToggle===true||s.wdGlideToggle==='true';
     window._currentWdGlideMode=savedGlideToggle?(s.wdGlideMode||'glidepath'):'fixed';
     /* Show/hide spouse panel (respect sub-collapse) */
     const spPanel=document.getElementById('wdSpousePanel');
     if(spPanel) spPanel.style.display=(s.wdSpouseToggle&&!window._wdSubCollapsed['wdSpousePanel'])?'block':'none';
     const spCh=document.querySelector('[data-sub-panel="wdSpousePanel"]');
-    if(spCh){ spCh.textContent=(!s.wdSpouseToggle||window._wdSubCollapsed['wdSpousePanel'])?'▸':'▾'; if(s.wdSpouseToggle) spCh.classList.remove('disabled'); else spCh.classList.add('disabled'); }
+    if(spCh){ spCh.textContent=(!s.wdSpouseToggle||window._wdSubCollapsed['wdSpousePanel'])?'▶':'▼'; if(s.wdSpouseToggle) spCh.classList.remove('disabled'); else spCh.classList.add('disabled'); }
     /* Show/hide income & savings panel (respect sub-collapse) */
     const contribPanel=document.getElementById('wdContribPanel');
     if(contribPanel) contribPanel.style.display=(s.wdContribToggle&&!window._wdSubCollapsed['wdContribPanel'])?'block':'none';
     const cCh=document.querySelector('[data-sub-panel="wdContribPanel"]');
-    if(cCh){ cCh.textContent=(!s.wdContribToggle||window._wdSubCollapsed['wdContribPanel'])?'▸':'▾'; if(s.wdContribToggle) cCh.classList.remove('disabled'); else cCh.classList.add('disabled'); }
+    if(cCh){ cCh.textContent=(!s.wdContribToggle||window._wdSubCollapsed['wdContribPanel'])?'▶':'▼'; if(s.wdContribToggle) cCh.classList.remove('disabled'); else cCh.classList.add('disabled'); }
     /* Show/hide glide path panel (respect sub-collapse) */
     const glidePanel=document.getElementById('wdGlidePanel');
     if(glidePanel) glidePanel.style.display=(savedGlideToggle&&!window._wdSubCollapsed['wdGlidePanel'])?'block':'none';
     const gCh=document.querySelector('[data-sub-panel="wdGlidePanel"]');
-    if(gCh){ gCh.textContent=(!savedGlideToggle||window._wdSubCollapsed['wdGlidePanel'])?'▸':'▾'; if(savedGlideToggle) gCh.classList.remove('disabled'); else gCh.classList.add('disabled'); }
+    if(gCh){ gCh.textContent=(!savedGlideToggle||window._wdSubCollapsed['wdGlidePanel'])?'▶':'▼'; if(savedGlideToggle) gCh.classList.remove('disabled'); else gCh.classList.add('disabled'); }
     if(savedGlideToggle) {
       const glideModeEl=document.getElementById('wdGlideMode');
       if(glideModeEl){
@@ -4935,11 +4951,16 @@ function loadSettings(){
         else s._spendPhases.forEach(p=>addSpendPhase(p.age||65,p.amount));
       }
     }
-    /* Restore contribution mode + year-by-year schedule */
-    if(s._contribMode){
-      const modeEl=document.getElementById('wdContribMode');
-      if(modeEl){ modeEl.value=s._contribMode; setContribMode(s._contribMode); }
+    /* Restore contribution year-specific schedule (backward compat) */
+    if(s._contribMode==='yearly'){
+      /* Old yearly-only mode: flat values were copied into yearly rows, so zero flat to prevent double-count */
+      ['wdContrib401k','wdContribMatch','wdContribIRA','wdContribTaxable','wdContribHSA'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='0';});
+    } else if(s._contribMode==='flat'||!s._contribMode){
+      /* Old flat-only mode (or missing mode): discard any stale yearly schedule to prevent double-count */
+      delete s._contribSchedule;
     }
+    /* Always set hidden field to hybrid after migration */
+    const _cmEl=document.getElementById('wdContribMode'); if(_cmEl) _cmEl.value='hybrid';
     if(s._contribSchedule&&Array.isArray(s._contribSchedule)){
       const container=document.getElementById('contribYearlyRows');
       if(container){
@@ -4947,6 +4968,13 @@ function loadSettings(){
         s._contribSchedule.forEach(r=>addContribYear(r.year,r.age,r.c401k,r.match,r.ira,r.taxable,r.hsa));
       }
     }
+    /* Apply sub-toggle visual state */
+    const _rToggle=document.getElementById('wdContribRecurringToggle');
+    const _yToggle=document.getElementById('wdContribYearlyToggle');
+    const _fPanel=document.getElementById('contribFlatPanel');
+    const _yPanel=document.getElementById('contribYearlyPanel');
+    if(_fPanel&&_rToggle) _fPanel.style.opacity=_rToggle.checked?1:0.4;
+    if(_yPanel&&_yToggle) _yPanel.style.opacity=_yToggle.checked?1:0.4;
     /* Restore one-time spendings */
     if(s._oneTimeSpendings&&Array.isArray(s._oneTimeSpendings)){
       const otsContainer=document.getElementById('oneTimeSpendRows');
@@ -4959,7 +4987,12 @@ function loadSettings(){
     const otsPanelEl=document.getElementById('wdOneTimeSpendPanel');
     if(otsPanelEl) otsPanelEl.style.display=(s.wdOneTimeSpendToggle&&!window._wdSubCollapsed['wdOneTimeSpendPanel'])?'block':'none';
     const otsCh=document.querySelector('[data-sub-panel="wdOneTimeSpendPanel"]');
-    if(otsCh){ otsCh.textContent=(!s.wdOneTimeSpendToggle||window._wdSubCollapsed['wdOneTimeSpendPanel'])?'▸':'▾'; if(s.wdOneTimeSpendToggle) otsCh.classList.remove('disabled'); else otsCh.classList.add('disabled'); }
+    if(otsCh){ otsCh.textContent=(!s.wdOneTimeSpendToggle||window._wdSubCollapsed['wdOneTimeSpendPanel'])?'▶':'▼'; if(s.wdOneTimeSpendToggle) otsCh.classList.remove('disabled'); else otsCh.classList.add('disabled'); }
+    /* Show/hide healthcare panel (respect sub-collapse) */
+    const hcPanelEl=document.getElementById('wdHealthcarePanel');
+    if(hcPanelEl) hcPanelEl.style.display=(s.wdHealthcareToggle&&!window._wdSubCollapsed['wdHealthcarePanel'])?'block':'none';
+    const hcCh=document.querySelector('[data-sub-panel="wdHealthcarePanel"]');
+    if(hcCh){ hcCh.textContent=(!s.wdHealthcareToggle||window._wdSubCollapsed['wdHealthcarePanel'])?'▶':'▼'; if(s.wdHealthcareToggle) hcCh.classList.remove('disabled'); else hcCh.classList.add('disabled'); }
     /* Restore selected accounts */
     if(s._selectedAccounts&&Array.isArray(s._selectedAccounts)){
       const savedSet=new Set(s._selectedAccounts);
@@ -6237,42 +6270,49 @@ function buildContribForAge(settings){
   const saved=settings&&typeof settings==='object'?settings:{};
   const contribEnabled=saved.wdContribToggle===true||saved.wdContribToggle==='true';
   if(!contribEnabled) return function(){ return zeroContrib(); };
+  /* Sub-toggles: default to true for backward compat (old settings won't have these) */
+  const recurringOn=saved.wdContribRecurringToggle!==false&&saved.wdContribRecurringToggle!=='false';
+  const yearlyOn=saved.wdContribYearlyToggle!==false&&saved.wdContribYearlyToggle!=='false';
   const contribMode=saved._contribMode||saved.wdContribMode||'flat';
-  if(contribMode==='yearly'){
-    const contribByAge={};
-    if(Array.isArray(saved._contribSchedule)){
-      saved._contribSchedule.forEach(row=>{
-        const age=parseInt(row?.age,10);
-        if(!Number.isFinite(age)) return;
-        contribByAge[age]={
-          c401k:parseFloat(row?.c401k)||0,
-          match:parseFloat(row?.match)||0,
-          ira:parseFloat(row?.ira)||0,
-          taxable:parseFloat(row?.taxable)||0,
-          hsa:parseFloat(row?.hsa)||0
-        };
-      });
-    }
-    return function(age){
-      const ageKey=parseInt(age,10);
-      return Number.isFinite(ageKey)&&contribByAge[ageKey]?{...contribByAge[ageKey]}:zeroContrib();
-    };
+  /* Build year-specific lookup (skip for old flat-only mode or if yearly sub-toggle off) */
+  const contribByAge={};
+  if(yearlyOn&&contribMode!=='flat'&&Array.isArray(saved._contribSchedule)){
+    saved._contribSchedule.forEach(row=>{
+      const age=parseInt(row?.age,10);
+      if(!Number.isFinite(age)) return;
+      contribByAge[age]={
+        c401k:parseFloat(row?.c401k)||0,
+        match:parseFloat(row?.match)||0,
+        ira:parseFloat(row?.ira)||0,
+        taxable:parseFloat(row?.taxable)||0,
+        hsa:parseFloat(row?.hsa)||0
+      };
+    });
   }
+  /* Build flat contrib values (zeroed if recurring off or old yearly-only mode) */
   const curAge=parseInt(saved.wdAge,10);
   const retAge=parseInt(saved.wdRetire,10);
   const contribStartAge=Number.isFinite(parseInt(saved.wdContribStartAge,10))?parseInt(saved.wdContribStartAge,10):(Number.isFinite(curAge)?curAge:55);
   const contribEndAge=Number.isFinite(parseInt(saved.wdContribEndAge,10))?parseInt(saved.wdContribEndAge,10):(Number.isFinite(retAge)?retAge:65);
-  const flatContrib={
+  const isOldYearly=contribMode==='yearly';
+  const flatContrib=(!recurringOn||isOldYearly)?zeroContrib():{
     c401k:parseFloat(saved.wdContrib401k)||0,
     match:parseFloat(saved.wdContribMatch)||0,
     ira:parseFloat(saved.wdContribIRA)||0,
     taxable:parseFloat(saved.wdContribTaxable)||0,
     hsa:parseFloat(saved.wdContribHSA)||0
   };
+  /* Hybrid: additive — flat base (if in age range) + year-specific entries */
   return function(age){
     const ageNum=parseInt(age,10);
-    if(Number.isFinite(ageNum)&&ageNum>=contribStartAge&&ageNum<=contribEndAge) return {...flatContrib};
-    return zeroContrib();
+    const c=zeroContrib();
+    if(Number.isFinite(ageNum)&&ageNum>=contribStartAge&&ageNum<=contribEndAge){
+      c.c401k+=flatContrib.c401k; c.match+=flatContrib.match;
+      c.ira+=flatContrib.ira; c.taxable+=flatContrib.taxable; c.hsa+=flatContrib.hsa;
+    }
+    const yr=contribByAge[ageNum];
+    if(yr){ c.c401k+=yr.c401k; c.match+=yr.match; c.ira+=yr.ira; c.taxable+=yr.taxable; c.hsa+=yr.hsa; }
+    return c;
   };
 }
 function buildContribForAgeFromSettings(savedSettings){
@@ -6282,6 +6322,90 @@ function buildContribForAgeFromSettings(savedSettings){
     catch(e){ saved={}; }
   }
   return buildContribForAge(saved);
+}
+/* Healthcare cost calculator — returns annual healthcare cost for a given age.
+   Uses medical inflation (separate from general inflation) and transitions from
+   pre-65 private insurance to Medicare at age 65.
+   params: { pre65Premium, pre65StartAge, partB, partD, medigap, oop, medInflPct, curAge, spouseAge } */
+function buildHealthcareCostForAge(params){
+  const p=params||{};
+  const pre65=Math.max(0,parseFloat(p.pre65Premium)||0);
+  let rawPre65Start=parseInt(p.pre65StartAge);
+  const pre65Start=isNaN(rawPre65Start)?55:rawPre65Start;
+  
+  let rawPartB=parseFloat(p.partB);
+  const partB=Math.max(0,isNaN(rawPartB)?185:rawPartB)*12;
+  
+  let rawPartD=parseFloat(p.partD);
+  const partD=Math.max(0,isNaN(rawPartD)?35:rawPartD)*12;
+  
+  let rawMedigap=parseFloat(p.medigap);
+  const medigap=Math.max(0,isNaN(rawMedigap)?200:rawMedigap)*12;
+
+  let rawOop=parseFloat(p.oop);
+  const oop=Math.max(0,isNaN(rawOop)?4000:rawOop);
+
+  let rawInfl=parseFloat(p.medInflPct);
+  const medInfl=(isNaN(rawInfl)?5.5:rawInfl)/100;
+
+  let rawBaseAge=parseInt(p.curAge);
+  const baseAge=isNaN(rawBaseAge)?55:rawBaseAge;
+  const hasSpouse=p.spouseAge!=null&&p.spouseAge!=='';
+
+  let rawSpAge=parseInt(p.spouseAge);
+  const spouseAge=isNaN(rawSpAge)?baseAge:rawSpAge;
+
+  return function(age){
+    const yrsFromBase=Math.max(0,age-baseAge);
+    const medInflMult=Math.pow(1+medInfl,yrsFromBase);
+    let cost=0;
+    /* Primary person */
+    if(age>=65) cost+=(partB+partD+medigap+oop)*medInflMult;
+    else if(age>=pre65Start) cost+=(pre65+oop)*medInflMult;
+    /* Spouse (if present) */
+    if(hasSpouse){
+      const spAgeAtYear=spouseAge+(age-baseAge);
+      if(spAgeAtYear>=65) cost+=(partB+partD+medigap+oop)*medInflMult;
+      else if(age>=pre65Start) cost+=(pre65+oop)*medInflMult;
+    }
+    return {total:cost,qualifiedMedical:cost};
+  };
+}
+function buildHealthcareCostFromSettings(savedSettings){
+  let saved=savedSettings;
+  if(!saved){
+    try{ saved=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}'); }
+    catch(e){ saved={}; }
+  }
+  const hcEnabled=saved.wdHealthcareToggle===true||saved.wdHealthcareToggle==='true';
+  /* Distinguish: toggle exists but OFF → zero function ($0 medical).
+     Toggle absent (legacy settings) → null (engine uses $5k fallback). */
+  const hcFieldExists=saved.wdHealthcareToggle!=null;
+  if(!hcEnabled) return hcFieldExists?function(){return{total:0,qualifiedMedical:0};}:null;
+  return buildHealthcareCostForAge({
+    pre65Premium:saved.wdHcPre65Premium, pre65StartAge:saved.wdHcPre65StartAge,
+    partB:saved.wdHcPartB, partD:saved.wdHcPartD, medigap:saved.wdHcMedigap,
+    oop:saved.wdHcOOP, medInflPct:saved.wdHcInflation,
+    curAge:saved.wdAge,
+    spouseAge:saved.wdSpouseToggle===true||saved.wdSpouseToggle==='true'?saved.wdSpAge:null
+  });
+}
+/* Shared fingerprint builder: canonical setting serialization for cache matching.
+   Both showWithdrawalSuggestions (_suggFp) and runScenarioComparison (_scenFp) use this
+   so field order, format, and toggle coercion are guaranteed identical. */
+function _buildSettingsFp(o){
+  const _tb=v=>(v===true||v==='true')?1:0;
+  return [o.ret,o.infl,o.ss,o.ssAge,o.conv,o.retire,o.life,o.stax,
+    o.age,o.filing,o.vol,o.hasSpouse?1:0,o.spAge,o.spLife,o.spSS,o.spSSAge,
+    o.customPct,o.convStart,o.convEnd,o.iraBasis,
+    _tb(o.contribToggle),_tb(o.contribRecurring),_tb(o.contribYearly),
+    o.contribMode,o.contribStartAge,o.contribEndAge,
+    o.contrib401k,o.contribMatch,o.contribIRA,o.contribTaxable,o.contribHSA,
+    o.contribScheduleFp,
+    _tb(o.hcToggle),o.hcPre65Premium||'',o.hcStartAge||'',
+    o.hcPartB||'',o.hcPartD||'',o.hcMedigap||'',o.hcOOP||'',o.hcInflation||'',
+    _tb(o.otsToggle),o.otsFp||'none',
+    o.bTI,o.bDI,o.bRI,o.bHI,o.glideFp].join('|');
 }
 function getSavedSimMode(){
   try{
@@ -6332,19 +6456,17 @@ function onGlideToggleChange(checked){
   const volEl=document.getElementById('wdVol');
   if(checked){
     /* Capture user's fixed values BEFORE any glide logic overwrites them */
-    if(retEl) window._savedFixedReturn=retEl.value;
-    if(volEl) window._savedFixedVol=volEl.value;
-    if(retEl) retEl.setAttribute('data-fixed-return',retEl.value);
-    if(volEl) volEl.setAttribute('data-fixed-vol',volEl.value);
+    if(retEl){ window._savedFixedReturn=retEl.value; retEl.setAttribute('data-fixed-return',retEl.value); }
+    if(volEl){ window._savedFixedVol=volEl.value; volEl.setAttribute('data-fixed-vol',volEl.value); }
     const mode=document.getElementById('wdGlideMode')?.value||'glidepath';
     onGlideModeChange(mode);
   } else {
     onGlideModeChange('fixed');
-    /* Restore user's fixed values AFTER all glide cleanup, using multiple fallbacks */
-    const savedRet=window._savedFixedReturn||retEl?.getAttribute('data-fixed-return')||retEl?.defaultValue;
-    const savedVol=window._savedFixedVol||volEl?.getAttribute('data-fixed-vol')||volEl?.defaultValue;
-    if(retEl&&savedRet!=null){ retEl.value=savedRet; retEl.title=''; }
-    if(volEl&&savedVol!=null){ volEl.value=savedVol; volEl.title=''; }
+    /* Force-restore: authoritative final write using nullish-coalescing to handle '0' */
+    const savedRet=window._savedFixedReturn??(retEl?.getAttribute('data-fixed-return')??retEl?.defaultValue);
+    const savedVol=window._savedFixedVol??(volEl?.getAttribute('data-fixed-vol')??volEl?.defaultValue);
+    if(retEl&&savedRet!=null){ retEl.value=savedRet; retEl.readOnly=false; retEl.title=''; setGlideDisplayAttribute(retEl,false); }
+    if(volEl&&savedVol!=null){ volEl.value=savedVol; volEl.readOnly=false; volEl.title=''; setGlideDisplayAttribute(volEl,false); }
   }
   renderGlideMiniChart();
 }
@@ -6362,8 +6484,8 @@ function onGlideModeChange(mode){
     if(volEl) window._savedFixedVol=volEl.value;
   }
   if(priorMode!=='fixed'&&glideMode==='fixed'){
-    const rVal=window._savedFixedReturn||retEl?.getAttribute('data-fixed-return')||retEl?.defaultValue;
-    const vVal=window._savedFixedVol||volEl?.getAttribute('data-fixed-vol')||volEl?.defaultValue;
+    const rVal=window._savedFixedReturn??(retEl?.getAttribute('data-fixed-return')??retEl?.defaultValue);
+    const vVal=window._savedFixedVol??(volEl?.getAttribute('data-fixed-vol')??volEl?.defaultValue);
     if(retEl&&rVal!=null){ retEl.value=rVal; retEl.title=''; }
     if(volEl&&vVal!=null){ volEl.value=vVal; volEl.title=''; }
   }
@@ -6679,45 +6801,14 @@ function renderGlideMiniChart(){
 
 /* ---- Income & Savings Year-by-Year helpers ---- */
 function setContribMode(mode){
+  /* Backward-compat: old saved settings may call this with 'flat'/'yearly'.
+     In hybrid mode both panels are always visible; just update the hidden field. */
   const modeEl=document.getElementById('wdContribMode');
-  if(modeEl) modeEl.value=mode;
-  const flatPanel=document.getElementById('contribFlatPanel');
-  const yearPanel=document.getElementById('contribYearlyPanel');
-  const flatBtn=document.getElementById('contribModeFlat');
-  const yearBtn=document.getElementById('contribModeYearly');
-  if(flatPanel) flatPanel.style.display=mode==='flat'?'':'none';
-  if(yearPanel) yearPanel.style.display=mode==='yearly'?'':'none';
-  if(flatBtn){ flatBtn.classList.toggle('active', mode==='flat'); flatBtn.style.background=''; flatBtn.style.color=''; }
-  if(yearBtn){ yearBtn.classList.toggle('active', mode==='yearly'); yearBtn.style.background=''; yearBtn.style.color=''; }
-  /* Auto-populate year rows if switching to yearly and empty */
-  if(mode==='yearly'){
-    const container=document.getElementById('contribYearlyRows');
-    if(container&&container.children.length===0) _populateContribYears();
-  }
+  if(modeEl) modeEl.value='hybrid';
   saveSettings();
 }
 
-function _populateContribYears(){
-  const curAge=parseInt(document.getElementById('wdAge')?.value)||50;
-  const retAge=parseInt(document.getElementById('wdRetire')?.value)||65;
-  const lifeExp=parseInt(document.getElementById('wdLifeExp')?.value)||90;
-  /* Pre-fill from flat values */
-  const v401k=parseFloat(document.getElementById('wdContrib401k')?.value)||0;
-  const vMatch=parseFloat(document.getElementById('wdContribMatch')?.value)||0;
-  const vIRA=parseFloat(document.getElementById('wdContribIRA')?.value)||0;
-  const vTaxable=parseFloat(document.getElementById('wdContribTaxable')?.value)||0;
-  const vHSA=parseFloat(document.getElementById('wdContribHSA')?.value)||0;
-  const curYear=new Date().getFullYear();
-  /* Populate from current age through retirement (pre-retirement gets full values) */
-  for(let age=curAge;age<retAge;age++){
-    addContribYear(curYear+(age-curAge),age,v401k,vMatch,vIRA,vTaxable,vHSA,retAge);
-  }
-  /* Add a few post-retirement years with taxable/side income only */
-  const postYears=Math.min(5,lifeExp-retAge);
-  for(let i=0;i<postYears;i++){
-    addContribYear(curYear+(retAge-curAge)+i,retAge+i,0,0,0,0,0,retAge);
-  }
-}
+/* _populateContribYears removed: no longer needed in hybrid mode (both panels always visible) */
 
 function addContribYear(year,age,v401k,vMatch,vIRA,vTaxable,vHSA,retAge){
   const container=document.getElementById('contribYearlyRows');
@@ -6810,10 +6901,10 @@ function refreshContribPostRetireBadges(){
 }
 
 function getContribSchedule(){
-  /* Returns an array of {year,age,c401k,match,ira,taxable,hsa} for each year */
-  const mode=document.getElementById('wdContribMode')?.value||'flat';
-  if(mode==='flat') return null; /* null = use flat fields */
+  /* Returns an array of {year,age,c401k,match,ira,taxable,hsa} from year-specific entries.
+     In hybrid mode this is always called; returns [] if no year-specific rows exist. */
   const rows=document.querySelectorAll('#contribYearlyRows .contrib-year-row');
+  if(rows.length===0) return null;
   const schedule=[];
   rows.forEach(r=>{
     schedule.push({
@@ -6909,7 +7000,7 @@ function renderWithdrawals(){
   html+=`</div>`;
 
   /* Participant 2 — Spouse (toggle) */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdSpouseToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdSpouseToggle','wdSpousePanel')"> \u{1F46B} Include Spouse</label><span class="wd-sub-chevron disabled" data-sub-panel="wdSpousePanel" onclick="_wdSubToggle('wdSpouseToggle','wdSpousePanel')" title="Collapse/Expand">▸</span></div>`;
+  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdSpouseToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdSpouseToggle','wdSpousePanel')"> \u{1F46B} Include Spouse</label><span class="wd-sub-chevron disabled" data-sub-panel="wdSpousePanel" onclick="_wdSubToggle('wdSpouseToggle','wdSpousePanel')" title="Collapse/Expand">▶</span></div>`;
   html+=`<div id="wdSpousePanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #ec4899;box-shadow:var(--shadow-sm)">`;
   html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:10px;color:#ec4899">\u{1F465} Spouse</div>`;
   html+=`<div class="wd-inputs">`;
@@ -6921,20 +7012,16 @@ function renderWithdrawals(){
   html+=`</div></div>`;
 
   /* Income & Savings Streams — checkbox toggle (like Spouse) */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdContribToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdContribToggle','wdContribPanel')"> \u{1F4B0} Include Income & Savings Streams</label><span class="wd-sub-chevron disabled" data-sub-panel="wdContribPanel" onclick="_wdSubToggle('wdContribToggle','wdContribPanel')" title="Collapse/Expand">▸</span></div>`;
+  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdContribToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdContribToggle','wdContribPanel')"> \u{1F4B0} Include Income & Savings Streams</label><span class="wd-sub-chevron disabled" data-sub-panel="wdContribPanel" onclick="_wdSubToggle('wdContribToggle','wdContribPanel')" title="Collapse/Expand">▶</span></div>`;
   html+=`<div id="wdContribPanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--success);box-shadow:var(--shadow-sm)">`;
   html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:var(--success)">\u{1F4B0} Income & Savings Streams</div>`;
   html+=`<p class="wd-desc" style="margin:4px 0 10px">Annual contributions &amp; side income in today's dollars. Pre-retirement amounts grow your account balances. Post-retirement amounts reduce withdrawal needs. All amounts grow with inflation.</p>`;
-  html+=`<div style="padding:6px 12px;font-size:0.76em;color:var(--text-muted);background:var(--bg-secondary);border-radius:6px;margin-bottom:10px;line-height:1.5">\u{1F4A1} <strong>DCP / Deferred Comp:</strong> If you have a DCP with maturity dates, deselect it from the account selector above, then use <em>Year-by-Year</em> mode to enter each year's maturity amount in the Taxable/Side Income column.</div>`;
-  /* Mode toggle: Flat vs Year-by-Year */
-  html+=`<div style="display:flex;gap:8px;margin:12px 0 10px">`;
-  html+=`<button type="button" class="contrib-mode-btn active" id="contribModeFlat" onclick="setContribMode('flat')">\u{1F4CA} Flat Annual</button>`;
-  html+=`<button type="button" class="contrib-mode-btn" id="contribModeYearly" onclick="setContribMode('yearly')">\u{1F4C5} Year-by-Year</button>`;
-  html+=`</div>`;
-  /* Hidden field to track mode */
-  html+=`<input type="hidden" id="wdContribMode" value="flat">`;
-  /* Flat mode panel */
-  html+=`<div id="contribFlatPanel" style="margin-top:8px">`;
+  html+=`<div style="padding:6px 12px;font-size:0.76em;color:var(--text-muted);background:var(--bg-secondary);border-radius:6px;margin-bottom:10px;line-height:1.5">\u{1F4A1} <strong>DCP / Deferred Comp:</strong> If you have a DCP with maturity dates, deselect it from the account selector above, then add each year's maturity amount as a Year-Specific Entry in the Taxable/Side Income column below.</div>`;
+  /* Hidden field for backward compat — always 'hybrid' now */
+  html+=`<input type="hidden" id="wdContribMode" value="hybrid">`;
+  /* Recurring panel — always visible */
+  html+=`<div style="font-weight:600;font-size:0.85em;margin:8px 0 6px;color:var(--primary);display:flex;align-items:center;gap:6px">\u{1F4CA} <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="wdContribRecurringToggle" checked onchange="document.getElementById('contribFlatPanel').style.opacity=this.checked?1:0.4;saveSettings()"> Recurring Income & Savings</label> <span style="font-weight:400;font-size:0.9em;color:var(--text-muted)">— applied every year within the age range</span></div>`;
+  html+=`<div id="contribFlatPanel" style="margin-top:4px">`;
   html+=`<div class="wd-inputs" style="margin-bottom:8px">`;
   html+=`<div class="wd-field"><label title="The age when these income/savings streams begin.\n\nTypically your current age if you're contributing now.\nFor post-retirement income (rental, side gig), set to retirement age.">From Age</label><input type="number" id="wdContribStartAge" value="50" min="20" max="100" step="1"></div>`;
   html+=`<div class="wd-field"><label title="The age when these income/savings streams end.\n\nTypically your retirement age for employment-based contributions (401k, match).\nFor ongoing income (rental, side gig), can extend beyond retirement.">To Age</label><input type="number" id="wdContribEndAge" value="65" min="20" max="100" step="1"></div>`;
@@ -6946,9 +7033,10 @@ function renderWithdrawals(){
   html+=`<div class="wd-field"><label title="Annual taxable brokerage investment, side income, rental income, etc.">Taxable / Side Income</label><input type="number" id="wdContribTaxable" value="0" min="0" step="1000" placeholder="0"></div>`;
   html+=`<div class="wd-field"><label title="Annual HSA contribution.\n2025 limit: $4,300 (self), $8,550 (family)">HSA Annual</label><input type="number" id="wdContribHSA" value="0" min="0" max="10000" step="100" placeholder="0"></div>`;
   html+=`</div></div>`;
-  /* Year-by-Year panel */
-  html+=`<div id="contribYearlyPanel" style="display:none;margin-top:8px">`;
-  html+=`<div class="xray-desc" style="margin-bottom:8px">Enter contribution/income for each year. Pre-retirement: grows account balances. Post-retirement: treated as additional income reducing withdrawals. Click + to add more years.</div>`;
+  /* Year-Specific Entries panel — always visible */
+  html+=`<div style="font-weight:600;font-size:0.85em;margin:14px 0 6px;color:var(--primary);border-top:1px solid var(--border);padding-top:12px;display:flex;align-items:center;gap:6px">\u{1F4C5} <label style="display:flex;align-items:center;gap:5px;cursor:pointer"><input type="checkbox" id="wdContribYearlyToggle" checked onchange="document.getElementById('contribYearlyPanel').style.opacity=this.checked?1:0.4;saveSettings()"> Additional Year-Specific Entries</label> <span style="font-weight:400;font-size:0.9em;color:var(--text-muted)">— added on top of recurring amounts</span></div>`;
+  html+=`<div id="contribYearlyPanel" style="margin-top:4px">`;
+  html+=`<div class="xray-desc" style="margin-bottom:8px">Add income or savings for specific years (e.g., DCP maturity, bonus, rental income start/stop). These are <strong>added on top</strong> of the recurring amounts above.</div>`;
   html+=`<div id="contribYearlyRows" style="max-height:400px;overflow-y:auto"></div>`;
   html+=`<div style="display:flex;align-items:center;gap:8px;margin-top:6px;flex-wrap:wrap">`;
   html+=`<button type="button" class="spend-phase-add" onclick="addContribYear();saveSettings()">+ Add Year</button>`;
@@ -6961,8 +7049,35 @@ function renderWithdrawals(){
   html+=`</div>`;
   html+=`</div>`;
 
+  /* Healthcare Costs — checkbox toggle */
+  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdHealthcareToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdHealthcareToggle','wdHealthcarePanel')"> 🏥 Healthcare Costs</label><span class="wd-sub-chevron disabled" data-sub-panel="wdHealthcarePanel" onclick="_wdSubToggle('wdHealthcareToggle','wdHealthcarePanel')" title="Collapse/Expand">▶</span></div>`;
+  html+=`<div id="wdHealthcarePanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #0891b2;box-shadow:var(--shadow-sm)">`;
+  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:#0891b2">🏥 Healthcare Cost Modeling</div>`;
+  html+=`<p class="wd-desc" style="margin:4px 0 10px">Model healthcare costs separately from lifestyle spending. Pre-65 costs use your private insurance premium; at 65 the plan automatically switches to Medicare premiums. Medical expenses drive <strong>tax-free HSA withdrawals</strong> — the engine uses HSA first for qualified medical costs before tapping taxable accounts.</p>`;
+  /* Pre-65 section */
+  html+=`<div style="font-weight:600;font-size:0.85em;margin:8px 0 6px;color:#0891b2">🔒 Pre-Medicare (before age 65)</div>`;
+  html+=`<div class="wd-inputs" style="margin-bottom:10px">`;
+  html+=`<div class="wd-field"><label title="Annual cost of private health insurance PER PERSON before Medicare eligibility at age 65.\n\nWhat to enter:\nYour annual premium for one person. If you have a spouse, their cost is added automatically.\n\nTypical 2025 costs (per person):\n• ACA Silver plan (age 55-64): $8,000–$15,000/yr\n• COBRA (18 months post-job): $7,000–$11,000/yr\n\n💡 If you have employer coverage through retirement, set this to $0.\n💡 ACA subsidies depend on your MAGI — enter the full premium before subsidies for conservative planning.\n\nThis cost applies from your Pre-65 Start Age until age 65 when Medicare begins.">Pre-65 Annual Premium (per person)</label><input type="number" id="wdHcPre65Premium" value="0" min="0" max="50000" step="500" placeholder="0"></div>`;
+  html+=`<div class="wd-field"><label title="The age when you start paying for private health insurance.\n\nTypically your retirement age (when employer-sponsored coverage ends).\nIf your spouse has employer coverage that covers you, set this to when that coverage ends.\nIf you already have private insurance, set to your current age.">Pre-65 Start Age</label><input type="number" id="wdHcPre65StartAge" value="55" min="25" max="65" step="1"></div>`;
+  html+=`</div>`;
+  /* Post-65 Medicare section */
+  html+=`<div style="font-weight:600;font-size:0.85em;margin:14px 0 6px;color:#0891b2;border-top:1px solid var(--border);padding-top:10px">🏛️ Medicare (age 65+)</div>`;
+  html+=`<div class="xray-desc" style="margin-bottom:8px">Base Medicare premiums. <strong>IRMAA surcharges</strong> are already calculated automatically based on your income — don't include them here.</div>`;
+  html+=`<div class="wd-inputs" style="margin-bottom:8px">`;
+  html+=`<div class="wd-field"><label title="Monthly Medicare Part B (medical insurance) premium.\n\n2025 standard premium: $185.00/month\nThis covers doctor visits, outpatient care, and preventive services.\n\n⚠️ The IRMAA surcharge (income-based adjustment) is already calculated separately by the engine based on your MAGI. Enter only the base premium here.\n\nPart B premiums typically increase 5-7% per year. The engine inflates this at your medical inflation rate.\n\nWhere to find it:\n• Medicare.gov or your Medicare Summary Notice\n• If you're not yet on Medicare, use the current year's standard premium ($185 for 2025)">Part B Monthly</label><input type="number" id="wdHcPartB" value="185" min="0" max="1000" step="5" placeholder="185"></div>`;
+  html+=`<div class="wd-field"><label title="Monthly Medicare Part D (prescription drug) premium.\n\n2025 average premium: ~$35/month\nCovers prescription medications. Varies by plan chosen.\n\n⚠️ Part D also has IRMAA surcharges — those are already included in the engine's IRMAA calculation. Enter only your plan's base premium here.\n\nWhere to find it:\n• Your Part D plan's annual notice of change\n• Medicare.gov Plan Finder shows premiums by plan\n• If unsure, $35/month is a reasonable estimate">Part D Monthly</label><input type="number" id="wdHcPartD" value="35" min="0" max="500" step="5" placeholder="35"></div>`;
+  html+=`<div class="wd-field"><label title="Monthly premium for a Medicare Supplement (Medigap) or Medicare Advantage plan.\n\nWhat this covers:\nMedigap plans cover the 'gaps' in Original Medicare — deductibles, copays, coinsurance.\nMedicare Advantage (Part C) is an alternative that bundles everything.\n\nTypical 2025 costs:\n• Medigap Plan G (most popular): $150–$300/month depending on age, gender, and state\n• Medigap Plan N: $100–$200/month\n• Medicare Advantage: $0–$50/month (but may have higher copays)\n\n💡 Medigap premiums increase with age. The engine applies medical inflation to this amount.\n💡 If you plan to use Medicare Advantage ($0 premium), set this to $0.">Medigap/Supplement Monthly</label><input type="number" id="wdHcMedigap" value="200" min="0" max="1000" step="25" placeholder="200"></div>`;
+  html+=`</div>`;
+  /* Shared fields */
+  html+=`<div style="font-weight:600;font-size:0.85em;margin:14px 0 6px;color:#0891b2;border-top:1px solid var(--border);padding-top:10px">📊 General Healthcare Settings</div>`;
+  html+=`<div class="wd-inputs">`;
+  html+=`<div class="wd-field"><label title="Estimated annual out-of-pocket medical expenses beyond insurance premiums.\n\nIncludes:\n• Doctor visit copays and coinsurance\n• Prescription copays (not covered by Part D)\n• Dental and vision (not covered by Medicare)\n• Medical devices, hearing aids\n• Lab work and diagnostic copays\n\nTypical estimates:\n• Healthy retiree: $2,000–$4,000/year\n• Average retiree: $4,000–$6,000/year\n• Chronic conditions: $6,000–$10,000+/year\n\nFidelity's 2024 estimate: $165,000 lifetime for a couple at 65 ≈ $3,300/person/year.\n\n💡 This amount qualifies for tax-free HSA withdrawals.\n💡 Dental and vision alone average $1,000–$2,000/year for retirees.">Annual Out-of-Pocket</label><input type="number" id="wdHcOOP" value="4000" min="0" max="50000" step="500" placeholder="4000"></div>`;
+  html+=`<div class="wd-field"><label title="The annual rate at which healthcare costs increase.\n\nHistorical medical inflation: 5–7% per year (significantly higher than general inflation of ~3%).\n\nWhy it matters:\n• A $10,000/year healthcare cost at age 65 becomes ~$26,500 by age 85 at 5% medical inflation\n• Using general inflation (3%) would underestimate this to ~$18,000 — a $8,500/year gap\n\nThis rate applies to ALL healthcare costs (premiums, out-of-pocket, Medicare).\nGeneral inflation still applies to your lifestyle spending.\n\nRecommended: 5–6% for conservative planning.">Medical Inflation %</label><input type="number" id="wdHcInflation" value="5.5" min="0" max="12" step="0.5"></div>`;
+  html+=`</div>`;
+  html+=`</div>`;
+
   /* One-Time Spendings — checkbox toggle */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdOneTimeSpendToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdOneTimeSpendToggle','wdOneTimeSpendPanel')"> 🛒 Include One-Time Spendings</label><span class="wd-sub-chevron disabled" data-sub-panel="wdOneTimeSpendPanel" onclick="_wdSubToggle('wdOneTimeSpendToggle','wdOneTimeSpendPanel')" title="Collapse/Expand">▸</span></div>`;
+  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdOneTimeSpendToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdOneTimeSpendToggle','wdOneTimeSpendPanel')"> 🛒 Include One-Time Spendings</label><span class="wd-sub-chevron disabled" data-sub-panel="wdOneTimeSpendPanel" onclick="_wdSubToggle('wdOneTimeSpendToggle','wdOneTimeSpendPanel')" title="Collapse/Expand">▶</span></div>`;
   html+=`<div id="wdOneTimeSpendPanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #e11d48;box-shadow:var(--shadow-sm)">`;
   html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:#e11d48">🛒 One-Time Spendings</div>`;
   html+=`<p class="wd-desc" style="margin:4px 0 10px">Planned one-time expenses by year (in today's dollars — inflation-adjusted in simulations). Multiple entries per year are allowed. These are added on top of your regular spending phases.</p>`;
@@ -6974,8 +7089,9 @@ function renderWithdrawals(){
   html+=`</div>`;
 
   /* Shared fields — Return, Volatility, Inflation, Tax, Conversions */
-  html+=`<div class="wd-inputs" style="margin-top:16px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--text-muted);box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:10px;color:var(--text-muted)">⚙️ Plan Assumptions & Roth Strategy</div>`;
+  html+=`<div style="font-weight:700;font-size:0.92em;margin:16px 0 6px;color:var(--text-muted)">⚙️ Plan Assumptions & Roth Strategy</div>`;
+  html+=`<div style="padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--text-muted);box-shadow:var(--shadow-sm)">`;
+  html+=`<div class="wd-inputs">`;
   html+=`<div class="wd-field"><label title="The average annual portfolio return assumed for the plan (nominal, before inflation).\n\nTypical values:\n• Conservative (bonds-heavy): 4–5%\n• Balanced (60/40): 6–7%\n• Aggressive (equity-heavy): 8–10%\n\n⚡ If Retirement Glide Path is enabled, this value is automatically overridden each year based on your age-adjusted equity/bond allocation. Your entered value is saved and restored when glide path is disabled.">Expected Return %</label><input type="number" id="wdReturn" value="6" min="1" max="15" step="0.5"></div>`;
   html+=`<div class="wd-field"><label title="The annual standard deviation of returns, used for Monte Carlo simulation.\n\nHigher volatility = wider range of outcomes = more uncertainty.\n\nTypical values:\n• Bonds-heavy: 8–10%\n• Balanced (60/40): 12–15%\n• Equity-heavy: 18–25%\n\n⚡ If Retirement Glide Path is enabled, this value is automatically overridden each year based on your age-adjusted equity/bond allocation. Your entered value is saved and restored when glide path is disabled.">Volatility %</label><input type="number" id="wdVol" value="15" min="5" max="40" step="1"></div>`;
   html+=`<div class="wd-field"><label title="The expected average annual inflation rate.\n\nUsed to:\n• Grow your spending needs each year\n• Adjust Social Security benefits (COLA)\n• Convert future values to present value (today's dollars)\n• Grow income streams in the Income section\n\nHistorical US average: ~3%. Recent years: 3–6%.">Inflation %</label><input type="number" id="wdInflation" value="3" min="0" max="10" step="0.5"></div>`;
@@ -6986,13 +7102,11 @@ function renderWithdrawals(){
   html+=`<div class="wd-field" id="wdCustomPctWrap" style="display:none"><label title="Your target federal marginal tax bracket for Roth conversions.\n\nEach year, the plan converts enough Traditional IRA to fill up to this bracket.\nHigher % = larger annual conversions = more tax paid now but more Roth growth.\n\n2025 brackets (MFJ): 10%, 12%, 22%, 24%, 32%, 35%, 37%">Custom Bracket %</label><input type="number" id="wdCustomPct" value="15" min="1" max="37" step="1"></div>`;
   html+=`<div class="wd-field" id="wdConvAgeWrap" style="display:none"><label title="The age to begin Roth conversions.\n\nTypically set to retirement age when your earned income drops and you're in a lower tax bracket.\nEarlier start = more years of conversions = smaller annual amounts.">Conv. Start Age</label><input type="number" id="wdConvStartAge" value="60" min="30" max="90" step="1"></div>`;
   html+=`<div class="wd-field" id="wdConvEndWrap" style="display:none"><label title="The age to stop Roth conversions.\n\nAutomatically set to one year before your Required Minimum Distribution (RMD) start age, which depends on birth year:\n• Born 1950 or earlier: RMDs at 72 → conversions end at 71\n• Born 1951–1959: RMDs at 73 → conversions end at 72\n• Born 1960+: RMDs at 75 → conversions end at 74\n\nAfter this age, RMDs force taxable withdrawals from Traditional accounts.\nConversions are capped at this age in the simulation.">Conv. End Age</label><input type="number" id="wdConvEndAge" value="72" min="30" max="90" step="1"></div>`;
-  html+=`</div>`;
-
-  /* Retirement Glide Path — checkbox toggle (like Spouse/Income) */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdGlideToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdGlideToggle','wdGlidePanel',onGlideToggleChange)"> 📉 Enable Retirement Glide Path</label><span class="wd-sub-chevron disabled" data-sub-panel="wdGlidePanel" onclick="_wdSubToggle('wdGlideToggle','wdGlidePanel')" title="Collapse/Expand">▸</span></div>`;
-  html+=`<div id="wdGlidePanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--warning, #f59e0b);box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:var(--warning, #f59e0b)">📉 Retirement Glide Path</div>`;
-  html+=`<p class="wd-desc" style="margin:4px 0 12px">Gradually shift from higher equity (higher return/risk) to lower equity (lower return/risk) as you age. This reduces sequence-of-returns risk in retirement. When enabled, Expected Return and Volatility are derived from your allocation blend each year.</p>`;
+  html+=`</div>`; /* close wd-inputs grid */
+  /* Retirement Glide Path — inside Plan Assumptions card (overrides Return/Volatility) */
+  html+=`<div class="wd-sub-header" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdGlideToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdGlideToggle','wdGlidePanel',onGlideToggleChange)"> 📉 Enable Retirement Glide Path</label><span class="wd-sub-chevron disabled" data-sub-panel="wdGlidePanel" onclick="_wdSubToggle('wdGlideToggle','wdGlidePanel')" title="Collapse/Expand">▶</span></div>`;
+  html+=`<div id="wdGlidePanel" style="display:none;margin-top:10px;padding:14px 16px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:4px solid var(--warning, #f59e0b)">`;
+  html+=`<p class="wd-desc" style="margin:0 0 12px">Gradually shift from higher equity (higher return/risk) to lower equity (lower return/risk) as you age. When enabled, Expected Return and Volatility above are overridden each year.</p>`;
   html+=`<div class="wd-inputs" style="margin-bottom:12px">`;
   html+=`<div class="wd-field"><label title="How the equity/bond mix changes over time.\n\nAuto (age-based rule): Uses '110 minus age' — e.g., at age 60 you hold 50% equity.\nEquity range is capped at 20%–80%. Return and volatility are blended from Capital Market Assumptions.\n\nCustom Waypoints: Define your own equity % at specific ages.\nChoose 'Gradual' for smooth transitions or 'Step' to hold flat between waypoints.">Glide Strategy</label><select id="wdGlideMode" onchange="onGlideModeChange(this.value)"><option value="glidepath">Auto (age-based rule)</option><option value="custom">Custom Waypoints</option></select></div>`;
   html+=`</div>`;
@@ -7013,7 +7127,8 @@ function renderWithdrawals(){
   html+=`</div>`;
   html+=`<div id="glideMiniChart" style="margin-top:10px"></div>`;
   html+=`<div id="glideSchedulePreview" style="font-size:0.78em;color:var(--text-muted);margin-top:6px"></div>`;
-  html+=`</div>`;
+  html+=`</div>`; /* close wdGlidePanel */
+  html+=`</div>`; /* close Plan Assumptions card */
 
   html+=_wdSecClose();
 
@@ -7032,14 +7147,14 @@ function renderWithdrawals(){
   const retInit=document.getElementById('wdReturn');
   const volInit=document.getElementById('wdVol');
   if(retInit&&!retInit.getAttribute('data-fixed-return')){
-    const v=window._savedFixedReturn||retInit.defaultValue||'6';
+    const v=window._savedFixedReturn??retInit.defaultValue??'6';
     retInit.setAttribute('data-fixed-return',v);
-    if(!window._savedFixedReturn) window._savedFixedReturn=v;
+    if(window._savedFixedReturn==null) window._savedFixedReturn=v;
   }
   if(volInit&&!volInit.getAttribute('data-fixed-vol')){
-    const v=window._savedFixedVol||volInit.defaultValue||'15';
+    const v=window._savedFixedVol??volInit.defaultValue??'15';
     volInit.setAttribute('data-fixed-vol',v);
-    if(!window._savedFixedVol) window._savedFixedVol=v;
+    if(window._savedFixedVol==null) window._savedFixedVol=v;
   }
   /* Default contribution start/end age to current age → retirement age if not previously saved */
   const contribSavedRaw=localStorage.getItem(SETTINGS_KEY);
@@ -7267,8 +7382,9 @@ function computeWithdrawalPlan(){
   /* Income & Savings Streams validation — only when enabled */
   const contribToggleChecked=document.getElementById('wdContribToggle')?.checked||false;
   if(contribToggleChecked){
-    const contribMode=document.getElementById('wdContribMode')?.value||'flat';
-    if(contribMode==='flat'){
+    /* Validate recurring contribution fields only when recurring sub-toggle is checked */
+    const recurringChecked=document.getElementById('wdContribRecurringToggle')?.checked!==false;
+    if(recurringChecked){
       const csA=parseInt(document.getElementById('wdContribStartAge')?.value);
       const ceA=parseInt(document.getElementById('wdContribEndAge')?.value);
       if(Number.isFinite(csA)&&Number.isFinite(ceA)&&csA>ceA) vErr('wdContribStartAge','Income From Age ('+csA+') > To Age ('+ceA+')');
@@ -7349,16 +7465,18 @@ function computeWithdrawalPlan(){
 
   /* Project growth to retirement — with income/savings contributions */
   const contribEnabled=document.getElementById('wdContribToggle')?.checked||false;
-  const contribSchedule=contribEnabled?getContribSchedule():null; /* null if flat mode or disabled */
-  const contrib401k=contribEnabled?(parseFloat(document.getElementById('wdContrib401k')?.value||'0')):0;
-  const contribMatch=contribEnabled?(parseFloat(document.getElementById('wdContribMatch')?.value||'0')):0;
-  const contribIRA=contribEnabled?(parseFloat(document.getElementById('wdContribIRA')?.value||'0')):0;
-  const contribTaxable=contribEnabled?(parseFloat(document.getElementById('wdContribTaxable')?.value||'0')):0;
-  const contribHSA=contribEnabled?(parseFloat(document.getElementById('wdContribHSA')?.value||'0')):0;
-  const contribStartAge=contribEnabled?parseInt(document.getElementById('wdContribStartAge')?.value||curAge):curAge;
-  const contribEndAge=contribEnabled?parseInt(document.getElementById('wdContribEndAge')?.value||retAge):retAge;
-  const hasContribs=contribSchedule?(contribSchedule.some(r=>(r.c401k+r.match+r.ira+r.taxable+r.hsa)>0))
-    :(contrib401k+contribMatch+contribIRA+contribTaxable+contribHSA)>0;
+  const contribRecurringOn=contribEnabled&&(document.getElementById('wdContribRecurringToggle')?.checked!==false);
+  const contribYearlyOn=contribEnabled&&(document.getElementById('wdContribYearlyToggle')?.checked!==false);
+  const contribSchedule=contribYearlyOn?getContribSchedule():null;
+  const contrib401k=contribRecurringOn?(parseFloat(document.getElementById('wdContrib401k')?.value||'0')):0;
+  const contribMatch=contribRecurringOn?(parseFloat(document.getElementById('wdContribMatch')?.value||'0')):0;
+  const contribIRA=contribRecurringOn?(parseFloat(document.getElementById('wdContribIRA')?.value||'0')):0;
+  const contribTaxable=contribRecurringOn?(parseFloat(document.getElementById('wdContribTaxable')?.value||'0')):0;
+  const contribHSA=contribRecurringOn?(parseFloat(document.getElementById('wdContribHSA')?.value||'0')):0;
+  const contribStartAge=contribRecurringOn?parseInt(document.getElementById('wdContribStartAge')?.value||curAge):curAge;
+  const contribEndAge=contribRecurringOn?parseInt(document.getElementById('wdContribEndAge')?.value||retAge):retAge;
+  const hasContribs=(contrib401k+contribMatch+contribIRA+contribTaxable+contribHSA)>0
+    ||(contribSchedule&&contribSchedule.some(r=>(r.c401k+r.match+r.ira+r.taxable+r.hsa)>0));
 
   /* Build age-keyed contribution lookup for year-by-year mode */
   const contribByAge={};
@@ -7366,18 +7484,18 @@ function computeWithdrawalPlan(){
     contribSchedule.forEach(r=>{ contribByAge[r.age]={c401k:r.c401k,match:r.match,ira:r.ira,taxable:r.taxable,hsa:r.hsa}; });
   }
 
-  /* Helper: get contribution for a given age */
+  /* Helper: get contribution for a given age — additive: flat base + year-specific entries */
   function getContribForAge(age){
-    if(contribSchedule){
-      /* Year-by-year: lookup by age */
-      return contribByAge[age]||{c401k:0,match:0,ira:0,taxable:0,hsa:0};
-    } else {
-      /* Flat mode: only apply within start/end age range */
-      if(age>=contribStartAge && age<=contribEndAge){
-        return {c401k:contrib401k,match:contribMatch,ira:contribIRA,taxable:contribTaxable,hsa:contribHSA};
-      }
-      return {c401k:0,match:0,ira:0,taxable:0,hsa:0};
+    const c={c401k:0,match:0,ira:0,taxable:0,hsa:0};
+    /* 1. Add recurring/flat amounts if within age range */
+    if(age>=contribStartAge && age<=contribEndAge){
+      c.c401k+=contrib401k; c.match+=contribMatch;
+      c.ira+=contribIRA; c.taxable+=contribTaxable; c.hsa+=contribHSA;
     }
+    /* 2. Add year-specific entries on top */
+    const yr=contribByAge[age];
+    if(yr){ c.c401k+=yr.c401k; c.match+=yr.match; c.ira+=yr.ira; c.taxable+=yr.taxable; c.hsa+=yr.hsa; }
+    return c;
   }
 
   /* Build one-time spendings age-keyed lookup */
@@ -7387,9 +7505,26 @@ function computeWithdrawalPlan(){
   const oneTimeByAge=buildOneTimeSpendByAge(otsSchedule,curAge,curYear);
   const oneTimeItemsByAge=buildOneTimeItemsByAge(otsSchedule,curAge,curYear);
 
+  /* Healthcare cost function. When HC panel exists but toggle is off, use zero function
+     (user explicitly chose no healthcare modeling). When panel doesn't exist (legacy), null → $5k fallback. */
+  const hcToggleEl=document.getElementById('wdHealthcareToggle');
+  const hcEnabled=hcToggleEl?.checked||false;
+  const _zeroHc=function(){return{total:0,qualifiedMedical:0};};
+  const hcCostFn=hcEnabled?buildHealthcareCostForAge({
+    pre65Premium:document.getElementById('wdHcPre65Premium')?.value,
+    pre65StartAge:document.getElementById('wdHcPre65StartAge')?.value,
+    partB:document.getElementById('wdHcPartB')?.value,
+    partD:document.getElementById('wdHcPartD')?.value,
+    medigap:document.getElementById('wdHcMedigap')?.value,
+    oop:document.getElementById('wdHcOOP')?.value,
+    medInflPct:document.getElementById('wdHcInflation')?.value,
+    curAge:curAge,
+    spouseAge:hasSpouse?spAge:null
+  }):(hcToggleEl?_zeroHc:null);
+
   /* Validation warnings */
   const contribWarnings=[];
-  if(!contribSchedule && contribEndAge>retAge && (contrib401k>0||contribMatch>0)){
+  if(contribEndAge>retAge && (contrib401k>0||contribMatch>0)){
     contribWarnings.push('401k/match contributions are set past retirement age — they will be treated as taxable side income for post-retirement years.');
   }
   if(contribSchedule){
@@ -7502,6 +7637,9 @@ function computeWithdrawalPlan(){
     /* Add one-time spendings for this age (today's dollars, inflation-adjusted) */
     const otsForAge=oneTimeByAge[age]||0;
     if(otsForAge>0) totalSpendingNeed+=otsForAge*inflMult;
+    /* Add healthcare costs (uses medical inflation, not general inflation) */
+    const hcCost=hcCostFn?hcCostFn(age):{total:0,qualifiedMedical:0};
+    totalSpendingNeed+=hcCost.total;
 
     /* Portfolio withdrawal = spending need minus SS income minus post-retirement side income */
     const incomeSurplus=Math.max(0,ssIncome+postRetIncome-totalSpendingNeed);
@@ -7521,12 +7659,12 @@ function computeWithdrawalPlan(){
     let wTaxable=0,wDeferred=0,wRoth=0,wHSA=0;
     let remaining=targetWithdraw;
 
-    /* HSA: preserve until age 65+ (Medicare age), then use for medical expenses.
-       Before 65: no HSA withdrawals (let it grow tax-free — triple tax advantage).
-       After 65: modest medical expense allocation (~5K/yr inflation-adjusted).
+    /* HSA: use for qualified medical expenses first (tax-free).
+       If healthcare modeling is enabled, qualifiedMedical = actual healthcare cost.
+       Otherwise, legacy estimate: $5K/yr after 65, inflation-adjusted.
        HSA is also used as last-resort for any remaining need (taxed as ordinary income after 65). */
-    const annualMedical=age>=65?5000*Math.pow(1+inflPct,age-curAge):0;
-    if(age>=65&&bHSA>0){
+    const annualMedical=hcCostFn?hcCost.qualifiedMedical:(age>=65?5000*Math.pow(1+inflPct,age-curAge):0);
+    if(bHSA>0&&annualMedical>0){
       wHSA=Math.min(annualMedical,bHSA,remaining);
       remaining-=wHSA;
     }
@@ -7964,7 +8102,7 @@ function computeWithdrawalPlan(){
     spSSStartAge:hasSpouse?spSSStartAge:0,hasSpouse,
     spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
     curAge,spAge:hasSpouse?spAge:0,iraBasis,
-    rothConvStrategy,convBracketLimit,convStartAge,convEndAge,brackets,RMD_START_AGE,spendingPhases,hasPhases,stateTaxPct,getContribForAge,glideSchedule,oneTimeByAge};
+    rothConvStrategy,convBracketLimit,convStartAge,convEndAge,brackets,RMD_START_AGE,spendingPhases,hasPhases,stateTaxPct,getContribForAge,glideSchedule,oneTimeByAge,hcCostFn};
   const mc=runMonteCarlo(mcParams);
   const hist=runHistoricalBacktest(mcParams);
   const deterministicLabel=glideSchedule
@@ -7981,7 +8119,7 @@ function computeWithdrawalPlan(){
     spAgeOffset:hasSpouse?spAgeOffset:0,lifeExp,spLifeExp:hasSpouse?spLifeExp:0,
     overrides:{}, /* {rowIdx: {taxableW, deferredW, rothW, hsaW}} */
     glideMode,glideSchedule,convBracketLimit,rothConvStrategy,spendingPhases,hasPhases,planEndAge,CONV_LIMITS,convStartAge,convEndAge,
-    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,noneCumTax:noneResult.cumTax,stateTaxPct,iraBasis,getContribForAge,oneTimeByAge,oneTimeItemsByAge,
+    bTaxableInit,bDeferredInit,bRothInit,bHSAInit,noneCumTax:noneResult.cumTax,stateTaxPct,iraBasis,getContribForAge,oneTimeByAge,oneTimeItemsByAge,hcCostFn,
     acctBuckets:{taxable:buckets.taxable.accounts,deferred:buckets.deferred.accounts,roth:buckets.roth.accounts,hsa:buckets.hsa.accounts}};
 
   /* "See Suggestions" button — above withdrawal table */
@@ -8574,7 +8712,8 @@ function renderWdTable(){
     /* Check for overrides */
     const ov=overrides[i];
     let wTaxable,wDeferred,wRoth,wHSA,overridden=false;
-    const annualMedical=age>=65?5000*inflMult:0;
+    const ovHc=ctx.hcCostFn?ctx.hcCostFn(age):{total:0,qualifiedMedical:0};
+    const annualMedical=ctx.hcCostFn?ovHc.qualifiedMedical:(age>=65?5000*inflMult:0);
     if(ov){
       overridden=true;
       wTaxable=Math.min(ov.taxableW!=null?ov.taxableW:br.taxableW,bTaxable);
@@ -8589,6 +8728,7 @@ function renderWdTable(){
       if(!hasPhases) need=Math.max(curTotal*0.035,Math.min(curTotal*0.055,need));
       const recalcOts=oneTimeByAge?oneTimeByAge[age]:0;
       if(recalcOts>0) need+=recalcOts*inflMult;
+      if(ovHc.total>0) need+=ovHc.total;
       let target=Math.max(0,need-ssIncome-ovrPostRetIncome);
       target=Math.min(target,curTotal);
       let rmd=0;
@@ -8598,7 +8738,7 @@ function renderWdTable(){
       }
       wTaxable=0;wDeferred=0;wRoth=0;wHSA=0;
       let rem=target;
-      if(age>=65&&bHSA>0){ const med=Math.min(annualMedical,bHSA,rem); wHSA=med; rem-=med; }
+      if(bHSA>0&&annualMedical>0){ const med=Math.min(annualMedical,bHSA,rem); wHSA=med; rem-=med; }
       if(age>=RMD_START_AGE){
         wDeferred=Math.min(rmd,bDeferred); rem-=wDeferred;
         if(rem>0){ const f=Math.min(rem,bTaxable); wTaxable=f; rem-=f; }
@@ -9522,7 +9662,7 @@ function showWithdrawalSuggestions(){
     curAge,spAge,iraBasis,
     rothConvStrategy:conv,convBracketLimit:mcConvLimit,convStartAge,convEndAge,brackets,
     RMD_START_AGE:dynRmdAge,stateTaxPct:stax,getContribForAge:ctx.getContribForAge,glideSchedule:ctx.glideSchedule,
-    oneTimeByAge:ctx.oneTimeByAge||{},
+    oneTimeByAge:ctx.oneTimeByAge||{},hcCostFn:ctx.hcCostFn,
   };
 
   function _mcSuccessRate(monthly,targetFV,nSims){
@@ -9550,7 +9690,7 @@ function showWithdrawalSuggestions(){
       hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,
       stateTaxPct:stax,customBracketLimit:customBracketLimitVal,iraBasis,
       getContribForAge:ctx.getContribForAge,glideSchedule:ctx.glideSchedule,
-      oneTimeByAge:ctx.oneTimeByAge||{},
+      oneTimeByAge:ctx.oneTimeByAge||{},hcCostFn:ctx.hcCostFn,
     };
     const _ssBoost=Math.round((ssMonthly||0)+(hasSpouse?(spSSMonthly||0):0));
     let hi=Math.max(Math.round(totalAtRetire*0.12/12),Math.round(totalAtRetire/(Math.max(yearsInRetirement,1)*12)*2))+_ssBoost;
@@ -9587,10 +9727,9 @@ function showWithdrawalSuggestions(){
       hasSpouse,spAge,spLifeExp,spSSMonthly,spSSStartAge,
       stateTaxPct:stax,customBracketLimit:customBracketLimitVal,iraBasis,
       getContribForAge:ctx.getContribForAge,glideSchedule:ctx.glideSchedule,
-      oneTimeByAge:ctx.oneTimeByAge||{},
+      oneTimeByAge:ctx.oneTimeByAge||{},hcCostFn:ctx.hcCostFn,
     };
-    /* Upper bound: portfolio draw + SS income (SS covers part of spending, so max
-       spend can exceed portfolio-only draw rate) */
+    /* Upper bound: portfolio draw + SS income */
     const _ssBoost=Math.round((ssMonthly||0)+(hasSpouse?(spSSMonthly||0):0));
     let hi=Math.max(Math.round(totalAtRetire*0.12/12),Math.round(totalAtRetire/(Math.max(yearsInRetirement,1)*12)*2))+_ssBoost;
     if(hi<1000) hi=10000;
@@ -9646,7 +9785,7 @@ function showWithdrawalSuggestions(){
           spendPhases:phases,stateTaxPct:stax,
           customBracketLimit:customBracketLimitVal,iraBasis,
           getContribForAge:ctx.getContribForAge,glideSchedule:ctx.glideSchedule,
-          oneTimeByAge:ctx.oneTimeByAge||{},
+          oneTimeByAge:ctx.oneTimeByAge||{},hcCostFn:ctx.hcCostFn,
         });
         const last=sim.rows[sim.rows.length-1];
         const endBal=last?(last.bTaxable+last.bDeferred+last.bRoth+last.bHSA):0;
@@ -9742,13 +9881,22 @@ function showWithdrawalSuggestions(){
     /* Compare in Scenarios button */
     /* Fingerprint all parameters so cache is invalidated if user changes ANY assumption */
     const _glideFp=ctx.glideSchedule?JSON.stringify(ctx.glideSchedule.map(g=>[g.age,Math.round(g.eqPct||0)])):'fixed';
-    const _suggFp=[retPct*100,inflPct*100,ssMonthly,ssStartAge,conv,retAge,lifeExp,stax*100,
-      curAge,filing,vol*100,hasSpouse?1:0,spAge,spLifeExp,spSSMonthly,spSSStartAge,
-      customPct,convStartAge,convEndAge,iraBasis,
-      contribEnabled?1:0,contribMode,contribStartAge,contribEndAge,
-      contrib401k,contribMatch,contribIRA,contribTaxable,contribHSA,
-      contribSchedule?JSON.stringify(contribSchedule.map(r=>[r.year,r.age,r.c401k,r.match,r.ira,r.taxable,r.hsa])):'flat',
-      bTI,bDI,bRI,bHI,_glideFp].join('|');
+    const _suggContribFp=contribSchedule?JSON.stringify(contribSchedule.map(r=>[r.year,r.age,r.c401k,r.match,r.ira,r.taxable,r.hsa])):'flat';
+    const _suggOtsFp=saved._oneTimeSpendings?JSON.stringify(saved._oneTimeSpendings.map(r=>[r.year,r.amount])):'none';
+    const _suggFp=_buildSettingsFp({
+      ret:parseFloat(saved.wdReturn||'7'),infl:parseFloat(saved.wdInflation||'3'),
+      ss:ssMonthly,ssAge:ssStartAge,conv,retire:retAge,life:lifeExp,stax:parseFloat(saved.wdStateTax||'0'),
+      age:curAge,filing,vol:parseFloat(saved.wdVol||'12'),hasSpouse,spAge,spLife:spLifeExp,spSS:spSSMonthly,spSSAge:spSSStartAge,
+      customPct,convStart:convStartAge,convEnd:convEndAge,iraBasis:saved.wdIRABasis||'0',
+      contribToggle:saved.wdContribToggle,contribRecurring:saved.wdContribRecurringToggle,contribYearly:saved.wdContribYearlyToggle,
+      contribMode:saved._contribMode||saved.wdContribMode||'flat',contribStartAge:saved.wdContribStartAge||'',contribEndAge:saved.wdContribEndAge||'',
+      contrib401k:saved.wdContrib401k||'',contribMatch:saved.wdContribMatch||'',contribIRA:saved.wdContribIRA||'',contribTaxable:saved.wdContribTaxable||'',contribHSA:saved.wdContribHSA||'',
+      contribScheduleFp:_suggContribFp,
+      hcToggle:saved.wdHealthcareToggle,hcPre65Premium:saved.wdHcPre65Premium,hcStartAge:saved.wdHcPre65StartAge,
+      hcPartB:saved.wdHcPartB,hcPartD:saved.wdHcPartD,hcMedigap:saved.wdHcMedigap,hcOOP:saved.wdHcOOP,hcInflation:saved.wdHcInflation,
+      otsToggle:saved.wdOneTimeSpendToggle,otsFp:_suggOtsFp,
+      bTI,bDI,bRI,bHI,glideFp:_glideFp
+    });
     window._suggestionScenarios=results.map(r=>({monthly:r.monthly,label:r.label,target:r.target,
       mcSuccess:r.mcSuccess,totalAfterTax:r.totalAfterTax,lifetimeTax:r.lifetimeTax,
       totalConversions:r.totalConversions,cumConvTax:r.cumConvTax,
@@ -10170,7 +10318,7 @@ function renderScenarios(){
   window._scPhaseChanged=onScenarioInputChange;
   el.querySelectorAll('#scenGrid input, #scenGrid select, #scenPhases input, #scSharedAge, #scSharedFiling, #scSharedVol, #scSharedGlide, #scSharedSpouse, #scSharedSpAge, #scSharedSpLife, #scSharedSpSS, #scSharedSpSSAge').forEach(inp=>{inp.addEventListener('change',onScenarioInputChange);inp.addEventListener('input',onScenarioInputChange);});
   /* Restore cached results if available and settings haven't changed */
-  window._scenFP=()=>{try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return JSON.stringify({sc:s._scenarios||[],age:s.scSharedAge,fil:s.scSharedFiling,vol:s.scSharedVol,gl:s.scSharedGlide,sp:s.scSharedSpouse,spA:s.scSharedSpAge,spL:s.scSharedSpLife,spS:s.scSharedSpSS,spSA:s.scSharedSpSSAge,sel:s._selectedAccounts,gw:s._glideWaypoints,gi:s._glideInterp,cm:s._contribMode,cs:s._contribSchedule,ots:s._oneTimeSpendings,otsOn:s.wdOneTimeSpendToggle,glt:s.wdGlideToggle,glm:s.wdGlideMode,ira:s.wdIRABasis,ct:s.wdContribToggle,c4:s.wdContrib401k,cM:s.wdContribMatch,cI:s.wdContribIRA,cT:s.wdContribTaxable,cH:s.wdContribHSA,cSa:s.wdContribStartAge,cEa:s.wdContribEndAge,wa:s.wdAge,wf:s.wdFiling});}catch(e){return '';}};
+  window._scenFP=()=>{try{const s=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');return JSON.stringify({sc:s._scenarios||[],age:s.scSharedAge,fil:s.scSharedFiling,vol:s.scSharedVol,gl:s.scSharedGlide,sp:s.scSharedSpouse,spA:s.scSharedSpAge,spL:s.scSharedSpLife,spS:s.scSharedSpSS,spSA:s.scSharedSpSSAge,sel:s._selectedAccounts,gw:s._glideWaypoints,gi:s._glideInterp,cm:s._contribMode,cs:s._contribSchedule,ots:s._oneTimeSpendings,otsOn:s.wdOneTimeSpendToggle,glt:s.wdGlideToggle,glm:s.wdGlideMode,ira:s.wdIRABasis,ct:s.wdContribToggle,crt:s.wdContribRecurringToggle,cyt:s.wdContribYearlyToggle,c4:s.wdContrib401k,cM:s.wdContribMatch,cI:s.wdContribIRA,cT:s.wdContribTaxable,cH:s.wdContribHSA,cSa:s.wdContribStartAge,cEa:s.wdContribEndAge,wa:s.wdAge,wf:s.wdFiling,hcT:s.wdHealthcareToggle,hcP65:s.wdHcPre65Premium,hcSA:s.wdHcPre65StartAge,hcB:s.wdHcPartB,hcD:s.wdHcPartD,hcM:s.wdHcMedigap,hcO:s.wdHcOOP,hcI:s.wdHcInflation});}catch(e){return '';}};
   if(window._scenResultsCache&&window._scenCacheFP===window._scenFP()){
     const r=document.getElementById('scenResults');
     if(r){
@@ -10251,13 +10399,16 @@ function _scenarioSim(p){
     /* Add one-time spendings */
     const scnOts=oneTimeByAge?oneTimeByAge[age]:0;
     if(scnOts>0) totalNeed+=scnOts*inflMult;
+    /* Add healthcare costs */
+    const scnHc=p.hcCostFn?p.hcCostFn(age):{total:0,qualifiedMedical:0};
+    if(scnHc.total>0) totalNeed+=scnHc.total;
     const incomeSurplus=Math.max(0,ssIncome+postRetIncome-totalNeed);
     let target=Math.max(0,Math.min(totalNeed-ssIncome-postRetIncome,curTot));
     let rmd=0;
     if(age>=RMD_AGE&&bD>0){const div=RMD_TABLE[age]??(age>120?2:Math.max(2,120-age));rmd=bD/div;}
     let wTx=0,wDf=0,wRo=0,wHs=0,rem=target;
-    const annMed=age>=65?5000*Math.pow(1+inflPct,age-curAge):0;
-    if(age>=65&&bH>0){wHs=Math.min(annMed,bH,rem);rem-=wHs;}
+    const annMed=p.hcCostFn?scnHc.qualifiedMedical:(age>=65?5000*Math.pow(1+inflPct,age-curAge):0);
+    if(bH>0&&annMed>0){wHs=Math.min(annMed,bH,rem);rem-=wHs;}
     if(age>=RMD_AGE){wDf=Math.min(rmd,bD);rem-=wDf;if(rem>0){const ft=Math.min(rem,bT);wTx=ft;rem-=ft;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}}
     else{const ft=Math.min(rem,bT);wTx=ft;rem-=ft;if(rem>0){const bl=(filing==='mfj'?206700:103350)+stdDed;const dt=Math.min(rem,bl,bD);wDf=dt;rem-=dt;}if(rem>0){const fr=Math.min(rem,bR);wRo=fr;rem-=fr;}if(rem>0){const md=Math.min(rem,bD-wDf);wDf+=md;rem-=md;}}
     if(rem>0&&bH>wHs){const mh=Math.min(rem,bH-wHs);wHs+=mh;rem-=mh;}
@@ -10412,6 +10563,21 @@ function runScenarioComparison(){
 
       let bTI=buckets.taxable.total,bDI=buckets.deferred.total,bRI=buckets.roth.total,bHI=buckets.hsa.total;
       const scenarioContribForAge=window._wdCtx?.getContribForAge||buildContribForAgeFromSettings(saved);
+      const _scenHcCostFn=(function(){
+        if(window._wdCtx?.hcCostFn && window._wdCtx.curAge===age
+          && !!window._wdCtx.hasSpouse===hasSpouse
+          && (!hasSpouse || (window._wdCtx.curAge+window._wdCtx.spAgeOffset)===spAge))
+          return window._wdCtx.hcCostFn;
+        const hcEnabled=saved.wdHealthcareToggle===true||saved.wdHealthcareToggle==='true';
+        const hcFieldExists=saved.wdHealthcareToggle!=null;
+        if(!hcEnabled) return hcFieldExists?function(){return{total:0,qualifiedMedical:0};}:null;
+        return buildHealthcareCostForAge({
+          pre65Premium:saved.wdHcPre65Premium, pre65StartAge:saved.wdHcPre65StartAge,
+          partB:saved.wdHcPartB, partD:saved.wdHcPartD, medigap:saved.wdHcMedigap,
+          oop:saved.wdHcOOP, medInflPct:saved.wdHcInflation,
+          curAge:age, spouseAge:hasSpouse?spAge:null
+        });
+      })();
       /* Build one-time spend map: prefer live _wdCtx if ages match, fallback to saved settings */
       const _scenOtsByAge=(function(){
         if(window._wdCtx?.oneTimeByAge && window._wdCtx.curAge===age) return window._wdCtx.oneTimeByAge;
@@ -10461,6 +10627,7 @@ function runScenarioComparison(){
           getContribForAge:scenarioContribForAge,
           glideSchedule:scenarioGlideSchedule,
           oneTimeByAge:_scenOtsByAge,
+          hcCostFn:_scenHcCostFn,
         });
 
         const rows=sim.rows;
@@ -10490,7 +10657,7 @@ function runScenarioComparison(){
           rothConvStrategy:conv, convBracketLimit:mcConvLimit, convStartAge:scConvStart, convEndAge:Math.min(scConvEnd,dynRmdAge-1), brackets:brackets,
           RMD_START_AGE:mcRMD, spendingPhases:phases, hasPhases:phases.some(p=>p.amount>0),
           stateTaxPct:stax/100, getContribForAge:scenarioContribForAge, glideSchedule:scenarioGlideSchedule,
-          oneTimeByAge:_scenOtsByAge,
+          oneTimeByAge:_scenOtsByAge, hcCostFn:_scenHcCostFn,
         };
         const mc=runMonteCarlo(simParams);
         const hist=runHistoricalBacktest(simParams);
@@ -10513,12 +10680,20 @@ function runScenarioComparison(){
         const _popup=window._suggestionScenarios&&window._suggestionScenarios[i];
         const _scenGlideFp=scenarioGlideSchedule?JSON.stringify(scenarioGlideSchedule.map(g=>[g.age,Math.round(g.eqPct||0)])):'fixed';
         const _scenContribFp=saved._contribSchedule?JSON.stringify(saved._contribSchedule.map(r=>[r.year,r.age,r.c401k,r.match,r.ira,r.taxable,r.hsa])):'flat';
-        const _scenFp=[ret,infl,ss,ssAge,conv,retire,life,stax,
-          age,filing,vol,hasSpouse?1:0,spAge,spLife,spSS,spSSAge,
-          customPct,scConvStart,Math.min(scConvEnd,dynRmdAge-1),saved.wdIRABasis||document.getElementById('wdIRABasis')?.value||'0',
-          saved.wdContribToggle?1:0,saved.wdContribMode||'flat',saved.wdContribStartAge||'',saved.wdContribEndAge||'',
-          saved.wdContrib401k||'',saved.wdContribMatch||'',saved.wdContribIRA||'',saved.wdContribTaxable||'',saved.wdContribHSA||'',
-          _scenContribFp,bTI,bDI,bRI,bHI,_phaseFp,_scenGlideFp].join('|');
+        const _scenOtsFp=saved._oneTimeSpendings?JSON.stringify(saved._oneTimeSpendings.map(r=>[r.year,r.amount])):'none';
+        const _scenFp=_buildSettingsFp({
+          ret,infl,ss,ssAge,conv,retire,life,stax,
+          age,filing,vol,hasSpouse,spAge,spLife,spSS,spSSAge,
+          customPct,convStart:scConvStart,convEnd:Math.min(scConvEnd,dynRmdAge-1),iraBasis:saved.wdIRABasis||document.getElementById('wdIRABasis')?.value||'0',
+          contribToggle:saved.wdContribToggle,contribRecurring:saved.wdContribRecurringToggle,contribYearly:saved.wdContribYearlyToggle,
+          contribMode:saved._contribMode||saved.wdContribMode||'flat',contribStartAge:saved.wdContribStartAge||'',contribEndAge:saved.wdContribEndAge||'',
+          contrib401k:saved.wdContrib401k||'',contribMatch:saved.wdContribMatch||'',contribIRA:saved.wdContribIRA||'',contribTaxable:saved.wdContribTaxable||'',contribHSA:saved.wdContribHSA||'',
+          contribScheduleFp:_scenContribFp,
+          hcToggle:saved.wdHealthcareToggle,hcPre65Premium:saved.wdHcPre65Premium,hcStartAge:saved.wdHcPre65StartAge,
+          hcPartB:saved.wdHcPartB,hcPartD:saved.wdHcPartD,hcMedigap:saved.wdHcMedigap,hcOOP:saved.wdHcOOP,hcInflation:saved.wdHcInflation,
+          otsToggle:saved.wdOneTimeSpendToggle,otsFp:_scenOtsFp,
+          bTI,bDI,bRI,bHI,glideFp:_scenGlideFp
+        });
         /* Only apply target override when spending phases and assumptions still match the original suggestion */
         const _hasTarget=_scTarget!==undefined&&_scTarget!==null&&_scTargetMonthly&&Math.abs(_scTargetMonthly-spend)<1&&_metaPhaseFp===_phaseFp&&_scMeta&&_scMeta._fp===_scenFp;
         const _targetFV=_hasTarget?_scTarget*Math.pow(1+infl/100,planEndAge-age):0;

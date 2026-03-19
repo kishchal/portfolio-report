@@ -373,14 +373,13 @@ test('showWithdrawalSuggestions declares contribEnabled from saved settings', ()
   assert.match(fn, /const contribSchedule=/, 'contribSchedule must be declared');
 });
 
-test('suggestions fingerprint references contribution variables without ReferenceError', () => {
-  // The fingerprint line uses contribEnabled, contribMode, etc.
-  // If they are declared, the fingerprint won't throw ReferenceError
-  const fpMatch = html.match(/const _suggFp=\[[\s\S]*?\]\.join/);
-  assert.ok(fpMatch, 'Suggestions fingerprint found');
-  const fp = fpMatch[0];
-  assert.match(fp, /contribEnabled/, 'fingerprint includes contribEnabled');
-  assert.match(fp, /contribSchedule/, 'fingerprint includes contribSchedule');
+test('suggestions fingerprint uses shared _buildSettingsFp helper', () => {
+  // The fingerprint should use the shared helper for consistency with _scenFp
+  const fpMatch = html.match(/const _suggFp=_buildSettingsFp\(/);
+  assert.ok(fpMatch, 'Suggestions fingerprint uses _buildSettingsFp helper');
+  // Verify _scenFp also uses the same helper
+  const scenMatch = html.match(/const _scenFp=_buildSettingsFp\(/);
+  assert.ok(scenMatch, 'Scenario fingerprint uses _buildSettingsFp helper');
 });
 
 /* ==== Regression: glide dropdown width and return field UX ==== */
@@ -1684,6 +1683,188 @@ test('Flow series have cumTotal:true, balance series do not', () => {
 
 test('Override depleted rows include convMarginalRate:0', () => {
   assert.match(html, /rdTax,afterTax:.*rothConv:0,convTax:0,convMarginalRate:0,rmd:0,irmaa:rdIrmaa/, 'Override depleted rows have convMarginalRate:0');
+});
+
+/* ==== Hybrid Contribution Mode — UI structure ==== */
+suite('Hybrid Contribution Mode — UI structure');
+
+test('hidden wdContribMode field defaults to hybrid', () => {
+  assert.match(html, /id="wdContribMode"\s+value="hybrid"/, 'wdContribMode hidden field defaults to hybrid');
+});
+
+test('both Recurring and Year-Specific panels are rendered (no mode toggle)', () => {
+  assert.match(html, /Recurring Income & Savings/, 'Recurring panel header present');
+  assert.match(html, /Additional Year-Specific Entries/, 'Year-Specific panel header present');
+  assert.ok(!html.includes('contribModeFlat') && !html.includes('contribModeYearly'),
+    'Old mode toggle buttons should not exist');
+});
+
+test('Year-Specific description says "added on top" of recurring', () => {
+  assert.match(html, /added on top<\/strong> of the recurring amounts/, 'Additive description present');
+});
+
+test('getContribForAge is additive — adds flat base + year-specific', () => {
+  const fn = html.match(/function getContribForAge\(age\)\{[\s\S]*?^\s{2}\}/m);
+  assert.ok(fn, 'getContribForAge function found');
+  const body = fn[0];
+  assert.match(body, /c\.c401k\+=contrib401k/, 'adds flat 401k');
+  assert.match(body, /c\.c401k\+=yr\.c401k/, 'adds year-specific 401k on top');
+});
+
+test('buildContribForAge handles hybrid mode with additive logic', () => {
+  const fn = html.match(/function buildContribForAge\(settings\)\{[\s\S]*?^}/m);
+  assert.ok(fn, 'buildContribForAge function found');
+  const body = fn[0];
+  assert.match(body, /isOldYearly/, 'checks for old yearly mode to zero flat');
+  assert.match(body, /c\.c401k\+=flatContrib\.c401k/, 'additive flat');
+  assert.match(body, /c\.c401k\+=yr\.c401k/, 'additive yearly');
+});
+
+test('settings restore zeroes flat values for old yearly mode (backward compat)', () => {
+  assert.match(html, /s\._contribMode==='yearly'/, 'checks for old yearly mode during restore');
+  assert.match(html, /wdContrib401k.*wdContribMatch.*wdContribIRA.*wdContribTaxable.*wdContribHSA/, 'zeroes all flat fields');
+});
+
+test('settings restore discards stale schedule for old flat mode', () => {
+  assert.match(html, /s\._contribMode==='flat'/, 'checks for old flat mode during restore');
+  assert.match(html, /delete s\._contribSchedule/, 'discards stale yearly schedule');
+});
+
+test('settings restore sets wdContribMode to hybrid after migration', () => {
+  assert.match(html, /_cmEl\.value='hybrid'/, 'explicitly sets hidden field to hybrid after migration');
+});
+
+test('settings save always saves _contribMode as hybrid', () => {
+  assert.match(html, /s\._contribMode='hybrid'/, 'save sets mode to hybrid');
+});
+
+test('setContribMode is a backward-compat no-op that sets hybrid', () => {
+  const fn = html.match(/function setContribMode\(mode\)\{[\s\S]*?\n\}/);
+  assert.ok(fn, 'setContribMode function found');
+  assert.match(fn[0], /modeEl\.value='hybrid'/, 'always sets to hybrid');
+});
+
+test('getContribSchedule returns null when no year rows (not based on mode)', () => {
+  const fn = html.match(/function getContribSchedule\(\)\{[\s\S]*?^\}/m);
+  assert.ok(fn, 'getContribSchedule function found');
+  assert.ok(!fn[0].includes("mode==='flat'"), 'should not check for flat mode');
+  assert.match(fn[0], /rows\.length===0\) return null/, 'returns null only when no rows');
+});
+
+test('recurring contribution validation always runs (not gated by mode)', () => {
+  /* R1 fix: validation was gated by contribMode==='flat' which was dead code in computeWithdrawalPlan */
+  const fn = html.match(/function computeWithdrawalPlan\(\)\{[\s\S]*?^\}/m);
+  assert.ok(fn, 'computeWithdrawalPlan function found');
+  assert.ok(!fn[0].includes("contribMode==='flat'"), 'no dead flat-mode guard in validation');
+});
+
+test('post-retirement 401k warning fires regardless of year-specific entries', () => {
+  /* R1 fix: warning was suppressed by !contribSchedule guard */
+  assert.match(html, /contribEndAge>retAge && \(contrib401k>0/, 'warning not gated by !contribSchedule');
+});
+
+test('buildContribForAge skips stale schedule for old flat mode', () => {
+  const fn = html.match(/function buildContribForAge\(settings\)\{[\s\S]*?^}/m);
+  assert.ok(fn, 'buildContribForAge function found');
+  assert.match(fn[0], /contribMode!=='flat'/, 'skips schedule for old flat mode');
+});
+
+/* ==== Sub-toggle checkboxes for recurring and year-specific ==== */
+suite('Contribution Sub-Toggles — UI and Engine');
+
+test('recurring sub-toggle checkbox exists with correct id', () => {
+  assert.match(html, /id="wdContribRecurringToggle"/, 'recurring sub-toggle exists');
+  assert.match(html, /type="checkbox"[^>]*id="wdContribRecurringToggle"/, 'is a checkbox');
+});
+
+test('yearly sub-toggle checkbox exists with correct id', () => {
+  assert.match(html, /id="wdContribYearlyToggle"/, 'yearly sub-toggle exists');
+  assert.match(html, /type="checkbox"[^>]*id="wdContribYearlyToggle"/, 'is a checkbox');
+});
+
+test('sub-toggles are in SETTINGS_FIELDS for persistence', () => {
+  assert.match(html, /wdContribRecurringToggle.*type:'checkbox'/, 'recurring toggle in SETTINGS_FIELDS');
+  assert.match(html, /wdContribYearlyToggle.*type:'checkbox'/, 'yearly toggle in SETTINGS_FIELDS');
+});
+
+test('computeWithdrawalPlan reads sub-toggle states', () => {
+  const fn = html.match(/function computeWithdrawalPlan\(\)\{[\s\S]*?^\}/m);
+  assert.ok(fn, 'computeWithdrawalPlan found');
+  assert.match(fn[0], /contribRecurringOn/, 'reads recurring sub-toggle');
+  assert.match(fn[0], /contribYearlyOn/, 'reads yearly sub-toggle');
+});
+
+test('buildContribForAge respects sub-toggle settings', () => {
+  const fn = html.match(/function buildContribForAge\(settings\)\{[\s\S]*?^}/m);
+  assert.ok(fn, 'buildContribForAge found');
+  assert.match(fn[0], /recurringOn/, 'checks recurring toggle');
+  assert.match(fn[0], /yearlyOn/, 'checks yearly toggle');
+});
+
+test('sub-toggles control panel opacity on change', () => {
+  assert.match(html, /wdContribRecurringToggle.*contribFlatPanel.*opacity/, 'recurring toggle controls flat panel opacity');
+  assert.match(html, /wdContribYearlyToggle.*contribYearlyPanel.*opacity/, 'yearly toggle controls yearly panel opacity');
+});
+
+test('scenario fingerprint includes sub-toggle keys', () => {
+  assert.match(html, /crt:s\.wdContribRecurringToggle/, 'recurring toggle in fingerprint');
+  assert.match(html, /cyt:s\.wdContribYearlyToggle/, 'yearly toggle in fingerprint');
+});
+
+/* ================================================================
+   Healthcare Costs UI Panel Tests
+   ================================================================ */
+suite('Healthcare Costs panel');
+
+test('healthcare toggle checkbox exists', () => {
+  assert.match(html, /id=["']wdHealthcareToggle["']/, 'healthcare toggle input exists');
+});
+
+test('healthcare panel has all 7 input fields', () => {
+  const fields = ['wdHcPre65Premium', 'wdHcPre65StartAge', 'wdHcPartB', 'wdHcPartD',
+    'wdHcMedigap', 'wdHcOOP', 'wdHcInflation'];
+  for (const f of fields) {
+    assert.match(html, new RegExp(`id=["']${f}["']`), `field ${f} exists`);
+  }
+});
+
+test('healthcare fields are in SETTINGS_FIELDS', () => {
+  const fields = ['wdHealthcareToggle', 'wdHcPre65Premium', 'wdHcPre65StartAge',
+    'wdHcPartB', 'wdHcPartD', 'wdHcMedigap', 'wdHcOOP', 'wdHcInflation'];
+  for (const f of fields) {
+    assert.match(html, new RegExp(`SETTINGS_FIELDS[^;]*['"]${f}['"]`), `${f} in SETTINGS_FIELDS`);
+  }
+});
+
+test('healthcare panel has tooltip descriptions', () => {
+  assert.match(html, /Pre-65.*premium/i, 'pre-65 premium tooltip text');
+  assert.match(html, /Part\s*B/i, 'Part B reference');
+  assert.match(html, /Part\s*D/i, 'Part D reference');
+  assert.match(html, /Medigap/i, 'Medigap reference');
+});
+
+test('buildHealthcareCostForAge function exists', () => {
+  assert.match(html, /function buildHealthcareCostForAge/, 'buildHealthcareCostForAge defined');
+});
+
+test('buildHealthcareCostFromSettings function exists', () => {
+  assert.match(html, /function buildHealthcareCostFromSettings/, 'buildHealthcareCostFromSettings defined');
+});
+
+test('scenario fingerprint includes healthcare keys', () => {
+  assert.match(html, /hcT:s\.wdHealthcareToggle/, 'hcT in fingerprint');
+  assert.match(html, /hcP65:s\.wdHcPre65Premium/, 'hcP65 in fingerprint');
+  assert.match(html, /hcI:s\.wdHcInflation/, 'hcI in fingerprint');
+});
+
+test('scenario engine builds _scenHcCostFn', () => {
+  assert.match(html, /_scenHcCostFn/, 'scenario engine references _scenHcCostFn');
+  assert.match(html, /buildHealthcareCostFromSettings/, 'scenario engine calls buildHealthcareCostFromSettings');
+});
+
+test('hcCostFn passed in all re-sim param objects', () => {
+  const matches = html.match(/hcCostFn:/g);
+  assert.ok(matches && matches.length >= 6, `hcCostFn: referenced at least 6 times in param objects, got ${matches ? matches.length : 0}`);
 });
 
 summarize('UI Structure');
