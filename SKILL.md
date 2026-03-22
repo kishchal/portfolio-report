@@ -176,7 +176,7 @@ An interactive HTML report titled **"Portfolio Analysis & Insights"** featuring:
       - **Historical Backtesting** — replays the retirement plan against 99 years of actual US market data (1926-2024), with success metrics, historical percentile bands, worst-period stress bars, and glide-path-aware stock/bond blending when a glide path is active
       - **Year-by-Year Withdrawal Table** — detailed schedule with editable withdrawal cells (Taxable, Tax-Deferred, Roth, HSA) per bucket, SS income column, estimated tax (including SS taxation), after-tax income (nominal and present value), W/D % (annual withdrawal rate as percentage of beginning portfolio balance, color-coded: green ≤4%, amber 4-5%, red >5%), running balances (nominal and present value); RMD years highlighted. Override any withdrawal amount to recalculate the entire table forward — overridden cells highlighted in orange. All column headers have detailed formula tooltips showing exactly how each value is calculated. **Summary footer row** (`<tfoot>`) shows lifetime total taxes, total after-tax income, average withdrawal rate (excluding depleted years), and final account balances — all PV-aware. Download CSV button exports the full table.
       - **Spending Suggestions** — "See Spending Suggestions" button opens a modal with three scenarios: Die with Zero, Leave $2.50M Legacy, Leave $4.50M Legacy. All three use deterministic binary-search solvers (`_scenarioSim()` at the expected return rate) for consistent results every time. Monte Carlo success rate shown as informational risk indicator. Metrics include ending balance (nominal + PV), lifetime after-tax income, lifetime taxes, Roth conversions, BETR. "Compare in What-If Scenarios" button passes results to the Scenarios tab with full cache fingerprint validation (return%, inflation, SS, Roth strategy, ages, state tax).
-      - **Tab State Persistence** — Withdrawal results (summary cards, charts, year-by-year table) are cached after computation and restored when navigating back from other tabs, avoiding re-calculation.
+      - **Tab State Persistence** — Withdrawal results (summary cards, charts, year-by-year table) are cached after computation and restored when navigating back from other tabs, avoiding re-calculation. **Auto-recalculate** — any input change triggers a debounced (800ms) automatic recomputation with re-entry guard; no manual Calculate button needed. Initial calculation runs automatically on first tab visit. Ctrl+Enter available as manual override.
       - **Strategy Notes** — withdrawal order rationale, SS income integration, Roth conversion window, tax efficiency tips (including SS taxation rules, standard deduction, HSA penalty rules), assumptions & methodology
       - **Financial Engine**:
         - 4% rule with guardrails (3.5% floor, 5.5% ceiling of current portfolio)
@@ -373,10 +373,10 @@ When modifying logic in either script, update BOTH:
 |---|---|---|
 | New fund/category mapping | `CATEGORY_MAP` dict | `$CategoryMap` hashtable |
 | New account type pattern | `get_account_type()` function | `Get-AccountType` function |
-| New risk classification rule | `classify_risk()` function | `$HighRiskSymbols` / `$GrowthSymbols` / `$DividendValueSymbols` lists |
+| New risk classification rule | `get_risk_tag()` function | `$HighRiskSymbols` / `$GrowthSymbols` / `$DividendValueSymbols` lists |
 | New cash/money market symbol | `CASH_SYMS` set | `$CashSymbols` array |
 | Duplicate account filter | CSV parsing loop | CSV parsing loop (line ~182) |
-| New JS data fields | `build_js_data()` function | JS generation block (line ~266) |
+| New JS data fields | JS generation block (line ~230) | JS generation block (line ~266) |
 
 **Verification**: After making changes to both scripts, run both against the same CSV and confirm the output HTML files are identical (or functionally equivalent — minor whitespace/ordering differences are acceptable).
 
@@ -393,7 +393,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 
 | File | What to check |
 |------|---------------|
-| `scripts/main.py` | `CATEGORY_MAP` (new funds), `get_account_type()` (new account patterns), `classify_risk()` (new stocks), duplicate account filters — **must stay in sync with scripts/main.ps1** |
+| `scripts/main.py` | `CATEGORY_MAP` (new funds), `get_account_type()` (new account patterns), `get_risk_tag()` (new stocks), duplicate account filters — **must stay in sync with scripts/main.ps1** |
 | `scripts/main.ps1` | `$CategoryMap` (new funds), `Get-AccountType` (new account patterns), `$HighRiskSymbols`/`$GrowthSymbols`/`$DividendValueSymbols` (new stocks), duplicate account filters — **must stay in sync with scripts/main.py** |
 | `assets/template.html` | `CASH_SYMS` array (new cash symbols), `CATEGORY_COLORS` (new category colors), `ACCT_TYPE_COLORS` (new account type colors) |
 | `assets/risk_cache.json` | Run `--refresh-all` / `-RefreshAll` if new stock symbols appear |
@@ -420,7 +420,7 @@ python scripts/main.py Portfolio.csv --output report_py.html
 **After ANY change to `assets/template.html` or `scripts/main.ps1`**, the agent MUST run the full test suite to ensure nothing is broken.
 
 ```powershell
-# Run the complete test suite (706 tests across 9 domain test files + 1 accuracy test file)
+# Run the complete test suite (761 tests across 9 domain test files + 1 accuracy test file)
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
 
@@ -432,11 +432,11 @@ The test suite validates:
 | `test_tax.js` | 53 | Federal tax brackets, LTCG rates, standard deduction, IRMAA, SS taxation, RMD table, SS age factors, percentile calculation |
 | `test_allocation.js` | 21 | Portfolio allocation buckets, rebalance drift, expense ratio formulas, TLH calculations, deep-loss hold rule |
 | `test_withdrawal.js` | 54 | Spending phases, glide schedule helpers, linear + step custom glide interpolation, historical backtesting, 4% rule guardrails, RMD calculations, Monte Carlo engine (structure, success rate, percentile ordering), Roth conversion room, HSA rules, withdrawal sequencing |
-| `test_engine.js` | 84 | Deterministic MC engine integration, cross-engine consistency (MC vs historical), edge cases (depletion, zero balances, Roth-only, HSA-only, long retirement), glide path blending, contribution schedules, Roth bracket limits, SS break-even, tax integration, RMD table, stochastic MC behavior, historical backtest validation, numerical edge cases (deflation, extreme longevity, negative returns, high volatility), 4% guardrail path, historical contributions, NaN/Infinity input validation (retAge, yearsToRetire, convBracketLimit, spendingPhases), RMD start age 73/75, spouse life-expectancy cutoff, one-time spendings (buildOneTimeSpendByAge, MC/Historical integration) |
+| `test_engine.js` | 123 | Deterministic MC engine integration, cross-engine consistency (MC vs historical), edge cases (depletion, zero balances, Roth-only, HSA-only, long retirement), glide path blending, contribution schedules, Roth bracket limits, SS break-even, tax integration, RMD table, stochastic MC behavior, historical backtest validation, numerical edge cases (deflation, extreme longevity, negative returns, high volatility), 4% guardrail path, historical contributions, NaN/Infinity input validation (retAge, yearsToRetire, convBracketLimit, spendingPhases), RMD start age 73/75, spouse life-expectancy cutoff, one-time spendings (buildOneTimeSpendByAge, MC/Historical integration) |
 | `test_snapshot.js` | 43 | CSV parsing, currency parsing, symbol classification, account type inference, snapshot diff engine |
 | `test_csv_export.js` | 24 | CSV round-trip validation (6 checks × 4 sample files) |
 | `test_bounds.js` | 6 | Withdrawal solver upper-bound validation |
-| `test_ui.js` | 323 | DOM structure, tabs, sub-tabs, icons, placeholders, glide path + historical mode controls, interpolation toggle, chart styling, fixed return preservation, theme system, settings, print/export, CSS classes, backward compatibility, tooltip accuracy, section ordering, PV column, What-If alignment, 457/403b bucket, POST-RETIRE refresh, DCP help notes, global formatters, methodology panel scope safety, data-driven methodology content, collapsible panels, state persistence, tab-switch panel restore, results cache sync, scenario cache, year-by-year insertion, one-time spendings, context-aware help system, lifetime taxes banner, tfoot summary row, cumTotal chart annotations, depleted-year tax accumulation, override row completeness |
+| `test_ui.js` | 403 | DOM structure, tabs, sub-tabs, icons, placeholders, glide path + historical mode controls, interpolation toggle, chart styling, fixed return preservation, theme system, settings, print/export, CSS classes, backward compatibility, tooltip accuracy, section ordering, PV column, What-If alignment, 457/403b bucket, POST-RETIRE refresh, DCP help notes, global formatters, methodology panel scope safety, data-driven methodology content, collapsible panels, state persistence, tab-switch panel restore, results cache sync, scenario cache, year-by-year insertion, one-time spendings, context-aware help system, lifetime taxes banner, tfoot summary row, cumTotal chart annotations, depleted-year tax accumulation, override row completeness, sidebar nav scroll (_wdNavTo/_wdNavSpy with sticky-cards offset), opt-panel checkbox structure, scrollbar-gutter stability, full-width container, smart nav-link enabling, IRMAA always-render, loadSettings disabled-class pattern, panel UI consistency (SVG chevrons, _wdPanelToggle collapse, wd-panel-toggle inner checkboxes, wd-panel-fields wrappers, inert accessibility), auto-recalculate infrastructure (_wdScheduleRecalc, dirty flag, skipRecalc, initial calc trigger) |
 | `test_skill_accuracy.js` | 12 | Validates SKILL.md claims against template.html: tab structure, sub-tabs, settings menu, PDF scope, scripts, test counts |
 
 **If any test fails, DO NOT commit.** The agent MUST:
@@ -461,7 +461,7 @@ If the failure is in a test itself (e.g., a new feature changed expected behavio
 ```powershell
 pwsh -File "$env:USERPROFILE\.copilot\skills\portfolio-report\portfolio-report\scripts\run-all-tests.ps1"
 ```
-- If any test fails → fix the code → re-run until all 630+ tests pass (and the accuracy test file stays green)
+- If any test fails → fix the code → re-run until all 761+ tests pass (and the accuracy test file stays green)
 - Do NOT proceed to Step 2 until the suite is fully green
 
 #### Step 2: Run the 6-Round Multi-Model Review Gauntlet

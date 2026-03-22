@@ -158,10 +158,10 @@ test('Total test count in SKILL.md is approximately correct', () => {
     'test_skill_accuracy.js': 12,
     'test_snapshot.js': 43,
     'test_tax.js': 53,
-    'test_ui.js': 353,
+    'test_ui.js': 404,
     'test_withdrawal.js': 54,
   };
-  const totalTests = Object.values(knownCounts).reduce((a, b) => a + b, 0); // 318
+  const totalTests = Object.values(knownCounts).reduce((a, b) => a + b, 0); // 762
   /* Find total count in SKILL.md — look for patterns like "316 tests" or "316+ tests" */
   const countMatches = [...SKILL.matchAll(/(\d+)\+?\s*tests/g)].map(m => parseInt(m[1]));
   assert.ok(countMatches.length > 0, 'SKILL.md should mention total test count');

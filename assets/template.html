@@ -101,7 +101,7 @@
   [data-theme="dark"] select.wd-input-error { border-color: #f87171 !important; box-shadow: 0 0 0 2px rgba(248,113,113,0.25) !important; }
   [data-theme="dark"] .wd-ovr:focus { border-color: var(--warning) !important; box-shadow: 0 0 0 2px rgba(251,191,36,0.2); }
   [data-theme="dark"] .sugg-modal { background: var(--card); color: var(--text); }
-  [data-theme="dark"] .spend-phases { background: var(--bg); }
+  [data-theme="dark"] .spend-phases { background: var(--card); }
   [data-theme="dark"] .contrib-year-row { background: var(--bg); }
   /* Dark mode: ensure all form controls have visible text */
   [data-theme="dark"] input, [data-theme="dark"] select, [data-theme="dark"] textarea { color: var(--text); background: var(--input-bg); border-color: var(--border); }
@@ -135,13 +135,18 @@
   [data-theme="dark"] .tl-metric,
   [data-theme="dark"] .sd-snap-card,
   [data-theme="dark"] .sd-change-banner { border: 1px solid var(--border); }
+  [data-theme="dark"] .wd-sticky-cards { background: var(--bg); }
+  [data-theme="dark"] .wd-tbl td.wd-col-frozen { background: var(--card); }
+  [data-theme="dark"] .wd-tbl tbody tr:nth-child(even) td.wd-col-frozen { background: var(--row-alt); }
+  [data-theme="dark"] .wd-input-error-msg { color: #f87171; }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  html { overflow-y: scroll; }
+  html { overflow-y: auto; scrollbar-gutter: stable; }
   body { font-family: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; font-size: 15px; background: var(--bg); color: var(--text); line-height: 1.6; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
 
-  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 24px 0; }
-  .header-inner { max-width: 1100px; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+  .header { background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%); color: white; padding: 14px 0; position: fixed; top: 0; left: 0; right: 0; z-index: 200; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+  .header-spacer { height: 62px; } /* matches header height — updated by JS on load */
+  .header-inner { max-width: none; margin: 0 auto; padding: 0 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
   .header h1 { font-size: 1.5em; font-weight: 700; letter-spacing: -0.5px; }
   .header .subtitle { color: var(--text-light); font-size: 0.85em; margin-top: 2px; }
   .header .total { font-size: 1.8em; font-weight: 800; letter-spacing: -0.5px; }
@@ -256,7 +261,7 @@
   .sd-divider-title { font-weight: 700; font-size: 1.05em; color: var(--text); }
   .sd-divider-sub { font-size: 0.82em; color: var(--text-muted); margin-top: 1px; }
 
-  .container { max-width: 1600px; margin: 0 auto; padding: var(--sp-xl) var(--sp-xl) var(--sp-xl); }
+  .container { max-width: none; margin: 0 auto; padding: var(--sp-md) var(--sp-xl) var(--sp-xl); }
 
   .alloc-bar-wrap { margin: 0 0 8px 0; }
   .alloc-bar { display: flex; height: 32px; border-radius: 6px; overflow: visible; box-shadow: var(--shadow); }
@@ -272,9 +277,9 @@
   .section-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
 
   /* ---- Main tab bar — underline style ---- */
-  .pivot-tabs { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 20px; border-bottom: 2px solid var(--border);
-    padding: 10px 0 0; background: var(--card); border-radius: var(--radius) var(--radius) 0 0;
-    position: sticky; top: 0; z-index: 100; box-shadow: var(--shadow); }
+  .pivot-tabs { display: flex; flex-wrap: wrap; gap: 0; margin-bottom: 0; border-bottom: 2px solid var(--border);
+    padding: 10px 0 0; background: var(--card); border-radius: 0;
+    position: fixed; left: 0; right: 0; z-index: 150; box-shadow: var(--shadow); }
   .pivot-tab { position: relative; padding: 12px 24px 14px; font-size: 0.88em; font-weight: 600; cursor: pointer;
     border: none; background: transparent; color: var(--text-muted); transition: color 0.25s; letter-spacing: -0.01em; }
   .pivot-tab::after { content: ''; position: absolute; left: 8px; right: 8px; bottom: -2px; height: 2.5px;
@@ -357,8 +362,6 @@
   .badge-529 { background: #e0f2fe; color: #0369a1; }
   .badge-utma { background: var(--warning-bg); color: var(--warning-text); }
 
-  .footer { text-align: center; padding: 30px; color: var(--text-light); font-size: 0.8em; }
-
   /* Risk insights summary */
   .insights { margin-top: 30px; }
   .insights-title { font-size: 1.15em; font-weight: 600; color: var(--text); margin: 30px 0 14px 0; }
@@ -414,7 +417,7 @@
   /* Withdrawals tab */
   .wd-panel { background: var(--card); border: none; border-radius: var(--radius);
     padding: var(--sp-lg) 28px; margin-bottom: var(--sp-lg); box-shadow: var(--shadow); }
-  .wd-panel h3 { font-size: 1.05em; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
+  .wd-panel h3 { font-size: 0.88em; font-weight: 700; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
   .wd-inputs { display: flex; flex-wrap: wrap; gap: 16px; align-items: flex-end; }
   .wd-field { display: flex; flex-direction: column; gap: 4px; }
   .wd-field label { font-size: 0.78em; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
@@ -452,19 +455,23 @@
   .acct-sel-footer { padding: 6px 12px; border-top: 1px solid var(--border); font-size: 0.78em; color: var(--text-muted);
     font-weight: 600; text-align: right; }
 
-  .wd-cards { display: grid;grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; margin-bottom: 24px; }
+  .wd-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 6px; margin-bottom: 6px; }
   .wd-card { background: var(--card); border: none; border-radius: var(--radius);
-    padding: 20px 24px; box-shadow: var(--shadow); text-align: center; transition: box-shadow 0.2s, transform 0.15s; }
-  .wd-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-2px); }
-  .wd-card .wd-card-label { font-size: 0.75em; font-weight: 600; color: var(--text-muted); text-transform: uppercase;
-    letter-spacing: 0.5px; margin-bottom: 6px; }
-  .wd-card .wd-card-value { font-size: 1.5em; font-weight: 700; color: var(--text); }
-  .wd-card .wd-card-sub { font-size: 0.78em; color: var(--text-muted); margin-top: 4px; }
+    padding: 6px 10px; box-shadow: var(--shadow); text-align: center; transition: box-shadow 0.2s, transform 0.15s; border-top: 3px solid var(--border); }
+  .wd-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-1px); }
+  .wd-card .wd-card-label { font-size: 0.6em; font-weight: 600; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.4px; margin-bottom: 1px; }
+  .wd-card .wd-card-value { font-size: 1.05em; font-weight: 700; color: var(--text); }
+  .wd-card .wd-card-sub { font-size: 0.62em; color: var(--text-muted); margin-top: 1px; }
+  .wd-card-green { border-top-color: var(--success); }
   .wd-card-green .wd-card-value { color: var(--success); }
+  .wd-card-blue { border-top-color: var(--mc-median); }
   .wd-card-blue .wd-card-value { color: var(--mc-median); }
+  .wd-card-amber { border-top-color: var(--warning-dark); }
   .wd-card-amber .wd-card-value { color: var(--warning-dark); }
 
-  .wd-section { margin-bottom: 28px; }
+  .wd-section { margin-bottom: 24px; }
+  .wd-section:last-child { margin-bottom: 0; }
   .wd-h2 { font-size: 1.08em; font-weight: 700; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
   .wd-desc { font-size: 0.85em; color: var(--text-muted); line-height: 1.65; margin: 6px 0 12px 0; }
 
@@ -485,9 +492,10 @@
 
   /* Collapsible result-section panels */
   .wd-panel.wd-collapsible { overflow: hidden; }
-  .wd-panel.wd-collapsible > .wd-section-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; margin: -4px 0 0; padding: 4px 0; }
+  .wd-panel.wd-collapsible:not(.open) { padding: 0 28px; }
+  .wd-panel.wd-collapsible > .wd-section-toggle { display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none; margin: 0; padding: 10px 0; }
   .wd-panel.wd-collapsible > .wd-section-toggle:hover { opacity: 0.8; }
-  .wd-panel.wd-collapsible > .wd-section-toggle > .wd-section-arrow { font-size: 1.2em; color: var(--text-muted); transition: transform 0.2s; margin-left: auto; font-weight: 700; }
+  .wd-panel.wd-collapsible > .wd-section-toggle > .wd-section-arrow { width:14px; height:14px; color: var(--text-muted); transition: transform 0.2s, color 0.15s; margin-left: auto; flex-shrink:0; }
   .wd-panel.wd-collapsible.open > .wd-section-toggle > .wd-section-arrow { transform: rotate(90deg); }
   .wd-panel.wd-collapsible > .wd-section-body { transition: none; }
   .wd-panel.wd-collapsible:not(.open) > .wd-section-body { display: none; }
@@ -502,8 +510,17 @@
   .wd-tbl td { padding: 10px 14px; border-bottom: 1px solid var(--th-bg); text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text); }
   .wd-tbl td:first-child { text-align: center; font-weight: 600; }
   .wd-tbl tr:hover { background: var(--row-hover); }
-  .wd-tbl tbody tr:nth-child(even) { background: transparent; }
-  .wd-tbl tbody tr:nth-child(even):hover { background: var(--row-hover); }
+  .wd-tbl tbody tr:nth-child(even) { background: var(--row-alt); }
+  .wd-tbl tbody tr:nth-child(even):hover { background: var(--row-hover-alt); }
+  /* Frozen Year + Age columns */
+  .wd-tbl th.wd-col-frozen, .wd-tbl td.wd-col-frozen { position:sticky; z-index:1; background:inherit; }
+  .wd-tbl th.wd-col-frozen { background:var(--th-bg); }
+  .wd-tbl td.wd-col-frozen { background:var(--card); }
+  .wd-tbl tbody tr:nth-child(even) td.wd-col-frozen { background:var(--row-alt); }
+  .wd-tbl tbody tr:hover td.wd-col-frozen { background:var(--row-hover); }
+  .wd-tbl tbody tr:nth-child(even):hover td.wd-col-frozen { background:var(--row-hover-alt); }
+  .wd-tbl .rmd-row td.wd-col-frozen { background:var(--highlight-bg); }
+  .wd-tbl .depletion-row td.wd-col-frozen { background:var(--danger-bg); }
   .wd-tbl .rmd-row { background: var(--highlight-bg); }
   .wd-tbl .rmd-row:hover { background: var(--highlight-hover); }
   .wd-tbl .depletion-row { background: var(--danger-bg); }
@@ -534,7 +551,15 @@
 
   /* Input validation error highlight */
   .wd-input-error { border-color: var(--danger-bright) !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.25) !important; background: var(--danger-bg) !important; }
+  .wd-input-error-msg { font-size: 0.72em; color: var(--danger); margin-top: 2px; display: none; }
+  .wd-input-error-msg.show { display: block; }
   select.wd-input-error { border-color: var(--danger-bright) !important; box-shadow: 0 0 0 2px rgba(239,68,68,0.25) !important; }
+  /* Color-coded balance column headers */
+  .wd-tbl th.wd-col-taxable-bal { color: var(--mc-median); }
+  .wd-tbl th.wd-col-deferred-bal { color: var(--warning-dark); }
+  .wd-tbl th.wd-col-roth-bal { color: var(--success); }
+  .wd-tbl th.wd-col-hsa-bal { color: var(--info-accent); }
+  .wd-tbl th.wd-col-total-bal { font-weight: 800; }
 
   /* Monte Carlo */
   .mc-fan { width: 100%; height: auto; }
@@ -569,7 +594,7 @@
     border-radius: 6px; font-size: 0.84em; color: var(--text); line-height: 1.5; }
 
   /* Spending Phases */
-  .spend-phases { padding: 14px; background: var(--bg-secondary, #e8ecf1); border-radius: var(--radius-sm); border: 1px solid var(--border); }
+  .spend-phases { padding: 14px; background: var(--card); border-radius: var(--radius-sm); border: 1px solid var(--border); }
   .spend-phase-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
   .spend-phase-row input { width: 80px; padding: 7px 10px; border: 1.5px solid var(--border); border-radius: var(--radius-sm);
     font-size: 0.85em; text-align: right; font-variant-numeric: tabular-nums; color: var(--text); background: var(--input-bg); font-weight: 500; }
@@ -591,21 +616,62 @@
   .glide-chart-toggle { background: none; border: none; padding: 0; margin-top: 8px; color: var(--primary); font-size: 0.8em; font-weight: 600; cursor: pointer; text-decoration: underline; }
   .glide-chart-toggle:hover { opacity: 0.85; }
   .wd-sub-header { display:flex; align-items:center; justify-content:space-between; margin-top:12px; }
-  .wd-sub-chevron { cursor:pointer; font-size:0.85em; color:var(--text-muted); padding:2px 8px; border-radius:4px;
-    user-select:none; transition:color 0.15s, background 0.15s, opacity 0.15s; line-height:1; }
-  .wd-sub-chevron:hover { color:var(--primary); background:var(--bg-secondary); }
+  /* Optional section panel — checkbox inside panel header, grey when unchecked */
+  .wd-opt-panel { margin-top:12px; background:var(--card); border-radius:var(--radius-sm); box-shadow:var(--shadow-sm); overflow:hidden; }
+  .wd-opt-header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; cursor:pointer; user-select:none; }
+  .wd-opt-body { padding:4px 16px 14px; }
+  .wd-panel-toggle { display:flex; align-items:center; gap:8px; cursor:pointer; font-size:0.82em; font-weight:600; color:var(--primary); padding:4px 0 8px; border-bottom:1px solid var(--border,#e2e8f0); margin-bottom:10px; user-select:none; }
+  .wd-panel-toggle input[type="checkbox"] { accent-color:var(--primary); width:16px; height:16px; }
+  .wd-opt-body.disabled, #wdGlidePanel.disabled, .wd-panel-fields.disabled { opacity:0.35; pointer-events:none; }
+  .wd-sub-chevron { width:14px; height:14px; color:var(--text-muted); flex-shrink:0;
+    transition:color 0.15s, transform 0.2s; }
+  .wd-sub-chevron:hover { color:var(--primary); }
   .wd-sub-chevron.disabled { opacity:0; pointer-events:none; }
-  /* Result sub-tabs */
-  .wd-result-tabs { display:flex; gap:6px; margin:14px 0 10px; padding:6px; background:var(--bg-secondary, #f1f5f9);
-    border-radius:10px; border:1.5px solid var(--border); }
-  .wd-result-tab { flex:1; padding:10px 8px; border:none; border-radius:8px; font-size:0.82em; font-weight:600;
-    cursor:pointer; transition:all 0.2s; background:transparent; color:var(--text-muted); text-align:center; }
-  .wd-result-tab:hover { background:var(--card); color:var(--text); }
-  .wd-result-tab.active { background:var(--primary); color:white; box-shadow:0 2px 6px rgba(59,130,246,.3); }
-  .wd-result-tab-panel { display:none; }
-  .wd-result-tab-panel.active { display:block; }
-  .wd-sticky-cards { position:sticky; top:0; z-index:5; background:var(--bg, #f8fafc); padding:4px 0 2px; }
-  @media print { .wd-result-tab-panel { display:block !important; } .wd-result-tabs { display:none; } .wd-sticky-cards { position:static; } }
+  .wd-sub-chevron.expanded { transform: rotate(90deg); }
+
+  /* ── Withdrawal page — fixed sidebar + scrolling main ── */
+  .wd-page-layout { display:flex; gap:0; overflow:hidden; padding-top:12px; }
+  .wd-sidebar { width:200px; min-width:200px; height:100%; overflow-y:auto;
+    background:var(--card); border-right:1px solid var(--border); z-index:8; display:flex; flex-direction:column;
+    box-shadow:2px 0 8px rgba(0,0,0,0.04); flex-shrink:0; }
+  .wd-sidebar-header { padding:14px 14px 10px; border-bottom:1px solid var(--border); }
+  .wd-sidebar-header h1 { font-size:0.88rem; font-weight:700; letter-spacing:-0.02em; color:var(--text);
+    display:flex; align-items:center; gap:8px; margin:0; }
+  .wd-sidebar-header .wd-logo { width:24px; height:24px; background:linear-gradient(135deg,var(--primary),#6366f1);
+    border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:800; color:#fff; flex-shrink:0; }
+  .wd-sidebar-header p { font-size:0.65rem; color:var(--text-muted); margin-top:2px; }
+  .wd-sidebar-nav { flex:1; padding:6px 0; overflow-y:auto; }
+  .wd-nav-section { padding:0 8px; margin-bottom:2px; }
+  .wd-nav-section-title { font-size:0.58rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em;
+    color:var(--text-muted); padding:8px 6px 3px; }
+  .wd-nav-link { display:flex; align-items:center; gap:7px; padding:5px 8px; font-size:0.76rem; font-weight:500;
+    color:var(--text-muted); cursor:pointer; text-decoration:none; border-radius:5px; transition:all 0.15s;
+    border-left:3px solid transparent; }
+  .wd-nav-link:hover { background:var(--bg-secondary); color:var(--text); }
+  .wd-nav-link.active { background:var(--primary-light, rgba(59,130,246,0.1)); color:var(--primary); font-weight:600;
+    border-left-color:var(--primary); }
+  .wd-nav-link .wd-nav-icon { width:16px; flex-shrink:0; display:flex; align-items:center; justify-content:center; font-size:0.78rem; }
+  .wd-nav-link.disabled { opacity:0.35; pointer-events:none; }
+  .wd-main { flex:1; min-width:0; overflow-y:auto; overscroll-behavior:contain; }
+  .wd-content { padding:10px 20px 80px; }
+  .wd-section-card { scroll-margin-top:16px; }
+  @media (max-width:900px) {
+    .wd-page-layout { flex-direction:column; }
+    .wd-sidebar { position:static; width:100%; min-width:100%; height:auto; max-height:none; border-right:none;
+      border-bottom:1px solid var(--border); flex-direction:row; }
+    .wd-sidebar-header { display:none; }
+    .wd-sidebar-nav { display:flex; flex-wrap:wrap; gap:2px; padding:6px; overflow-y:visible; }
+    .wd-nav-section { display:contents; }
+    .wd-nav-section-title { display:none; }
+    .wd-nav-link { font-size:0.72rem; padding:5px 8px; }
+    .wd-content { padding:10px 12px 60px; }
+  }
+  @media print { .wd-sidebar { display:none !important; } }
+
+  .wd-sticky-cards { position:sticky; top:0; z-index:5; background:var(--bg, #f8fafc); padding:10px 0 4px; transition:box-shadow 0.2s; }
+  .wd-sticky-cards.scrolled { box-shadow:0 2px 8px rgba(0,0,0,0.1); }
+  [data-theme="dark"] .wd-sticky-cards.scrolled { box-shadow:0 2px 8px rgba(0,0,0,0.4); }
+  @media print { .wd-sticky-cards { position:static; } }
   .glide-chart-toggle:hover { opacity: 0.85; }
   .glide-chart-details { display: none; }
   .glide-chart-tooltip { position: absolute; display: none; pointer-events: none; background: var(--tooltip-bg); color: white; padding: 8px 12px;
@@ -739,8 +805,9 @@
 
   /* Print styles */
   @media print {
-    body { background: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-    .header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 12px 0 !important; }
+    body { background: white !important; margin: 0; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; overflow: visible !important; }
+    .header { background: var(--primary) !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 12px 0 !important; position: static !important; }
+    .header-spacer, #pivotTabsSpacer { display: none !important; }
     .header h1 { font-size: 1.3em !important; }
     .header .subtitle, .header .total-label { font-size: 0.75em !important; }
     .header .total { font-size: 1.4em !important; }
@@ -770,6 +837,8 @@
     .sd-toolbar { margin-bottom: 8px !important; }
     .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
+    .wd-page-layout { overflow: visible !important; height: auto !important; display: block !important; }
+    .wd-main { overflow: visible !important; height: auto !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
     .wd-summary-cards { gap: 8px !important; }
     .wd-summary-cards > div { padding: 8px !important; font-size: 0.82em !important; }
@@ -783,7 +852,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Fidelity Investments &middot; {{REPORT_DATE}} &middot; Report generated {{GENERATED_AT}}</div>
+      <div class="subtitle">Report generated {{GENERATED_AT}} &middot; Source: {{SOURCE_FILE}}</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -806,6 +875,10 @@
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"/></svg>
           Export Data (CSV)
         </button>
+        <button class="settings-dropdown-item" id="printPdfBtn">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18.75 7.131H5.25"/></svg>
+          Print to PDF
+        </button>
         <div class="settings-dropdown-sep"></div>
         <button class="settings-dropdown-item" id="helpBtn" title="Context-aware help for the current page">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M12 18h.01"/><circle cx="12" cy="12" r="9.75" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -821,15 +894,17 @@
     </div>
   </div>
 </div>
+<div class="header-spacer" id="headerSpacer"></div>
 
 <div class="container">
 
-<div class="pivot-tabs" style="margin-top:18px">
+<div class="pivot-tabs" style="margin-top:8px">
   <button class="pivot-tab active" data-pivot="holdings">Holdings</button>
   <button class="pivot-tab" data-pivot="withdrawals">Withdrawals</button>
   <button class="pivot-tab" data-pivot="scenarios">Scenarios</button>
   <button class="pivot-tab" data-pivot="snapshot">Snapshot Diff<span class="tab-badge" id="sdBadge" style="display:none"></span></button>
 </div>
+<div id="pivotTabsSpacer" style="height:50px"></div>
 
 <div id="holdingsSubPivot" style="margin-bottom:14px;position:sticky;top:50px;z-index:99;background:var(--bg);padding:8px 0;display:flex;align-items:center;justify-content:space-between">
   <div class="sub-pivot-wrap">
@@ -842,7 +917,6 @@
     <button class="sub-pivot-tab" data-sub="expenses">Expenses 💰</button>
     <button class="sub-pivot-tab" data-sub="taxloss">Tax-Loss 🏷️<span class="tab-badge" id="tlhBadge" style="display:none"></span></button>
   </div>
-  <button class="export-pdf-btn" onclick="exportTabToPDF('holdings')" style="flex-shrink:0;margin-left:auto"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 8h-1V3H6v5H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zM8 5h8v3H8V5zm8 14H8v-4h8v4zm2-4v-2H6v2H4v-4c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v4h-2z"/></svg>Export PDF</button>
 </div>
 
 <div id="allocOverview">
@@ -870,10 +944,7 @@
 
 </div>
 
-<div class="footer">
-  Generated on {{REPORT_DATE}}<br>
-  Source: {{SOURCE_FILE}}
-</div>
+
 
 <script>
 /* ---- Theme switcher ---- */
@@ -1126,10 +1197,20 @@ window._wdSubCollapsed=window._wdSubCollapsed||{};
 function _wdSubCheckChanged(checkId,panelId,extra){
   const cb=document.getElementById(checkId),panel=document.getElementById(panelId);
   if(!cb||!panel) return;
-  panel.style.display=(cb.checked&&!window._wdSubCollapsed[panelId])?'block':'none';
+  if(cb.checked){
+    /* When enabling, always expand (reset collapse) so the user sees the content */
+    window._wdSubCollapsed[panelId]=false;
+    panel.classList.remove('disabled');
+    panel.removeAttribute('aria-hidden');
+    panel.style.display='';
+  } else {
+    panel.classList.add('disabled');
+    panel.setAttribute('aria-hidden','true');
+    panel.style.display=''; /* always visible when disabled (greyed out) */
+  }
   const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
   if(ch){
-    ch.textContent=(!cb.checked||window._wdSubCollapsed[panelId])?'▶':'▼';
+    if(!cb.checked||window._wdSubCollapsed[panelId]) ch.classList.remove('expanded'); else ch.classList.add('expanded');
     if(cb.checked) ch.classList.remove('disabled'); else ch.classList.add('disabled');
   }
   if(extra) extra(cb.checked);
@@ -1142,11 +1223,29 @@ function _wdSubToggle(checkId,panelId){
   if(!cb||!cb.checked) return;
   window._wdSubCollapsed[panelId]=!window._wdSubCollapsed[panelId];
   const panel=document.getElementById(panelId);
-  if(panel) panel.style.display=window._wdSubCollapsed[panelId]?'none':'block';
+  if(panel) panel.style.display=window._wdSubCollapsed[panelId]?'none':'';
   const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
-  if(ch) ch.textContent=window._wdSubCollapsed[panelId]?'▶':'▼';
+  if(ch){ if(window._wdSubCollapsed[panelId]) ch.classList.remove('expanded'); else ch.classList.add('expanded'); }
   window._wdUIState.subCollapsed=Object.assign({},window._wdSubCollapsed);
   _wdPersistUIState();
+  saveSettings({skipRecalc:true});
+}
+/* Toggle collapse for always-on panels (no checkbox — just chevron) */
+function _wdPanelToggle(panelId){
+  window._wdSubCollapsed[panelId]=!window._wdSubCollapsed[panelId];
+  const panel=document.getElementById(panelId);
+  if(panel) panel.style.display=window._wdSubCollapsed[panelId]?'none':'';
+  const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
+  if(ch){ if(window._wdSubCollapsed[panelId]) ch.classList.remove('expanded'); else ch.classList.add('expanded'); }
+  window._wdUIState.subCollapsed=Object.assign({},window._wdSubCollapsed);
+  _wdPersistUIState();
+  saveSettings({skipRecalc:true});
+}
+function _wdInnerToggle(cb,fieldsId){
+  const fields=document.getElementById(fieldsId);
+  if(!fields) return;
+  if(cb.checked){ fields.classList.remove('disabled'); fields.removeAttribute('inert'); }
+  else { fields.classList.add('disabled'); fields.setAttribute('inert',''); }
   saveSettings();
 }
 function _wdSubRestoreCollapse(){
@@ -1154,20 +1253,166 @@ function _wdSubRestoreCollapse(){
   Object.keys(map).forEach(function(panelId){
     if(!map[panelId]) return;
     const panel=document.getElementById(panelId);
-    if(panel&&panel.style.display==='block') panel.style.display='none';
+    /* Only hide if panel is enabled (checked) — disabled panels stay visible but greyed */
+    if(panel&&!panel.classList.contains('disabled')) panel.style.display='none';
     const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
-    if(ch) ch.textContent='▶';
+    if(ch) ch.classList.remove('expanded');
+  });
+  /* Ensure expanded panels have the expanded class */
+  Object.keys(map).forEach(function(panelId){
+    if(map[panelId]) return;
+    const ch=document.querySelector('[data-sub-panel="'+panelId+'"]');
+    if(ch&&!ch.classList.contains('disabled')) ch.classList.add('expanded');
   });
 }
 
-/* Result sub-tab switching */
-function _wdSwitchResultTab(tabId){
-  document.querySelectorAll('.wd-result-tab').forEach(t=>t.classList.toggle('active',t.dataset.tab===tabId));
-  document.querySelectorAll('.wd-result-tab-panel').forEach(p=>p.classList.toggle('active',p.id==='wd-rtab-'+tabId));
-  window._wdUIState.resultTab=tabId;
-  _wdPersistUIState();
-  const r=document.getElementById('wd-results');
-  if(r) window._wdResultsCache=r.innerHTML;
+/* ── Sidebar navigation — scroll-to + scroll-spy ── */
+function _wdNavTo(id){
+  const el=document.getElementById(id);
+  if(!el) return;
+  /* If navigating to a collapsed result panel, expand it */
+  if(el.classList.contains('wd-collapsible')&&!el.classList.contains('open')){
+    el.classList.add('open');
+  }
+  const main=document.querySelector('.wd-main');
+  if(main){
+    /* Account for sticky cards height */
+    const sticky=main.querySelector('.wd-sticky-cards');
+    const stickyH=sticky?sticky.offsetHeight:0;
+    const mainRect=main.getBoundingClientRect();
+    const elRect=el.getBoundingClientRect();
+    main.scrollTo({top:main.scrollTop+(elRect.top-mainRect.top)-stickyH-8,behavior:'smooth'});
+  } else {
+    el.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+}
+function _wdNavSpy(){
+  const links=document.querySelectorAll('.wd-nav-link[data-nav]');
+  if(!links.length) return;
+  const main=document.querySelector('.wd-main');
+  const sticky=main?main.querySelector('.wd-sticky-cards'):null;
+  const stickyH=sticky?sticky.offsetHeight:0;
+  const threshold=main?main.getBoundingClientRect().top+stickyH+40:100;
+  let activeId=null;
+  /* Find topmost visible section */
+  links.forEach(l=>{
+    const el=document.getElementById(l.dataset.nav);
+    if(el&&el.getBoundingClientRect().top<=threshold) activeId=l.dataset.nav;
+  });
+  if(!activeId&&links[0]) activeId=links[0].dataset.nav;
+  links.forEach(l=>l.classList.toggle('active',l.dataset.nav===activeId));
+}
+let _wdNavSpyTimer=0;
+function _wdNavSpyThrottle(){
+  if(_wdNavSpyTimer) return;
+  _wdNavSpyTimer=requestAnimationFrame(function(){_wdNavSpyTimer=0;_wdNavSpy();});
+}
+/* Catch scroll events from .wd-main via capture phase */
+window.addEventListener('scroll',function(e){
+  _wdNavSpyThrottle();
+  /* Toggle scroll shadow on sticky cards */
+  const main=e.target;
+  if(main&&main.classList&&main.classList.contains('wd-main')){
+    const sticky=main.querySelector('.wd-sticky-cards');
+    if(sticky) sticky.classList.toggle('scrolled',main.scrollTop>8);
+  }
+},true);
+
+/* ── Layout lock: fixes sidebar + header, only .wd-main scrolls ── */
+function _wdFixLayout(){
+  const layout=document.querySelector('.wd-page-layout');
+  if(!layout) return;
+  /* Skip fixed layout on narrow screens — mobile uses column flow */
+  if(window.innerWidth<=900){ _wdUnfixLayout(); return; }
+  /* Position layout below fixed header + fixed pivot-tabs */
+  const hdr=document.querySelector('.header');
+  const pt=document.querySelector('.pivot-tabs');
+  const hdrH=hdr?hdr.offsetHeight:0;
+  const ptH=pt?pt.offsetHeight:0;
+  layout.style.position='fixed';
+  layout.style.top=(hdrH+ptH)+'px';
+  layout.style.left='0';
+  layout.style.right='0';
+  layout.style.bottom='0';
+  layout.style.height='auto';
+  /* Lock scrolling on body (not html) to preserve scrollbar-gutter */
+  document.body.style.overflow='hidden';
+}
+function _wdUnfixLayout(){
+  document.body.style.overflow='';
+  const layout=document.querySelector('.wd-page-layout');
+  if(layout){ layout.style.height=''; layout.style.position=''; layout.style.top=''; layout.style.left=''; layout.style.right=''; layout.style.bottom=''; }
+}
+let _wdResizeTimer=0;
+window.addEventListener('resize',function(){
+  if(_wdResizeTimer) return;
+  _wdResizeTimer=requestAnimationFrame(function(){_wdResizeTimer=0;if(document.querySelector('.wd-page-layout'))_wdFixLayout();});
+});
+
+/* Update sidebar result nav after calculation */
+function _wdUpdateResultNav(){
+  const navEl=document.getElementById('wdNavResultsSection');
+  const analEl=document.getElementById('wdNavAnalysisSection');
+  /* Only enable nav links whose target section was actually rendered */
+  [navEl,analEl].forEach(function(sec){
+    if(!sec) return;
+    sec.querySelectorAll('.wd-nav-link').forEach(function(l){
+      const target=l.dataset.nav;
+      if(target&&document.getElementById(target)) l.classList.remove('disabled');
+    });
+  });
+}
+
+/* _wdSwitchResultTab — kept for backward compat but now a no-op */
+function _wdSwitchResultTab(tabId){}
+
+/* ── Inline input validation ── */
+function _wdValidateField(inputId,rules){
+  const el=document.getElementById(inputId);
+  if(!el) return true;
+  const val=parseFloat(el.value);
+  let errMsg=null;
+  for(let i=0;i<rules.length;i++){
+    if(!rules[i].test(val,el)) { errMsg=rules[i].msg; break; }
+  }
+  el.classList.toggle('wd-input-error',!!errMsg);
+  /* Show/hide inline error message */
+  let msgEl=el.parentNode.querySelector('.wd-input-error-msg');
+  if(!msgEl&&errMsg){
+    msgEl=document.createElement('div');
+    msgEl.className='wd-input-error-msg';
+    el.parentNode.appendChild(msgEl);
+  }
+  if(msgEl){ msgEl.textContent=errMsg||''; msgEl.classList.toggle('show',!!errMsg); }
+  return !errMsg;
+}
+function _wdValidateInputs(){
+  const curAge=parseFloat(document.getElementById('wdAge')?.value)||0;
+  const retAge=parseFloat(document.getElementById('wdRetire')?.value)||0;
+  const lifeExp=parseFloat(document.getElementById('wdLife')?.value)||0;
+  const ssAge=parseFloat(document.getElementById('wdSSAge')?.value)||0;
+  _wdValidateField('wdRetire',[
+    {test:function(v){return v>=curAge;},msg:'Retirement age must be ≥ current age ('+curAge+')'}
+  ]);
+  _wdValidateField('wdLife',[
+    {test:function(v){return v>retAge;},msg:'Life expectancy must be greater than retirement age ('+retAge+')'}
+  ]);
+  if(ssAge>0) _wdValidateField('wdSSAge',[
+    {test:function(v){return v>=62&&v<=70;},msg:'SS start age must be between 62 and 70'}
+  ]);
+  /* Spouse validation if enabled */
+  const spToggle=document.getElementById('wdSpouseToggle');
+  if(spToggle&&spToggle.checked){
+    const spAge=parseFloat(document.getElementById('wdSpAge')?.value)||0;
+    const spRetAge=parseFloat(document.getElementById('wdSpRetire')?.value)||0;
+    _wdValidateField('wdSpRetire',[
+      {test:function(v){return v>=spAge;},msg:'Spouse retirement age must be ≥ current age ('+spAge+')'}
+    ]);
+    const spSSAge=parseFloat(document.getElementById('wdSpSSAge')?.value)||0;
+    if(spSSAge>0) _wdValidateField('wdSpSSAge',[
+      {test:function(v){return v>=62&&v<=70;},msg:'SS start age must be between 62 and 70'}
+    ]);
+  }
 }
 
 function _wdSaveUIState(){
@@ -1216,7 +1461,7 @@ function _wdSecOpen(id, icon, title, extraTitleHtml){
   const isOpen=(window._wdUIState.panels[id]!==undefined)?window._wdUIState.panels[id]:true;
   let h=`<div id="wd-sec-${id}" class="wd-panel wd-collapsible${isOpen?' open':''}">`;
   h+=`<h3 class="wd-section-toggle" onclick="_wdToggleSection('${id}')">`;
-  h+=`${icon} ${title}${extraTitleHtml||''}<span class="wd-section-arrow">▸</span></h3>`;
+  h+=`${icon} ${title}${extraTitleHtml||''}<svg class="wd-section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></h3>`;
   h+=`<div class="wd-section-body">`;
   return h;
 }
@@ -2094,7 +2339,7 @@ function renderFundXRay(){
       const barColor=s.pctOfPortfolio>=5?'var(--danger-bright)':s.pctOfPortfolio>=3?'var(--warning)':'var(--success-bright)';
       const fundList=s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx)
         .map(src=>src.fundSym==='Direct'?'<span class="xray-tag" style="background:var(--primary-light);color:var(--primary)">Direct</span>'
-          :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:var(--th-bg);color:var(--text);text-decoration:none">${src.fundSym}</a>`).join(' ');
+          :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:var(--th-bg);color:var(--text);text-decoration:none">${src.fundSym} <span style="opacity:0.6;font-size:0.85em">${src.pct.toFixed(1)}%</span></a>`).join(' ');
       h+=`<tr><td class="r" style="color:var(--text-muted)">${i+1}</td>`;
       h+=`<td>${yfl(s.sym)}</td>`;
       h+=`<td class="r">${fmtD(s.totalVal)}</td>`;
@@ -2116,7 +2361,7 @@ function renderFundXRay(){
         const barColor=s.pctOfPortfolio>=5?'var(--danger-bright)':s.pctOfPortfolio>=3?'var(--warning)':'var(--success-bright)';
         const fundList=s.sources.filter((src,idx,arr)=>arr.findIndex(x=>x.fundSym===src.fundSym)===idx)
           .map(src=>src.fundSym==='Direct'?'<span class="xray-tag" style="background:var(--primary-light);color:var(--primary)">Direct</span>'
-            :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:var(--th-bg);color:var(--text);text-decoration:none">${src.fundSym}</a>`).join(' ');
+            :`<a href="https://finance.yahoo.com/quote/${encodeURIComponent(src.fundSym)}" target="_blank" rel="noopener" class="xray-tag" style="background:var(--th-bg);color:var(--text);text-decoration:none">${src.fundSym} <span style="opacity:0.6;font-size:0.85em">${src.pct.toFixed(1)}%</span></a>`).join(' ');
         h+=`<tr><td class="r" style="color:var(--text-muted)">${showCount+i+1}</td>`;
         h+=`<td>${yfl(s.sym)}</td>`;
         h+=`<td class="r">${fmtD(s.totalVal)}</td>`;
@@ -2240,7 +2485,7 @@ function renderRebalance(){
   h+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><span style="font-weight:600;font-size:0.85em">Custom Target</span><span id="rebalCustomSum" style="font-size:0.82em"></span></div>`;
   h+=`<div class="wd-inputs">`;
   [{id:'eq',l:'US Equity',c:'#2563eb',d:55},{id:'intl',l:'International',c:'#059669',d:20},{id:'bond',l:'Bonds',c:'#7c3aed',d:20},{id:'cash',l:'Cash',c:'#94a3b8',d:3},{id:'reit',l:'Real Estate',c:'#ea580c',d:2},{id:'alt',l:'Alternatives',c:'#d97706',d:0}].forEach(c=>{
-    h+=`<div class="wd-field"><label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.c};margin-right:4px"></span>${c.l}</label><input type="number" id="rebalC_${c.id}" value="${c.d}" min="0" max="100" step="1" onchange="updateRebalCustomSum();renderRebalResult()" style="width:60px">%</div>`;
+    h+=`<div class="wd-field"><label><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${c.c};margin-right:4px"></span>${c.l}</label><input type="number" id="rebalC_${c.id}" value="${c.d}" min="0" max="100" step="1" onchange="updateRebalCustomSum();renderRebalResult();saveSettings()" style="width:90px">%</div>`;
   });
   h+=`</div></div>`;
   h+=`</div>`;
@@ -2263,6 +2508,20 @@ function renderRebalance(){
   h+=buildMethodologyPanel('Rebalance — Your Portfolio',methRebal);
 
   rc.innerHTML=h;
+  /* Restore saved rebalance model + custom targets from cache */
+  try{
+    const _s=JSON.parse(localStorage.getItem('portfolioReportSettings')||'{}');
+    if(_s._rebalModel){
+      selectRebalModel(_s._rebalModel);
+    }
+    if(_s._rebalCustomTargets){
+      ['eq','intl','bond','cash','reit','alt'].forEach(id=>{
+        const el=document.getElementById('rebalC_'+id);
+        if(el&&_s._rebalCustomTargets[id]!=null) el.value=_s._rebalCustomTargets[id];
+      });
+      updateRebalCustomSum();
+    }
+  }catch(e){}
   renderRebalResult();
 }
 
@@ -2277,6 +2536,7 @@ function selectRebalModel(key){
   document.getElementById('rebalCustom').style.display=key==='custom'?'':'none';
   if(key==='custom') updateRebalCustomSum();
   renderRebalResult();
+  saveSettings();
 }
 
 function updateRebalCustomSum(){
@@ -2393,8 +2653,9 @@ function renderRebalResult(){
   const sells=trades.filter(t=>t.action==='SELL');
   const buys=trades.filter(t=>t.action==='BUY');
   const held=trades._held||[];
-  const estTaxImpact=sells.filter(t=>t.taxable).reduce((s,t)=>s+Math.max(0,t.amount)*0.15,0);
+  const estTaxImpact=trades._taxSummary?.estNetTax||0;
   const totalMoved=trades.reduce((s,t)=>s+Math.abs(t.amount),0)/2;
+  const txSum=trades._taxSummary||{};
 
   let th='';
 
@@ -2406,7 +2667,14 @@ function renderRebalResult(){
   th+=`<div class="sugg-card" style="padding:14px 18px;flex:1;min-width:140px"><div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">Portfolio Drift</div><div style="font-size:1.4em;font-weight:700;color:${driftColor}">${driftIcon} ${totalDrift.toFixed(1)}%</div><div style="font-size:0.78em;color:${driftColor}">${driftLabel}</div></div>`;
   th+=`<div class="sugg-card" style="padding:14px 18px;flex:1;min-width:140px"><div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">Trades Needed</div><div style="font-size:1.4em;font-weight:700">${trades.length}</div><div style="font-size:0.78em;color:var(--text-muted)">${sells.length} sell \u00B7 ${buys.length} buy${held.length?' \u00B7 '+held.length+' held':''}</div></div>`;
   th+=`<div class="sugg-card" style="padding:14px 18px;flex:1;min-width:140px"><div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">Capital to Move</div><div style="font-size:1.4em;font-weight:700">${fmtD(totalMoved)}</div><div style="font-size:0.78em;color:var(--text-muted)">${(totalMoved/GRAND*100).toFixed(1)}% of portfolio</div></div>`;
-  th+=`<div class="sugg-card" style="padding:14px 18px;flex:1;min-width:140px"><div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">Est. Tax Impact</div><div style="font-size:1.4em;font-weight:700;color:${estTaxImpact>0?'var(--danger)':'var(--success)'}">${estTaxImpact>0?fmtD(estTaxImpact):'$0'}</div><div style="font-size:0.78em;color:var(--text-muted)">${sells.filter(t=>t.taxable).length} taxable sells</div></div>`;
+  /* Tax impact card with gain/loss breakdown */
+  const _taxCardColor=txSum.netRealizedGL>0?'var(--danger)':txSum.netRealizedGL<0?'var(--success)':'var(--success)';
+  const _taxCardIcon=txSum.netRealizedGL>0?'⚠️':'✅';
+  const _taxSubtext=[];
+  if(txSum.totalRealizedGains>0) _taxSubtext.push('Gains: +'+fmtD(txSum.totalRealizedGains));
+  if(txSum.totalRealizedLosses>0) _taxSubtext.push('Losses: −'+fmtD(txSum.totalRealizedLosses));
+  if(txSum.taxFreeSells>0) _taxSubtext.push('Tax-free: '+fmtD(txSum.taxFreeSells));
+  th+=`<div class="sugg-card" style="padding:14px 18px;flex:1;min-width:140px"><div style="font-size:0.72em;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-muted);margin-bottom:4px">Est. Tax Impact</div><div style="font-size:1.4em;font-weight:700;color:${_taxCardColor}">${_taxCardIcon} ${estTaxImpact>0?fmtD(estTaxImpact):'$0'}</div><div style="font-size:0.72em;color:var(--text-muted)">${_taxSubtext.join(' · ')||'No taxable sells'}</div></div>`;
   th+=`</div>`;
 
   if(trades.length===0){
@@ -2501,6 +2769,8 @@ function renderRebalResult(){
           const pctOfPort=(Math.abs(t.amount)/GRAND*100).toFixed(2);
           const meta=FUND_META[t.sym];
           const erLabel=meta?'ER '+meta.er.toFixed(2)+'%':'';
+          const glColor=t.realizedGL<0?'var(--success)':t.realizedGL>0?'var(--danger)':'var(--text-muted)';
+          const glLabel=t.realizedGL!==0?(t.realizedGL>0?'+':'')+fmtD(t.realizedGL)+' gain/loss':'';
           th+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:var(--radius-sm);background:var(--danger-bg);border:1px solid var(--danger-border);transition:transform 0.1s" onmouseenter="this.style.transform='translateX(4px)'" onmouseleave="this.style.transform=''">`;
           th+=`<div style="background:var(--danger);color:white;font-weight:800;font-size:0.78em;padding:4px 8px;border-radius:6px;min-width:48px;text-align:center;letter-spacing:0.5px">${ylink(t.sym)}</div>`;
           th+=`<div style="flex:1;min-width:0">`;
@@ -2509,7 +2779,7 @@ function renderRebalResult(){
           th+=`</div>`;
           th+=`<div style="text-align:right;flex-shrink:0">`;
           th+=`<div style="font-weight:700;color:var(--danger);font-size:0.9em">-${fmtD(Math.abs(t.amount))}</div>`;
-          th+=`<div style="font-size:0.62em;color:var(--text-muted)">${pctOfPort}%${t.taxNote&&t.taxNote!=='N/A'?' · '+t.taxNote:''}</div>`;
+          th+=`<div style="font-size:0.62em;color:${glColor}">${glLabel?glLabel+' · ':''}${t.taxNote}</div>`;
           th+=`</div>`;
           th+=`</div>`;
         });
@@ -2526,8 +2796,8 @@ function renderRebalResult(){
           th+=`<div style="display:flex;align-items:center;gap:10px;padding:8px 12px;margin-bottom:4px;border-radius:var(--radius-sm);background:var(--success-bg);border:1px solid var(--success-bg-border);transition:transform 0.1s" onmouseenter="this.style.transform='translateX(4px)'" onmouseleave="this.style.transform=''">`;
           th+=`<div style="background:var(--success);color:white;font-weight:800;font-size:0.78em;padding:4px 8px;border-radius:6px;min-width:48px;text-align:center;letter-spacing:0.5px">${ylink(t.sym)}</div>`;
           th+=`<div style="flex:1;min-width:0">`;
-          th+=`<div style="font-size:0.8em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</div>`;
-          th+=`<div style="font-size:0.68em;color:var(--text-muted)">${esc(t.account).substring(0,30)}${erLabel?' · '+erLabel:''}</div>`;
+          th+=`<div style="font-size:0.8em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}${t.isExisting?' <span style="font-size:0.75em;color:var(--success);font-weight:400">✓ existing</span>':''}</div>`;
+          th+=`<div style="font-size:0.68em;color:var(--text-muted)">${esc(t.account).substring(0,40)}${erLabel?' · '+erLabel:''}</div>`;
           th+=`</div>`;
           th+=`<div style="text-align:right;flex-shrink:0">`;
           th+=`<div style="font-weight:700;color:var(--success);font-size:0.9em">+${fmtD(t.amount)}</div>`;
@@ -2569,21 +2839,24 @@ function renderRebalResult(){
     th+=`<details style="margin-top:8px"><summary style="cursor:pointer;font-size:0.82em;color:var(--text-muted);padding:8px 0">📋 View Full Trade Table</summary>`;
     th+=`<div class="wd-panel" style="padding:0;overflow:hidden;margin-top:8px">`;
     th+=`<div style="overflow-x:auto"><table class="xray-conc-tbl" style="margin:0;border-radius:0"><thead><tr>`;
-    th+=`<th style="width:60px">Action</th><th>Symbol</th><th>Name</th><th>Account</th><th class="r">Amount</th><th>Category</th><th>Reason</th><th>Tax Note</th>`;
+    th+=`<th style="width:60px">Action</th><th>Symbol</th><th>Name</th><th>Account</th><th class="r">Amount</th><th class="r">Realized G/L</th><th>Category</th><th>Tax Note</th>`;
     th+=`</tr></thead><tbody>`;
     [...sells,...buys].forEach(t=>{
       const isSell=t.action==='SELL';
       const bg=isSell?'var(--danger-bg)':'var(--success-bg)';
       const fg=isSell?'var(--danger)':'var(--success)';
       const icon=isSell?'▼':'▲';
+      const glVal=t.realizedGL||0;
+      const glStr=isSell&&t.taxable&&glVal!==0?((glVal>0?'+':'')+fmtD(glVal)):'-';
+      const glColor=glVal<0?'var(--success)':glVal>0?'var(--danger)':'var(--text-muted)';
       th+=`<tr style="background:${bg}">`;
       th+=`<td><span style="color:${fg};font-weight:700;font-size:0.85em">${icon} ${t.action}</span></td>`;
       th+=`<td style="font-weight:600">${ylink(t.sym)}</td>`;
       th+=`<td style="font-size:0.8em;max-width:180px;overflow:hidden;text-overflow:ellipsis">${esc(t.name)}</td>`;
       th+=`<td style="font-size:0.8em">${esc(t.account)}</td>`;
       th+=`<td class="r" style="font-weight:700">${fmtD(Math.abs(t.amount))}</td>`;
+      th+=`<td class="r" style="font-size:0.85em;color:${glColor}">${glStr}</td>`;
       th+=`<td><span style="font-size:0.75em;padding:2px 8px;border-radius:10px;background:var(--bg-secondary)">${t.category}</span></td>`;
-      th+=`<td style="font-size:0.8em;color:var(--text-muted)">${t.reason}</td>`;
       th+=`<td style="font-size:0.75em;color:var(--text-muted)">${t.taxNote}</td></tr>`;
     });
     th+=`</tbody></table></div></div></details>`;
@@ -2596,7 +2869,7 @@ function generateRebalTrades(targetPcts,curPcts){
   const catInfo=[{k:'eq',l:'US Equity'},{k:'intl',l:'International'},{k:'bond',l:'Bonds'},{k:'cash',l:'Cash'},{k:'reit',l:'Real Estate'},{k:'alt',l:'Alternatives'}];
 
   /* Build per-category, per-account, per-ticker inventory */
-  const catMap={}; /* cat -> [{sym,name,val,acctName,acctType,acctNum,gain}] */
+  const catMap={}; /* cat -> [{sym,name,val,acctName,acctType,acctNum,gain,glPct,cb,taxable}] */
   const tickerCat={}; /* sym -> allocCat */
   DATA.forEach(d=>{
     const allocCat=(d.cat==='US Index Funds'||d.cat==='Individual Stocks'||d.cat==='Tech Sector Fund'||d.cat==='Growth / Leveraged ETFs')?'eq'
@@ -2622,23 +2895,23 @@ function generateRebalTrades(targetPcts,curPcts){
     else if(diff<-1) underCats.push({...ci,diff:Math.abs(diff),diffDollar:Math.abs(diffDollar)});
   });
 
-  /* Generate sells from overcategories — smart sort with deep-loss hold rule */
+  /* Generate sells from overcategories — tax-aware sort with deep-loss hold rule */
   const held=[];  /* positions skipped: deep losers in tax-advantaged accounts */
   overCats.forEach(oc=>{
     let remaining=oc.diffDollar;
     const holdings=(catMap[oc.k]||[]).slice().sort((a,b)=>{
-      /* Priority: 1) taxable losses first (TLH benefit), 2) tax-advantaged winners,
-         3) taxable winners last (triggers tax) — skip deep losers in tax-free accts */
+      /* Priority: 1) taxable losses first (TLH benefit), 2) tax-advantaged positions,
+         3) taxable small gains, 4) taxable large gains last — skip deep losers in tax-free accts */
       const aDeepLoss=!a.taxable&&a.gain<0&&Math.abs(a.gain)>a.val*0.5;
       const bDeepLoss=!b.taxable&&b.gain<0&&Math.abs(b.gain)>b.val*0.5;
       if(aDeepLoss!==bDeepLoss) return aDeepLoss?1:-1;  /* push deep losers to end */
       /* Taxable losses first (TLH value) */
       if(a.taxable&&a.gain<0&&!(b.taxable&&b.gain<0)) return -1;
-      if(b.taxable&&b.gain<0&&!(a.taxable&&a.gain<0)) return 1;
+      if(b.taxable&&a.gain<0&&!(a.taxable&&a.gain<0)) return 1;
       /* Then tax-advantaged (no tax cost) */
       const aTax=a.taxable?1:0, bTax=b.taxable?1:0;
       if(aTax!==bTax) return aTax-bTax;
-      /* Then by gain ascending */
+      /* Then by gain ascending (smaller gains = less tax) */
       if(a.gain!==b.gain) return a.gain-b.gain;
       return a.val-b.val;
     });
@@ -2656,30 +2929,70 @@ function generateRebalTrades(targetPcts,curPcts){
       }
       const sellAmt=Math.min(h.val,remaining);
       if(sellAmt<100) continue;
-      const gainNote=h.taxable?(h.gain<0?'Tax loss (offset gains)':'Taxable — consider lot selection'):'Tax-free (tax-advantaged acct)';
+      /* Compute proportional realized gain/loss for this sell */
+      const sellFrac=h.val>0?sellAmt/h.val:0;
+      const realizedGL=h.gain*sellFrac;
+      const sellCB=h.cb*sellFrac;
+      /* Tax note with actual gain/loss info */
+      let taxNote,taxCost=0;
+      if(!h.taxable){
+        taxNote='Tax-free (tax-advantaged acct)';
+        taxCost=0;
+      } else if(realizedGL<0){
+        taxNote=`Tax loss: ${fmtD(Math.abs(Math.round(realizedGL)))} (offsets gains)`;
+        taxCost=realizedGL*0.15; /* negative = tax benefit */
+      } else if(realizedGL>0){
+        const ltcgRate=0.15; /* assume LTCG */
+        taxCost=realizedGL*ltcgRate;
+        taxNote=`Est. tax: ${fmtD(Math.round(taxCost))} on ${fmtD(Math.round(realizedGL))} gain`;
+      } else {
+        taxNote='No gain/loss';
+        taxCost=0;
+      }
       trades.push({action:'SELL',sym:h.sym,name:h.name,account:h.acctName,amount:sellAmt,
-        category:oc.l,reason:`Reduce ${oc.l} (-${oc.diff.toFixed(1)}%)`,taxNote:gainNote,taxable:h.taxable});
+        category:oc.l,reason:`Reduce ${oc.l} (-${oc.diff.toFixed(1)}%)`,taxNote,taxable:h.taxable,
+        realizedGL:Math.round(realizedGL),estTaxCost:Math.round(taxCost),sellCB:Math.round(sellCB),
+        gain:h.gain,glPct:h.glPct});
       remaining-=sellAmt;
     }
   });
 
-  /* Post-loop: surface ALL deep losers in tax-advantaged accounts as "held",
-     even if the sell loop never reached them (remaining filled early).
-     This gives the user explicit reassurance about why these aren't sold. */
+  /* Post-loop: surface ALL deep losers in tax-advantaged accounts as "held" */
   const soldSymAccts=new Set(trades.filter(t=>t.action==='SELL').map(t=>t.sym+'|'+t.account));
   Object.values(catMap).flat().forEach(h=>{
-    if(soldSymAccts.has(h.sym+'|'+h.acctName)) return;  /* already being sold */
-    if(h.taxable) return;  /* taxable deep losers can TLH — not relevant */
-    if(!(h.gain<0 && h.cb>0 && Math.abs(h.gain)/h.cb>0.5)) return;  /* not a deep loss */
-    if(h.val<50) return;  /* tiny positions not worth mentioning */
+    if(soldSymAccts.has(h.sym+'|'+h.acctName)) return;
+    if(h.taxable) return;
+    if(!(h.gain<0 && h.cb>0 && Math.abs(h.gain)/h.cb>0.5)) return;
+    if(h.val<50) return;
     const lossPct=Math.min((Math.abs(h.gain)/h.cb*100),99.9).toFixed(0);
     const acctKind=(h.acctType||'').includes('Roth')?'Roth':(h.acctType||'').includes('401')?'401(k)':'IRA';
     held.push({sym:h.sym,name:h.name,account:h.acctName,val:h.val,gain:h.gain,cb:h.cb,lossPct,
       reason:`Down ${lossPct}% in ${acctKind} — no TLH benefit, hold for recovery`});
   });
-  trades._held=held;  /* attach held list for UI rendering */
+  trades._held=held;
 
-  /* Generate buys into undercategories — using model's recommended funds */
+  /* Compute tax summary for the trade set */
+  const taxSells=trades.filter(t=>t.action==='SELL'&&t.taxable);
+  const totalRealizedGains=taxSells.filter(t=>t.realizedGL>0).reduce((s,t)=>s+t.realizedGL,0);
+  const totalRealizedLosses=taxSells.filter(t=>t.realizedGL<0).reduce((s,t)=>s+Math.abs(t.realizedGL),0);
+  const netRealizedGL=totalRealizedGains-totalRealizedLosses;
+  const estNetTax=Math.max(0,netRealizedGL)*0.15;
+  trades._taxSummary={totalRealizedGains,totalRealizedLosses,netRealizedGL,estNetTax,
+    taxFreeSells:trades.filter(t=>t.action==='SELL'&&!t.taxable).reduce((s,t)=>s+t.amount,0)};
+
+  /* Generate buys into undercategories — prefer existing holdings, then model funds */
+  /* Build lookup of what user already owns per category */
+  const ownedByCat={};
+  Object.entries(catMap).forEach(([ck,positions])=>{
+    const byTicker={};
+    positions.forEach(p=>{
+      if(!byTicker[p.sym]) byTicker[p.sym]={sym:p.sym,name:p.name,totalVal:0,accounts:[]};
+      byTicker[p.sym].totalVal+=p.val;
+      byTicker[p.sym].accounts.push({acctName:p.acctName,acctType:p.acctType,taxable:p.taxable,val:p.val});
+    });
+    ownedByCat[ck]=Object.values(byTicker).sort((a,b)=>b.totalVal-a.totalVal);
+  });
+
   underCats.forEach(uc=>{
     let remaining=uc.diffDollar;
     /* Find the recommended fund for this category from the selected model */
@@ -2693,16 +3006,49 @@ function generateRebalTrades(targetPcts,curPcts){
         if(mapped===uc.k) buyFunds.push({sym:a.t,pct:a.pct,name:FUND_META[a.t]?.n||a.t});
       });
     }
-    if(buyFunds.length===0) buyFunds=[{sym:uc.k==='eq'?'VTI':uc.k==='intl'?'VXUS':uc.k==='bond'?'BND':uc.k==='reit'?'VNQ':'GLD',pct:100,name:''}];
+    /* Prefer existing holdings: if user already owns a fund in this category, use it */
+    const owned=ownedByCat[uc.k]||[];
+    const ownedSyms=new Set(owned.map(o=>o.sym));
+    const modelSyms=new Set(buyFunds.map(f=>f.sym));
 
-    const totalPct=buyFunds.reduce((s,f)=>s+f.pct,0)||1;
-    buyFunds.forEach(bf=>{
+    /* Check if user owns any of the model funds — prefer those */
+    const ownedModelFunds=buyFunds.filter(f=>ownedSyms.has(f.sym));
+    /* Also find owned funds not in the model — can add as alternatives */
+    const ownedNonModel=owned.filter(o=>!modelSyms.has(o.sym)&&FUND_META[o.sym]);
+
+    let finalBuyFunds;
+    if(ownedModelFunds.length>0){
+      /* User owns some model funds — concentrate buys into those */
+      finalBuyFunds=ownedModelFunds;
+    } else if(owned.length>0&&FUND_META[owned[0].sym]){
+      /* User doesn't own model funds but owns something in this category — buy more of largest existing */
+      finalBuyFunds=[{sym:owned[0].sym,pct:100,name:owned[0].name}];
+    } else if(buyFunds.length>0){
+      finalBuyFunds=buyFunds;
+    } else {
+      finalBuyFunds=[{sym:uc.k==='eq'?'VTI':uc.k==='intl'?'VXUS':uc.k==='bond'?'BND':uc.k==='reit'?'VNQ':'GLD',pct:100,name:''}];
+    }
+
+    const totalPct=finalBuyFunds.reduce((s,f)=>s+f.pct,0)||1;
+    finalBuyFunds.forEach(bf=>{
       const buyAmt=remaining*bf.pct/totalPct;
       if(buyAmt<100) return;
-      /* Prefer tax-advantaged accounts for buys */
-      const acctLabel=uc.k==='bond'?'Tax-Deferred (recommended)':uc.k==='reit'?'Roth (recommended)':'Any account';
+      /* Smart account placement: bonds → tax-deferred, growth → taxable, REITs → Roth */
+      const isOwned=ownedSyms.has(bf.sym);
+      const ownedAcct=isOwned?owned.find(o=>o.sym===bf.sym):null;
+      let acctLabel;
+      if(uc.k==='bond') acctLabel='Tax-Deferred (recommended)';
+      else if(uc.k==='reit') acctLabel='Roth (recommended)';
+      else if(uc.k==='eq'||uc.k==='intl') acctLabel='Taxable (recommended — LTCG rates)';
+      else acctLabel='Any account';
+      /* If user already owns this fund, suggest the same account */
+      if(ownedAcct&&ownedAcct.accounts.length>0){
+        const largest=ownedAcct.accounts.sort((a,b)=>b.val-a.val)[0];
+        acctLabel=largest.acctName+' (existing position)';
+      }
       trades.push({action:'BUY',sym:bf.sym,name:bf.name||FUND_META[bf.sym]?.n||bf.sym,account:acctLabel,
-        amount:buyAmt,category:uc.l,reason:`Increase ${uc.l} (+${uc.diff.toFixed(1)}%)`,taxNote:'N/A',taxable:false});
+        amount:buyAmt,category:uc.l,reason:`Increase ${uc.l} (+${uc.diff.toFixed(1)}%)`,taxNote:'N/A',taxable:false,
+        isExisting:isOwned,realizedGL:0,estTaxCost:0});
     });
   });
 
@@ -2711,10 +3057,10 @@ function generateRebalTrades(targetPcts,curPcts){
 
 function copyRebalTrades(){
   const rows=document.querySelectorAll('#rebalTrades .xray-conc-tbl tbody tr');
-  let text='Action\tSymbol\tName\tAccount\tAmount\tCategory\tReason\n';
+  let text='Action\tSymbol\tName\tAccount\tAmount\tRealized G/L\tCategory\tTax Note\n';
   rows.forEach(r=>{
     const cells=r.querySelectorAll('td');
-    text+=[...cells].slice(0,7).map(c=>c.textContent.trim()).join('\t')+'\n';
+    text+=[...cells].slice(0,8).map(c=>c.textContent.trim()).join('\t')+'\n';
   });
   navigator.clipboard.writeText(text).then(()=>showToast('Trade list copied to clipboard','success'));
 }
@@ -3131,8 +3477,8 @@ function exportCSV(){
   const a=document.createElement('a');
   /* Derive filename from source */
   let fname='portfolio_export.csv';
-  const footerEl=document.querySelector('.footer');
-  if(footerEl){const m=footerEl.textContent.match(/Source:\s*(.+)/);if(m) fname=m[1].trim();}
+  const subtitleEl=document.querySelector('.subtitle');
+  if(subtitleEl){const m=subtitleEl.textContent.match(/Source:\s*(.+)/);if(m) fname=m[1].trim();}
   const ts=new Date().toISOString().replace(/[:T]/g,'-').replace(/\..*/,'');
   fname=fname.replace(/\.csv$/i,'') + '_' + ts + '.csv';
   a.href=url;a.download=fname;document.body.appendChild(a);a.click();document.body.removeChild(a);
@@ -4115,7 +4461,7 @@ function isWdGlideEnabled(){
 function getEffectiveWdGlideMode(){
   return isWdGlideEnabled()?(document.getElementById('wdGlideMode')?.value||'glidepath'):'fixed';
 }
-function saveSettings(){
+function saveSettings(opts){
   try{
     /* Merge with existing settings so fields from non-visible tabs are preserved */
     const existing=JSON.parse(localStorage.getItem(SETTINGS_KEY)||'{}');
@@ -4206,11 +4552,20 @@ function saveSettings(){
     }
     /* Persist panel UI state alongside settings */
     s._wdUIState=window._wdUIState||{panels:{},charts:{}};
+    /* Persist rebalance model + custom targets */
+    const _rebalModelEl=document.getElementById('rebalModel');
+    if(_rebalModelEl) s._rebalModel=_rebalModelEl.value;
+    const _rebalIds=['eq','intl','bond','cash','reit','alt'];
+    const _rebalCustom={};
+    _rebalIds.forEach(id=>{const el=document.getElementById('rebalC_'+id);if(el) _rebalCustom[id]=parseFloat(el.value)||0;});
+    if(Object.keys(_rebalCustom).length>0) s._rebalCustomTargets=_rebalCustom;
     localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
     /* Theme is stored separately in localStorage but also echoed into settings for export */
     s._theme=localStorage.getItem('portfolioTheme')||'blue';
     localStorage.setItem(SETTINGS_KEY,JSON.stringify(s));
   }catch(e){}
+  /* Debounced auto-recalculate when any input changes */
+  if(typeof _wdScheduleRecalc==='function'&&!(opts&&opts.skipRecalc)) _wdScheduleRecalc();
 }
 function loadSettings(){
   try{
@@ -4248,21 +4603,20 @@ function loadSettings(){
     }
     const savedGlideToggle=s.wdGlideToggle===true||s.wdGlideToggle==='true';
     window._currentWdGlideMode=savedGlideToggle?(s.wdGlideMode||'glidepath'):'fixed';
-    /* Show/hide spouse panel (respect sub-collapse) */
-    const spPanel=document.getElementById('wdSpousePanel');
-    if(spPanel) spPanel.style.display=(s.wdSpouseToggle&&!window._wdSubCollapsed['wdSpousePanel'])?'block':'none';
-    const spCh=document.querySelector('[data-sub-panel="wdSpousePanel"]');
-    if(spCh){ spCh.textContent=(!s.wdSpouseToggle||window._wdSubCollapsed['wdSpousePanel'])?'▶':'▼'; if(s.wdSpouseToggle) spCh.classList.remove('disabled'); else spCh.classList.add('disabled'); }
-    /* Show/hide income & savings panel (respect sub-collapse) */
-    const contribPanel=document.getElementById('wdContribPanel');
-    if(contribPanel) contribPanel.style.display=(s.wdContribToggle&&!window._wdSubCollapsed['wdContribPanel'])?'block':'none';
-    const cCh=document.querySelector('[data-sub-panel="wdContribPanel"]');
-    if(cCh){ cCh.textContent=(!s.wdContribToggle||window._wdSubCollapsed['wdContribPanel'])?'▶':'▼'; if(s.wdContribToggle) cCh.classList.remove('disabled'); else cCh.classList.add('disabled'); }
+    /* Show/hide spouse fields (checkbox now inside panel body) */
+    const spFields=document.getElementById('wdSpouseFields');
+    if(spFields){ if(s.wdSpouseToggle){ spFields.classList.remove('disabled'); spFields.removeAttribute('inert'); } else { spFields.classList.add('disabled'); spFields.setAttribute('inert',''); } }
+    /* Show/hide income & savings fields (checkbox now inside panel body) */
+    const contribFields=document.getElementById('wdContribFields');
+    if(contribFields){ if(s.wdContribToggle){ contribFields.classList.remove('disabled'); contribFields.removeAttribute('inert'); } else { contribFields.classList.add('disabled'); contribFields.setAttribute('inert',''); } }
     /* Show/hide glide path panel (respect sub-collapse) */
     const glidePanel=document.getElementById('wdGlidePanel');
-    if(glidePanel) glidePanel.style.display=(savedGlideToggle&&!window._wdSubCollapsed['wdGlidePanel'])?'block':'none';
+    if(glidePanel){
+      if(savedGlideToggle){ glidePanel.classList.remove('disabled'); window._wdSubCollapsed['wdGlidePanel']=false; glidePanel.style.display=''; }
+      else { glidePanel.classList.add('disabled'); glidePanel.style.display='none'; }
+    }
     const gCh=document.querySelector('[data-sub-panel="wdGlidePanel"]');
-    if(gCh){ gCh.textContent=(!savedGlideToggle||window._wdSubCollapsed['wdGlidePanel'])?'▶':'▼'; if(savedGlideToggle) gCh.classList.remove('disabled'); else gCh.classList.add('disabled'); }
+    if(gCh){ if(!savedGlideToggle) gCh.classList.remove('expanded'); else gCh.classList.add('expanded'); if(savedGlideToggle) gCh.classList.remove('disabled'); else gCh.classList.add('disabled'); }
     if(savedGlideToggle) {
       const glideModeEl=document.getElementById('wdGlideMode');
       if(glideModeEl){
@@ -4322,15 +4676,11 @@ function loadSettings(){
       }
     }
     /* Show/hide one-time spend panel (respect sub-collapse) */
-    const otsPanelEl=document.getElementById('wdOneTimeSpendPanel');
-    if(otsPanelEl) otsPanelEl.style.display=(s.wdOneTimeSpendToggle&&!window._wdSubCollapsed['wdOneTimeSpendPanel'])?'block':'none';
-    const otsCh=document.querySelector('[data-sub-panel="wdOneTimeSpendPanel"]');
-    if(otsCh){ otsCh.textContent=(!s.wdOneTimeSpendToggle||window._wdSubCollapsed['wdOneTimeSpendPanel'])?'▶':'▼'; if(s.wdOneTimeSpendToggle) otsCh.classList.remove('disabled'); else otsCh.classList.add('disabled'); }
-    /* Show/hide healthcare panel (respect sub-collapse) */
-    const hcPanelEl=document.getElementById('wdHealthcarePanel');
-    if(hcPanelEl) hcPanelEl.style.display=(s.wdHealthcareToggle&&!window._wdSubCollapsed['wdHealthcarePanel'])?'block':'none';
-    const hcCh=document.querySelector('[data-sub-panel="wdHealthcarePanel"]');
-    if(hcCh){ hcCh.textContent=(!s.wdHealthcareToggle||window._wdSubCollapsed['wdHealthcarePanel'])?'▶':'▼'; if(s.wdHealthcareToggle) hcCh.classList.remove('disabled'); else hcCh.classList.add('disabled'); }
+    const otsFields=document.getElementById('wdOneTimeSpendFields');
+    if(otsFields){ if(s.wdOneTimeSpendToggle){ otsFields.classList.remove('disabled'); otsFields.removeAttribute('inert'); } else { otsFields.classList.add('disabled'); otsFields.setAttribute('inert',''); } }
+    /* Show/hide healthcare fields (checkbox now inside panel body) */
+    const hcFields=document.getElementById('wdHealthcareFields');
+    if(hcFields){ if(s.wdHealthcareToggle){ hcFields.classList.remove('disabled'); hcFields.removeAttribute('inert'); } else { hcFields.classList.add('disabled'); hcFields.setAttribute('inert',''); } }
     /* Restore selected accounts */
     if(s._selectedAccounts&&Array.isArray(s._selectedAccounts)){
       const savedSet=new Set(s._selectedAccounts);
@@ -4379,6 +4729,20 @@ function loadSettings(){
         window._wdUIState=_wdSanitizeUIState(s._wdUIState);
         _wdPersistUIState();
       }
+    }
+    /* Restore rebalance model + custom targets */
+    if(s._rebalModel){
+      const _rmEl=document.getElementById('rebalModel');
+      if(_rmEl) _rmEl.value=s._rebalModel;
+      if(typeof selectRebalModel==='function') selectRebalModel(s._rebalModel);
+    }
+    if(s._rebalCustomTargets){
+      const _rIds=['eq','intl','bond','cash','reit','alt'];
+      _rIds.forEach(id=>{
+        const el=document.getElementById('rebalC_'+id);
+        if(el&&s._rebalCustomTargets[id]!=null) el.value=s._rebalCustomTargets[id];
+      });
+      if(typeof updateRebalCustomSum==='function') updateRebalCustomSum();
     }
   }catch(e){}
 }
@@ -4429,6 +4793,34 @@ function importSettingsFromFile(file){
 
 /* Wire up gear menu */
 document.addEventListener('DOMContentLoaded',function(){
+  /* Sync header-spacer and pivot-tabs-spacer heights with fixed elements */
+  (function syncFixedBars(){
+    var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
+    var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
+    if(hdr&&sp){
+      var h=hdr.offsetHeight;
+      sp.style.height=h+'px';
+      if(pt){ pt.style.top=h+'px'; }
+      var ptH=pt?pt.offsetHeight:42;
+      if(ptSp) ptSp.style.height=ptH+'px';
+      var hsp=document.getElementById('holdingsSubPivot');
+      if(hsp) hsp.style.top=(h+ptH)+'px';
+    }
+  })();
+  window.addEventListener('resize',function(){
+    var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
+    var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
+    if(hdr&&sp){
+      var h=hdr.offsetHeight;
+      sp.style.height=h+'px';
+      if(pt) pt.style.top=h+'px';
+      var ptH=pt?pt.offsetHeight:42;
+      if(ptSp) ptSp.style.height=ptH+'px';
+      var hsp=document.getElementById('holdingsSubPivot');
+      if(hsp) hsp.style.top=(h+ptH)+'px';
+    }
+  });
+
   const gearBtn=document.getElementById('settingsGearBtn');
   const dropdown=document.getElementById('settingsDropdown');
   const saveBtn=document.getElementById('saveSettingsBtn');
@@ -4455,6 +4847,15 @@ document.addEventListener('DOMContentLoaded',function(){
   if(exportDataBtn) exportDataBtn.addEventListener('click',function(){
     dropdown.classList.remove('open');
     exportCSV();
+  });
+  /* Wire Print to PDF button */
+  const printPdfBtn=document.getElementById('printPdfBtn');
+  if(printPdfBtn) printPdfBtn.addEventListener('click',function(){
+    dropdown.classList.remove('open');
+    /* Determine active tab and call exportTabToPDF */
+    const activeTab=document.querySelector('.pivot-tab.active');
+    const tabName=activeTab?activeTab.dataset.pivot:'holdings';
+    exportTabToPDF(tabName);
   });
   if(fileInput) fileInput.addEventListener('change',function(){
     if(fileInput.files.length>0){
@@ -4743,11 +5144,16 @@ function _showHelpForKey(key){
   _helpKey=origFn;
 }
 
-/* Keyboard shortcut: ? opens help, Escape closes */
+/* Keyboard shortcut: ? opens help, Escape closes, Ctrl+Enter runs calculate */
 document.addEventListener('keydown',function(e){
   if(e.key==='Escape'){
     const ov=document.querySelector('.sugg-overlay');
     if(ov) ov.remove();
+    return;
+  }
+  /* Ctrl+Enter or Cmd+Enter triggers recalculate when on the withdrawals tab */
+  if(e.key==='Enter'&&(e.ctrlKey||e.metaKey)){
+    if(_activeTab==='withdrawals'&&!_wdRecalcInProgress){ e.preventDefault(); computeWithdrawalPlan(); }
     return;
   }
   if(e.key==='?'&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
@@ -5166,15 +5572,14 @@ function _sdRenderResults(csvText,fileName){
     <div style="font-size:0.85em;color:var(--text-muted)">Comparing <strong>${esc(fileName)}</strong> against current report</div>
     <div style="display:flex;gap:8px;align-items:center">
       <button class="sd-clear-btn" onclick="_sdClear()">✕ Clear Comparison</button>
-      <button class="export-pdf-btn" onclick="exportTabToPDF('snapshot')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button>
     </div>
   </div>`;
 
   /* Get current report source filename from footer */
   let currentFileName='Current Report';
-  const footerEl=document.querySelector('.footer');
-  if(footerEl){
-    const srcMatch=footerEl.textContent.match(/Source:\s*(.+)/);
+  const subtitleEl2=document.querySelector('.subtitle');
+  if(subtitleEl2){
+    const srcMatch=subtitleEl2.textContent.match(/Source:\s*(.+)/);
     if(srcMatch) currentFileName=srcMatch[1].trim();
   }
 
@@ -5463,7 +5868,7 @@ function addSpendPhase(age,amount){
     `<button type="button" class="spend-phase-del" onclick="this.parentElement.remove();saveSettings()" title="Remove phase">\u00D7</button>`;
   container.appendChild(row);
   /* Attach save listeners to dynamically added inputs */
-  row.querySelectorAll('input').forEach(inp=>inp.addEventListener('change',saveSettings));
+  row.querySelectorAll('input').forEach(inp=>{inp.addEventListener('change',saveSettings);inp.addEventListener('input',saveSettings);});
 }
 
 function updatePhaseTag(input){
@@ -6281,21 +6686,66 @@ function renderWithdrawals(){
   const buckets=getAccountBuckets();
   let html='';
 
-  /* Toolbar — Export PDF */
-  html+=`<div class="wd-toolbar" style="display:flex;justify-content:flex-end;align-items:center;gap:10px;margin:0 0 10px;flex-wrap:wrap">`;
-  html+=`<button class="export-pdf-btn" onclick="exportTabToPDF('withdrawals')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button>`;
+  /* ── Page layout: sidebar + main ── */
+  html+=`<div class="wd-page-layout">`;
+
+  /* Sidebar (sticky, inside content flow) */
+  html+=`<div class="wd-sidebar" id="wdSidebar">`;
+  html+=`<div class="wd-sidebar-header">`;
+  html+=`<h1><span class="wd-logo">WP</span> Withdrawal Planner</h1>`;
+  html+=`<p>Tax-efficient retirement strategy</p>`;
+  html+=`</div>`;
+  html+=`<nav class="wd-sidebar-nav">`;
+
+  /* PLANNER section */
+  html+=`<div class="wd-nav-section">`;
+  html+=`<div class="wd-nav-section-title">Planner</div>`;
+  html+=`<a href="#" role="button" class="wd-nav-link active" data-nav="wdNavAccounts" onclick="event.preventDefault();_wdNavTo('wdNavAccounts')"><span class="wd-nav-icon">📋</span> Accounts</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavYou" onclick="event.preventDefault();_wdNavTo('wdNavYou')"><span class="wd-nav-icon">👤</span> You</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavSpouse" onclick="event.preventDefault();_wdNavTo('wdNavSpouse')"><span class="wd-nav-icon">👫</span> Spouse</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavIncome" onclick="event.preventDefault();_wdNavTo('wdNavIncome')"><span class="wd-nav-icon">💰</span> Income & Savings</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavHealthcare" onclick="event.preventDefault();_wdNavTo('wdNavHealthcare')"><span class="wd-nav-icon">🏥</span> Healthcare</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavOneTime" onclick="event.preventDefault();_wdNavTo('wdNavOneTime')"><span class="wd-nav-icon">🛒</span> One-Time Spending</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link" data-nav="wdNavAssumptions" onclick="event.preventDefault();_wdNavTo('wdNavAssumptions')"><span class="wd-nav-icon">⚙️</span> Assumptions & Roth</a>`;
   html+=`</div>`;
 
-  /* Current account buckets summary — context before configuration */
-  html+=`<div style="margin-bottom:16px;padding:14px 18px;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);font-size:0.82em;color:var(--text-muted)"><strong>Current Portfolio by Tax Bucket:</strong> `;
+  /* RESULTS section */
+  html+=`<div class="wd-nav-section" id="wdNavResultsSection">`;
+  html+=`<div class="wd-nav-section-title">Results</div>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-metrics-charts" onclick="event.preventDefault();_wdNavTo('wd-sec-metrics-charts')"><span class="wd-nav-icon">📊</span> Metrics Charts</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-wd-schedule" onclick="event.preventDefault();_wdNavTo('wd-sec-wd-schedule')"><span class="wd-nav-icon">📋</span> Schedule</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-spend-suggest" onclick="event.preventDefault();_wdNavTo('wd-sec-spend-suggest')"><span class="wd-nav-icon">💡</span> Spending Suggestions</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-mc-analysis" onclick="event.preventDefault();_wdNavTo('wd-sec-mc-analysis')"><span class="wd-nav-icon">🎲</span> Monte Carlo</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-hist-backtest" onclick="event.preventDefault();_wdNavTo('wd-sec-hist-backtest')"><span class="wd-nav-icon">🕰️</span> Historical Backtest</a>`;
+  html+=`</div>`;
+
+  /* ANALYSIS section */
+  html+=`<div class="wd-nav-section" id="wdNavAnalysisSection">`;
+  html+=`<div class="wd-nav-section-title">Analysis</div>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-roth-conv" onclick="event.preventDefault();_wdNavTo('wd-sec-roth-conv')"><span class="wd-nav-icon">📊</span> Roth Conversion</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-ss-rec" onclick="event.preventDefault();_wdNavTo('wd-sec-ss-rec')"><span class="wd-nav-icon">🎯</span> SS Recommendation</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-ss-breakeven" onclick="event.preventDefault();_wdNavTo('wd-sec-ss-breakeven')"><span class="wd-nav-icon">💰</span> SS Break-Even</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-irmaa" onclick="event.preventDefault();_wdNavTo('wd-sec-irmaa')"><span class="wd-nav-icon">🩺</span> IRMAA Impact</a>`;
+  html+=`<a href="#" role="button" class="wd-nav-link disabled" data-nav="wd-sec-wd-strategy" onclick="event.preventDefault();_wdNavTo('wd-sec-wd-strategy')"><span class="wd-nav-icon">💡</span> Strategy Explained</a>`;
+  html+=`</div>`;
+
+  html+=`</nav></div>`;
+
+  /* Main content area */
+  html+=`<div class="wd-main"><div class="wd-content">`;
+
+  /* Toolbar — Export PDF */
+  html+=`<div class="wd-toolbar" style="display:none">`;
+  html+=`</div>`;
+
+  /* Current account buckets summary */
+  html+=`<div id="wdNavAccounts" class="wd-section-card" style="margin-bottom:16px;padding:14px 18px;background:var(--card);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);font-size:0.82em;color:var(--text-muted)"><strong>Current Portfolio by Tax Bucket:</strong> `;
   html+=`<span id="acctBucketSummary"><span style="color:${buckets.taxable.color}">\u25CF Taxable ${fmt(buckets.taxable.total)}</span> &nbsp; `;
   html+=`<span style="color:${buckets.deferred.color}">\u25CF Tax-Deferred ${fmt(buckets.deferred.total)}</span> &nbsp; `;
   html+=`<span style="color:${buckets.roth.color}">\u25CF Roth ${fmt(buckets.roth.total)}</span> &nbsp; `;
   html+=`<span style="color:${buckets.hsa.color}">\u25CF HSA ${fmt(buckets.hsa.total)}</span></span>`;
   html+=`</div>`;
 
-  /* Input panel — collapsible */
-  html+=_wdSecOpen('wd-inputs','📅','Retirement Withdrawal Planner');
   html+=`<p class="wd-desc">Enter your details below. The engine will project year-by-year withdrawals using a tax-efficient strategy optimized to minimize taxes and maximize portfolio longevity.</p>`;
 
   /* Account selector dropdown */
@@ -6315,12 +6765,13 @@ function renderWithdrawals(){
   html+=`</div></div>`;
 
   /* Participant 1 — You */
-  html+=`<div style="margin-top:16px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--primary);box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:10px;color:var(--primary)">\u{1F464} You</div>`;
+  html+=`<div id="wdNavYou" class="wd-opt-panel" style="margin-top:16px">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdYouBody')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">\u{1F464} You</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdYouBody" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdYouBody" class="wd-opt-body">`;
   html+=`<div class="wd-inputs">`;
-  html+=`<div class="wd-field"><label title="Your current age today.\n\nUsed as the starting point for all projections.\nYears until retirement = Retirement Age − Current Age.">Current Age</label><input type="number" id="wdAge" value="50" min="25" max="80"></div>`;
-  html+=`<div class="wd-field"><label title="The age you plan to stop working and begin withdrawals.\n\nBefore this age: contributions grow your portfolio.\nAt this age: withdrawals begin using the 4% rule or your spending phases.\n\nAlso used as the default Roth conversion start age.">Retirement Age</label><input type="number" id="wdRetire" value="65" min="30" max="85"></div>`;
-  html+=`<div class="wd-field"><label title="How long you expect to live.\n\nThe plan runs from your current age through this age.\nIf a spouse is included, the plan extends to whichever spouse lives longer.\n\nLonger life expectancy = more years of withdrawals = more conservative plan.">Life Expectancy</label><input type="number" id="wdLife" value="90" min="70" max="120"></div>`;
+  html+=`<div class="wd-field"><label title="Your current age today.\n\nUsed as the starting point for all projections.\nYears until retirement = Retirement Age − Current Age.">Current Age</label><input type="number" id="wdAge" value="50" min="25" max="80" onblur="_wdValidateInputs()"></div>`;
+  html+=`<div class="wd-field"><label title="The age you plan to stop working and begin withdrawals.\n\nBefore this age: contributions grow your portfolio.\nAt this age: withdrawals begin using the 4% rule or your spending phases.\n\nAlso used as the default Roth conversion start age.">Retirement Age</label><input type="number" id="wdRetire" value="65" min="30" max="85" onblur="_wdValidateInputs()"></div>`;
+  html+=`<div class="wd-field"><label title="How long you expect to live.\n\nThe plan runs from your current age through this age.\nIf a spouse is included, the plan extends to whichever spouse lives longer.\n\nLonger life expectancy = more years of withdrawals = more conservative plan.">Life Expectancy</label><input type="number" id="wdLife" value="90" min="70" max="120" onblur="_wdValidateInputs()"></div>`;
   html+=`<div class="wd-field"><label title="Your monthly Social Security benefit at Full Retirement Age (FRA) in today's dollars.\n\nFind yours at ssa.gov/myaccount.\n\nThe actual benefit is adjusted based on when you start claiming:\n• Age 62: 70% of FRA\n• Age 67 (FRA): 100%\n• Age 70: 124% of FRA\n\nBenefits grow with inflation (COLA) automatically.\nSet to 0 if you don't expect Social Security income.">Monthly SS Income</label><input type="number" id="wdSSIncome" value="0" min="0" max="10000" step="100" placeholder="0 = none"></div>`;
   html+=`<div class="wd-field"><label title="The age you plan to start claiming Social Security.\n\nEarlier = smaller monthly check but more years of payments.\nLater = larger monthly check but fewer years.\n\nFRA (Full Retirement Age) is 67 for most people born after 1960.\nDelaying to 70 gives you 124% of your FRA benefit.\n\nThe percentages shown are relative to your FRA benefit amount.">SS Starting Age</label><select id="wdSSAge"><option value="62">62 — Early (70%)</option><option value="63">63 (75%)</option><option value="64">64 (80%)</option><option value="65">65 (86.7%)</option><option value="66">66 (93.3%)</option><option value="67" selected>67 — Full (FRA)</option><option value="68">68 (108%)</option><option value="69">69 (116%)</option><option value="70">70 — Max (124%)</option></select></div>`;
   html+=`</div>`;
@@ -6335,24 +6786,30 @@ function renderWithdrawals(){
   html+=`<button type="button" class="spend-phase-add" onclick="addSpendPhase();saveSettings()">+ Add Phase</button>`;
   html+=`</div>`;
 
-  html+=`</div>`;
+  html+=`</div></div>`; /* close wdYouBody + wdNavYou */
 
   /* Participant 2 — Spouse (toggle) */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdSpouseToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdSpouseToggle','wdSpousePanel')"> \u{1F46B} Include Spouse</label><span class="wd-sub-chevron disabled" data-sub-panel="wdSpousePanel" onclick="_wdSubToggle('wdSpouseToggle','wdSpousePanel')" title="Collapse/Expand">▶</span></div>`;
-  html+=`<div id="wdSpousePanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #ec4899;box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:10px;color:#ec4899">\u{1F465} Spouse</div>`;
+  html+=`<div id="wdNavSpouse"></div>`;
+  html+=`<div class="wd-opt-panel">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdSpousePanel')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">👫 Spouse</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdSpousePanel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdSpousePanel" class="wd-opt-body">`;
+  html+=`<label class="wd-panel-toggle"><input type="checkbox" id="wdSpouseToggle" onchange="_wdInnerToggle(this,'wdSpouseFields')"> Include spouse in plan</label>`;
+  html+=`<div id="wdSpouseFields" class="wd-panel-fields disabled" inert>`;
   html+=`<div class="wd-inputs">`;
-  html+=`<div class="wd-field"><label title="Your spouse's current age today.\n\nUsed to calculate their retirement timeline and Social Security start date.">Current Age</label><input type="number" id="wdSpAge" value="48" min="25" max="80"></div>`;
-  html+=`<div class="wd-field"><label title="The age your spouse plans to stop working.\n\nBefore this age: spouse's contributions grow the portfolio.\nAt this age: combined household withdrawals are recalculated.">Retirement Age</label><input type="number" id="wdSpRetire" value="65" min="30" max="85"></div>`;
-  html+=`<div class="wd-field"><label title="How long your spouse is expected to live.\n\nThe plan extends to whichever spouse lives longer.\nThis ensures the surviving spouse doesn't run out of money.">Life Expectancy</label><input type="number" id="wdSpLife" value="92" min="70" max="120"></div>`;
+  html+=`<div class="wd-field"><label title="Your spouse's current age today.\n\nUsed to calculate their retirement timeline and Social Security start date.">Current Age</label><input type="number" id="wdSpAge" value="48" min="25" max="80" onblur="_wdValidateInputs()"></div>`;
+  html+=`<div class="wd-field"><label title="The age your spouse plans to stop working.\n\nBefore this age: spouse's contributions grow the portfolio.\nAt this age: combined household withdrawals are recalculated.">Retirement Age</label><input type="number" id="wdSpRetire" value="65" min="30" max="85" onblur="_wdValidateInputs()"></div>`;
+  html+=`<div class="wd-field"><label title="How long your spouse is expected to live.\n\nThe plan extends to whichever spouse lives longer.\nThis ensures the surviving spouse doesn't run out of money.">Life Expectancy</label><input type="number" id="wdSpLife" value="92" min="70" max="120" onblur="_wdValidateInputs()"></div>`;
   html+=`<div class="wd-field"><label title="Spouse's monthly Social Security benefit at Full Retirement Age (FRA) in today's dollars.\n\nFind theirs at ssa.gov/myaccount.\n\nThe actual benefit is adjusted based on claiming age, same as yours.\nSet to 0 if spouse doesn't expect Social Security income.">Monthly SS Income</label><input type="number" id="wdSpSSIncome" value="0" min="0" max="10000" step="100" placeholder="0 = none"></div>`;
   html+=`<div class="wd-field"><label title="The age your spouse plans to start claiming Social Security.\n\nSame trade-offs as yours: earlier = smaller check, later = larger check.\nPercentages shown are relative to their FRA benefit.">SS Starting Age</label><select id="wdSpSSAge"><option value="62">62 — Early (70%)</option><option value="63">63 (75%)</option><option value="64">64 (80%)</option><option value="65">65 (86.7%)</option><option value="66">66 (93.3%)</option><option value="67" selected>67 — Full (FRA)</option><option value="68">68 (108%)</option><option value="69">69 (116%)</option><option value="70">70 — Max (124%)</option></select></div>`;
-  html+=`</div></div>`;
+  html+=`</div></div></div></div>`; /* close wd-inputs + wdSpouseFields + wdSpousePanel + wd-opt-panel */
 
-  /* Income & Savings Streams — checkbox toggle (like Spouse) */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdContribToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdContribToggle','wdContribPanel')"> \u{1F4B0} Include Income & Savings Streams</label><span class="wd-sub-chevron disabled" data-sub-panel="wdContribPanel" onclick="_wdSubToggle('wdContribToggle','wdContribPanel')" title="Collapse/Expand">▶</span></div>`;
-  html+=`<div id="wdContribPanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--success);box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:var(--success)">\u{1F4B0} Income & Savings Streams</div>`;
+  /* Income & Savings Streams — checkbox toggle */
+  html+=`<div id="wdNavIncome"></div>`;
+  html+=`<div class="wd-opt-panel">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdContribPanel')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">💰 Income & Savings Streams</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdContribPanel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdContribPanel" class="wd-opt-body">`;
+  html+=`<label class="wd-panel-toggle"><input type="checkbox" id="wdContribToggle" onchange="_wdInnerToggle(this,'wdContribFields')"> Include income & savings in plan</label>`;
+  html+=`<div id="wdContribFields" class="wd-panel-fields disabled" inert>`;
   html+=`<p class="wd-desc" style="margin:4px 0 10px">Annual contributions &amp; side income in today's dollars. Pre-retirement amounts grow your account balances. Post-retirement amounts reduce withdrawal needs. All amounts grow with inflation.</p>`;
   html+=`<div style="padding:6px 12px;font-size:0.76em;color:var(--text-muted);background:var(--bg-secondary);border-radius:6px;margin-bottom:10px;line-height:1.5">\u{1F4A1} <strong>DCP / Deferred Comp:</strong> If you have a DCP with maturity dates, deselect it from the account selector above, then add each year's maturity amount as a Year-Specific Entry in the Taxable/Side Income column below.</div>`;
   /* Hidden field for backward compat — always 'hybrid' now */
@@ -6385,12 +6842,15 @@ function renderWithdrawals(){
   html+=`<span id="contribInsertMsg" style="font-size:0.78em"></span>`;
   html+=`</div>`;
   html+=`</div>`;
-  html+=`</div>`;
+  html+=`</div></div></div>`; /* close wdContribFields + wdContribPanel + wd-opt-panel */
 
   /* Healthcare Costs — checkbox toggle */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdHealthcareToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdHealthcareToggle','wdHealthcarePanel')"> 🏥 Healthcare Costs</label><span class="wd-sub-chevron disabled" data-sub-panel="wdHealthcarePanel" onclick="_wdSubToggle('wdHealthcareToggle','wdHealthcarePanel')" title="Collapse/Expand">▶</span></div>`;
-  html+=`<div id="wdHealthcarePanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #0891b2;box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:#0891b2">🏥 Healthcare Cost Modeling</div>`;
+  html+=`<div id="wdNavHealthcare"></div>`;
+  html+=`<div class="wd-opt-panel">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdHealthcarePanel')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">🏥 Healthcare Costs</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdHealthcarePanel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdHealthcarePanel" class="wd-opt-body">`;
+  html+=`<label class="wd-panel-toggle"><input type="checkbox" id="wdHealthcareToggle" onchange="_wdInnerToggle(this,'wdHealthcareFields')"> Include healthcare costs in plan</label>`;
+  html+=`<div id="wdHealthcareFields" class="wd-panel-fields disabled" inert>`;
   html+=`<p class="wd-desc" style="margin:4px 0 10px">Model healthcare costs separately from lifestyle spending. Pre-65 costs use your private insurance premium; at 65 the plan automatically switches to Medicare premiums. Medical expenses drive <strong>tax-free HSA withdrawals</strong> — the engine uses HSA first for qualified medical costs before tapping taxable accounts.</p>`;
   /* Pre-65 section */
   html+=`<div style="font-weight:600;font-size:0.85em;margin:8px 0 6px;color:#0891b2">🔒 Pre-Medicare (before age 65)</div>`;
@@ -6412,23 +6872,27 @@ function renderWithdrawals(){
   html+=`<div class="wd-field"><label title="Estimated annual out-of-pocket medical expenses beyond insurance premiums.\n\nIncludes:\n• Doctor visit copays and coinsurance\n• Prescription copays (not covered by Part D)\n• Dental and vision (not covered by Medicare)\n• Medical devices, hearing aids\n• Lab work and diagnostic copays\n\nTypical estimates:\n• Healthy retiree: $2,000–$4,000/year\n• Average retiree: $4,000–$6,000/year\n• Chronic conditions: $6,000–$10,000+/year\n\nFidelity's 2024 estimate: $165,000 lifetime for a couple at 65 ≈ $3,300/person/year.\n\n💡 This amount qualifies for tax-free HSA withdrawals.\n💡 Dental and vision alone average $1,000–$2,000/year for retirees.">Annual Out-of-Pocket</label><input type="number" id="wdHcOOP" value="4000" min="0" max="50000" step="500" placeholder="4000"></div>`;
   html+=`<div class="wd-field"><label title="The annual rate at which healthcare costs increase.\n\nHistorical medical inflation: 5–7% per year (significantly higher than general inflation of ~3%).\n\nWhy it matters:\n• A $10,000/year healthcare cost at age 65 becomes ~$26,500 by age 85 at 5% medical inflation\n• Using general inflation (3%) would underestimate this to ~$18,000 — a $8,500/year gap\n\nThis rate applies to ALL healthcare costs (premiums, out-of-pocket, Medicare).\nGeneral inflation still applies to your lifestyle spending.\n\nRecommended: 5–6% for conservative planning.">Medical Inflation %</label><input type="number" id="wdHcInflation" value="5.5" min="0" max="12" step="0.5"></div>`;
   html+=`</div>`;
-  html+=`</div>`;
+  html+=`</div></div></div>`; /* close wdHealthcareFields + wdHealthcarePanel + wd-opt-panel */
 
   /* One-Time Spendings — checkbox toggle */
-  html+=`<div class="wd-sub-header"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdOneTimeSpendToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdOneTimeSpendToggle','wdOneTimeSpendPanel')"> 🛒 Include One-Time Spendings</label><span class="wd-sub-chevron disabled" data-sub-panel="wdOneTimeSpendPanel" onclick="_wdSubToggle('wdOneTimeSpendToggle','wdOneTimeSpendPanel')" title="Collapse/Expand">▶</span></div>`;
-  html+=`<div id="wdOneTimeSpendPanel" style="display:none;margin-top:10px;padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid #e11d48;box-shadow:var(--shadow-sm)">`;
-  html+=`<div style="font-weight:700;font-size:0.92em;margin-bottom:6px;color:#e11d48">🛒 One-Time Spendings</div>`;
+  html+=`<div id="wdNavOneTime"></div>`;
+  html+=`<div class="wd-opt-panel">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdOneTimeSpendPanel')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">🛒 One-Time Spendings</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdOneTimeSpendPanel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdOneTimeSpendPanel" class="wd-opt-body">`;
+  html+=`<label class="wd-panel-toggle"><input type="checkbox" id="wdOneTimeSpendToggle" onchange="_wdInnerToggle(this,'wdOneTimeSpendFields')"> Include one-time spendings in plan</label>`;
+  html+=`<div id="wdOneTimeSpendFields" class="wd-panel-fields disabled" inert>`;
   html+=`<p class="wd-desc" style="margin:4px 0 10px">Planned one-time expenses by year (in today's dollars — inflation-adjusted in simulations). Multiple entries per year are allowed. These are added on top of your regular spending phases.</p>`;
   html+=`<div style="display:flex;gap:6px;align-items:center;font-size:0.78em;color:var(--text-muted);font-weight:600;margin-bottom:4px;padding:0 2px">`;
   html+=`<span style="width:70px">Year</span><span style="width:120px;margin-left:12px">Amount ($)</span><span style="flex:1">Description</span>`;
   html+=`</div>`;
   html+=`<div id="oneTimeSpendRows" style="max-height:300px;overflow-y:auto"></div>`;
   html+=`<div style="margin-top:6px"><button type="button" class="spend-phase-add" onclick="addOneTimeSpend();saveSettings()">+ Add Spending</button></div>`;
-  html+=`</div>`;
+  html+=`</div></div></div>`; /* close wdOneTimeSpendFields + wdOneTimeSpendPanel + wd-opt-panel */
 
   /* Shared fields — Return, Volatility, Inflation, Tax, Conversions */
-  html+=`<div style="font-weight:700;font-size:0.92em;margin:16px 0 6px;color:var(--text-muted)">⚙️ Plan Assumptions & Roth Strategy</div>`;
-  html+=`<div style="padding:16px 18px;background:var(--card);border-radius:var(--radius-sm);border-left:4px solid var(--text-muted);box-shadow:var(--shadow-sm)">`;
+  html+=`<div id="wdNavAssumptions" class="wd-opt-panel" style="margin-top:16px">`;
+  html+=`<div class="wd-opt-header" onclick="_wdPanelToggle('wdAssumptionsBody')"><span style="display:flex;align-items:center;gap:8px;font-size:0.88em;font-weight:600;color:var(--text)">⚙️ Plan Assumptions & Roth Strategy</span><svg class="wd-sub-chevron expanded" data-sub-panel="wdAssumptionsBody" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdAssumptionsBody" class="wd-opt-body">`;
   html+=`<div class="wd-inputs">`;
   html+=`<div class="wd-field"><label title="The average annual portfolio return assumed for the plan (nominal, before inflation).\n\nTypical values:\n• Conservative (bonds-heavy): 4–5%\n• Balanced (60/40): 6–7%\n• Aggressive (equity-heavy): 8–10%\n\n⚡ If Retirement Glide Path is enabled, this value is automatically overridden each year based on your age-adjusted equity/bond allocation. Your entered value is saved and restored when glide path is disabled.">Expected Return %</label><input type="number" id="wdReturn" value="6" min="1" max="15" step="0.5"></div>`;
   html+=`<div class="wd-field"><label title="The annual standard deviation of returns, used for Monte Carlo simulation.\n\nHigher volatility = wider range of outcomes = more uncertainty.\n\nTypical values:\n• Bonds-heavy: 8–10%\n• Balanced (60/40): 12–15%\n• Equity-heavy: 18–25%\n\n⚡ If Retirement Glide Path is enabled, this value is automatically overridden each year based on your age-adjusted equity/bond allocation. Your entered value is saved and restored when glide path is disabled.">Volatility %</label><input type="number" id="wdVol" value="15" min="5" max="40" step="1"></div>`;
@@ -6442,8 +6906,9 @@ function renderWithdrawals(){
   html+=`<div class="wd-field" id="wdConvEndWrap" style="display:none"><label title="The age to stop Roth conversions.\n\nAutomatically set to one year before your Required Minimum Distribution (RMD) start age, which depends on birth year:\n• Born 1950 or earlier: RMDs at 72 → conversions end at 71\n• Born 1951–1959: RMDs at 73 → conversions end at 72\n• Born 1960+: RMDs at 75 → conversions end at 74\n\nAfter this age, RMDs force taxable withdrawals from Traditional accounts.\nConversions are capped at this age in the simulation.">Conv. End Age</label><input type="number" id="wdConvEndAge" value="72" min="30" max="90" step="1"></div>`;
   html+=`</div>`; /* close wd-inputs grid */
   /* Retirement Glide Path — inside Plan Assumptions card (overrides Return/Volatility) */
-  html+=`<div class="wd-sub-header" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border)"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)"><input type="checkbox" id="wdGlideToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdGlideToggle','wdGlidePanel',onGlideToggleChange)"> 📉 Enable Retirement Glide Path</label><span class="wd-sub-chevron disabled" data-sub-panel="wdGlidePanel" onclick="_wdSubToggle('wdGlideToggle','wdGlidePanel')" title="Collapse/Expand">▶</span></div>`;
-  html+=`<div id="wdGlidePanel" style="display:none;margin-top:10px;padding:14px 16px;background:var(--bg-secondary);border-radius:var(--radius-sm);border-left:4px solid var(--warning, #f59e0b)">`;
+  html+=`<div class="wd-opt-panel" style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);box-shadow:none;background:transparent;border-radius:0;overflow:visible">`;
+  html+=`<div class="wd-opt-header" style="padding:6px 0" onclick="if(event.target.type!=='checkbox')_wdSubToggle('wdGlideToggle','wdGlidePanel')"><label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:0.88em;font-weight:600;color:var(--text)" onclick="event.stopPropagation()"><input type="checkbox" id="wdGlideToggle" style="accent-color:var(--primary)" onchange="_wdSubCheckChanged('wdGlideToggle','wdGlidePanel',onGlideToggleChange)"> 📉 Enable Retirement Glide Path</label><svg class="wd-sub-chevron disabled" data-sub-panel="wdGlidePanel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></div>`;
+  html+=`<div id="wdGlidePanel" class="wd-opt-body disabled" style="display:none">`;
   html+=`<p class="wd-desc" style="margin:0 0 12px">Gradually shift from higher equity (higher return/risk) to lower equity (lower return/risk) as you age. When enabled, Expected Return and Volatility above are overridden each year.</p>`;
   html+=`<div class="wd-inputs" style="margin-bottom:12px">`;
   html+=`<div class="wd-field"><label title="How the equity/bond mix changes over time.\n\nAuto (age-based rule): Uses '110 minus age' — e.g., at age 60 you hold 50% equity.\nEquity range is capped at 20%–80%. Return and volatility are blended from Capital Market Assumptions.\n\nCustom Waypoints: Define your own equity % at specific ages.\nChoose 'Gradual' for smooth transitions or 'Step' to hold flat between waypoints.">Glide Strategy</label><select id="wdGlideMode" onchange="onGlideModeChange(this.value)"><option value="glidepath">Auto (age-based rule)</option><option value="custom">Custom Waypoints</option></select></div>`;
@@ -6466,15 +6931,14 @@ function renderWithdrawals(){
   html+=`<div id="glideMiniChart" style="margin-top:10px"></div>`;
   html+=`<div id="glideSchedulePreview" style="font-size:0.78em;color:var(--text-muted);margin-top:6px"></div>`;
   html+=`</div>`; /* close wdGlidePanel */
-  html+=`</div>`; /* close Plan Assumptions card */
+  html+=`</div>`; /* close wd-opt-panel (glide wrapper) */
+  html+=`</div></div>`; /* close wdAssumptionsBody + wdNavAssumptions */
 
-  html+=_wdSecClose();
+  html+=`<div id="wd-results" style="margin-top:22px"></div>`;
 
-  html+=`<div style="text-align:center;margin:16px 0 28px"><button class="wd-btn" style="padding:14px 36px;font-size:1.05em;font-weight:700;letter-spacing:0.01em;box-shadow:0 4px 14px rgba(0,0,0,0.18);background:linear-gradient(135deg,var(--primary),var(--primary-hover))" onclick="computeWithdrawalPlan()">🚀 Calculate Withdrawal Plan</button></div>`;
+  html+=`</div></div>`; /* close wd-content + wd-main */
+  html+=`</div>`; /* close wd-page-layout */
 
-  html+=`</div>`;
-
-  html+=`<div id="wd-results"></div>`;
   el.innerHTML=html;
   loadSettings();
   const glideToggleEl=document.getElementById('wdGlideToggle');
@@ -6539,6 +7003,13 @@ function renderWithdrawals(){
       if(window._chartRegistry&&window._chartRegistry['wd-charts'])_renderChart('wd-charts');
       _wdRestoreUIState();
     },0);
+  }
+  /* Lock layout: sidebar + header stay fixed, only .wd-main scrolls */
+  setTimeout(()=>_wdFixLayout(),0);
+  /* Auto-calculate on first render if no cached results and inputs are populated */
+  if(!window._wdResultsCache){
+    const ageEl=document.getElementById('wdAge');
+    if(ageEl&&ageEl.value) setTimeout(()=>computeWithdrawalPlan(),100);
   }
 }
 
@@ -6608,9 +7079,25 @@ function toggleAllAccounts(){
   onAcctSelChange();
 }
 
+/* ── Auto-recalculate: debounced trigger on any input change ── */
+let _wdAutoRecalcTimer=null;
+let _wdRecalcInProgress=false;
+let _wdRecalcDirty=false; /* set when input changes during recalc */
+function _wdScheduleRecalc(){
+  if(_activeTab!=='withdrawals'){ _wdRecalcDirty=true; return; }
+  if(_wdRecalcInProgress){ _wdRecalcDirty=true; return; }
+  clearTimeout(_wdAutoRecalcTimer);
+  _wdAutoRecalcTimer=setTimeout(function(){
+    if(_wdRecalcInProgress||_activeTab!=='withdrawals') return;
+    computeWithdrawalPlan();
+  },800);
+}
+
 function computeWithdrawalPlan(){
+  _wdRecalcInProgress=true;
   try {
-  saveSettings();
+  _wdValidateInputs();
+  saveSettings({skipRecalc:true});
   refreshContribPostRetireBadges();
   const curAge=parseInt(document.getElementById('wdAge').value,10);
   const retAge=parseInt(document.getElementById('wdRetire').value,10);
@@ -6652,7 +7139,7 @@ function computeWithdrawalPlan(){
     if(container) container.innerHTML='';
     addSpendPhase(retAge||65, defaultMonthly||5000);
     spendingPhases=getSpendPhases();
-    saveSettings();
+    saveSettings({skipRecalc:true});
   }
   const hasPhases=spendingPhases.some(p=>p.amount>0);
   const filing=document.getElementById('wdFiling').value;
@@ -6800,6 +7287,14 @@ function computeWithdrawalPlan(){
   const convEndAge=rothConvStrategy!=='none'?
     Math.min(RMD_START_AGE-1,parseInt(document.getElementById('wdConvEndAge').value)||RMD_START_AGE-1):RMD_START_AGE-1;
   const convWindowWarn=rothConvStrategy!=='none'&&convStartAge>convEndAge;
+
+  /* Standard Deduction Harvesting: reserve enough in deferred to fund ~stdDeduction/year
+     of tax-free withdrawals post-conversion-window through end of plan.
+     This avoids converting money at the chosen bracket rate that could later be withdrawn at 0%.
+     The reserve shrinks each year as post-conversion years decrease. */
+  const sdHarvestYears=Math.max(0,planEndAge-convEndAge);
+  const sdHarvestReserveTotal=rothConvStrategy!=='none'&&sdHarvestYears>0?
+    stdDeductionBase*sdHarvestYears/Math.pow(1+retPct,sdHarvestYears*0.5):0; /* discount for mid-point growth */
 
   /* Project growth to retirement — with income/savings contributions */
   const contribEnabled=document.getElementById('wdContribToggle')?.checked||false;
@@ -7070,6 +7565,7 @@ function computeWithdrawalPlan(){
 
     /* Roth conversion: fill bracket room in pre-RMD years */
     let rothConv=0,convTax=0,convMarginalRate=0,taxableConvAmt=0;
+    let sdHarvestWithheld=0; /* how much conversion was reduced due to SD harvesting */
     const hsaNonMedForConv=Math.max(0,wHSA-annualMedical);
     if(enableConversions&&age>=convStartAge&&age<=convEndAge&&bDeferred>wDeferred&&simConvLimit>0){
       const ssTaxableForConv=ssIncome>0?calcSSTaxableAmount(ssIncome,wDeferred+wTaxable+hsaNonMedForConv+postRetIncome,filing):0;
@@ -7077,7 +7573,12 @@ function computeWithdrawalPlan(){
       /* IRA basis pro-rata — compute before bracket room to size conversion correctly */
       const totalIRA=bDeferred;
       const basisFraction=totalIRA>0?Math.min(1,remainingBasis/totalIRA):0;
-      const maxAvail=bDeferred-wDeferred;
+      /* SD Harvesting: reserve deferred floor for post-conversion 0% withdrawals */
+      const sdYearsRemaining=Math.max(0,planEndAge-age);
+      const sdReserveFloor=sdHarvestReserveTotal>0?
+        stdDeductionBase*Math.max(0,planEndAge-Math.max(age,convEndAge))/Math.pow(1+retPct,sdYearsRemaining*0.3):0;
+      const maxAvailRaw=bDeferred-wDeferred;
+      const maxAvail=Math.max(0,maxAvailRaw-sdReserveFloor);
       /* Binary search for optimal conversion: find largest amount where total taxable income
          (including SS re-taxation triggered by the conversion) stays within bracket limit.
          This prevents oversized conversions that push into higher brackets due to SS interaction. */
@@ -7094,6 +7595,7 @@ function computeWithdrawalPlan(){
         if(totalOrdMid<=_targetTaxable+stdDeduction) lo=mid; else hi=mid;
       }
       rothConv=Math.min(Math.max(0,Math.floor(lo)),maxAvail);
+      sdHarvestWithheld=Math.max(0,Math.min(Math.floor(lo),maxAvailRaw)-rothConv); /* amount reduced by SD harvesting */
       if(rothConv>0){
         const taxableConv=rothConv*(1-basisFraction);
         taxableConvAmt=taxableConv;
@@ -7161,6 +7663,8 @@ function computeWithdrawalPlan(){
     rows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,ssIncome,yourSS,spouseSS,postRetIncome,
       totalW:totalWithdraw,tax:totalTax,afterTax,rothConv,convTax,convMarginalRate,rmdSurplus,irmaa,stateTax,_magi:magiForIRMAA,
       otsAmount:otsForAge>0?otsForAge*inflMult:0,
+      stdDeduction,taxableIncome,ordinaryIncome:totalOrdinaryIncome,incomeTax,capitalGainsTax,hsaPenalty,
+      sdHarvestWithheld,sdHarvestReserve:sdHarvestWithheld>0?Math.round(bDeferred-wDeferred-rothConv):0,
       bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,rmd,depleted:false,yrRet});
   }
   return {rows,cumTax,cumConvTax,totalConversions,cumSS,cumSpSS};
@@ -7211,7 +7715,7 @@ function computeWithdrawalPlan(){
   if(filingSpouseWarn) html+=`<div class="wd-note wd-note-warn" style="margin-bottom:12px"><strong>\u26A0\uFE0F Filing Status Mismatch:</strong> ${filing==='mfj'&&!hasSpouse?'Filing as Married Filing Jointly but no spouse is modeled. Tax brackets and IRMAA thresholds assume MFJ.':'Filing as Single but spouse is enabled. Consider switching to Married Filing Jointly.'}</div>`;
   if(convWindowWarn) html+=`<div class="wd-note wd-note-warn" style="margin-bottom:12px"><strong>\u26A0\uFE0F Conversion Window Invalid:</strong> Conv. Start Age (${convStartAge}) exceeds End Age (${convEndAge}). No Roth conversions will occur. Adjust the conversion age range.</div>`;
   if(contribWarnings.length>0) html+=`<div class="wd-note wd-note-warn" style="margin-bottom:12px"><strong>\u{1F4B0} Income & Savings Notes:</strong><ul style="margin:4px 0 0 16px;font-size:0.85em">${contribWarnings.map(w=>'<li>'+w+'</li>').join('')}</ul></div>`;
-  if(hasSpouse&&planEndAge>lifeExp) html+=`<div class="wd-note" style="margin-bottom:12px"><strong>ℹ️ Extended Horizon:</strong> Spouse's life expectancy extends the plan to your age ${planEndAge} (${planEndAge-lifeExp} year${planEndAge-lifeExp>1?'s':''} beyond your life expectancy). Portfolio must support the surviving spouse.</div>`;
+  if(hasSpouse&&planEndAge>lifeExp) html+=`<div class="wd-note wd-note-info" style="margin-bottom:12px"><strong>ℹ️ Extended Horizon:</strong> Spouse's life expectancy extends the plan to your age ${planEndAge} (${planEndAge-lifeExp} year${planEndAge-lifeExp>1?'s':''} beyond your life expectancy). Portfolio must support the surviving spouse.</div>`;
   const fmtK=v=>v>=1e6?'$'+(v/1e6).toFixed(2)+'M':v>=1e3?'$'+(v/1e3).toFixed(0)+'K':'$'+Math.round(v);
   const fmtD=v=>'$'+v.toLocaleString('en-US',{minimumFractionDigits:0,maximumFractionDigits:0});
   const depleteAge=rows.find(r=>r.depleted&&r.ssIncome<=0); /* truly depleted = no portfolio AND no SS */
@@ -7249,34 +7753,20 @@ function computeWithdrawalPlan(){
     const endPV=endBal/Math.pow(1+inflPct,planEndAge-curAge);
     html+=`<div class="wd-card" style="border-top:3px solid #10b981"><div class="wd-card-label">💰 Balance at Age ${planEndAge}</div><div class="wd-card-value">${fmtK(endBal)}</div><div style="color:var(--hold);font-size:0.85em;font-weight:600">Today's $: ${fmtK(endPV)}</div><div class="wd-card-sub">Remaining portfolio at longevity</div></div>`;
   }
-  html+=`</div>`;
-  html+=`</div>`; /* close wd-sticky-cards */
+  html+=`</div>`; /* close wd-cards */
 
-  /* Global PV/FV toggle + Spending Suggestions link — applies to all tabs */
+  /* Global PV/FV toggle + Spending Suggestions link — inside sticky bar */
   const _gPV=window._wdUIState?.tablePV||false;
-  html+=`<div id="wd-pv-toggle" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0 4px">`;
-  html+=`<a href="#" onclick="event.preventDefault();showWithdrawalSuggestions()" style="font-size:0.92em;font-weight:600;color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:color 0.15s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">💡 View Spending Suggestions <span style="font-size:0.85em">→</span></a>`;
+  html+=`<div id="wd-pv-toggle" style="display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 6px;flex-wrap:wrap">`;
+  html+=`<a href="#" onclick="event.preventDefault();showWithdrawalSuggestions()" style="font-size:0.82em;font-weight:600;color:var(--primary);text-decoration:none;display:inline-flex;align-items:center;gap:5px;transition:color 0.15s" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">💡 View Spending Suggestions <span style="font-size:0.85em">→</span></a>`;
   html+=`<div style="display:flex;align-items:center;gap:8px">`;
-  html+=`<span style="font-size:0.8em;font-weight:600;color:var(--text-muted)">Show values in:</span>`;
-  html+=`<div style="display:inline-flex;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:0.8em;font-weight:600">`;
-  html+=`<button onclick="_wdToggleTablePV()" style="padding:5px 14px;border:none;cursor:pointer;transition:all 0.15s;${!_gPV?'background:var(--primary);color:white':'background:var(--card);color:var(--text-muted)'}">Future $</button>`;
-  html+=`<button onclick="_wdToggleTablePV()" style="padding:5px 14px;border:none;border-left:1.5px solid var(--border);cursor:pointer;transition:all 0.15s;${_gPV?'background:var(--hold);color:white':'background:var(--card);color:var(--text-muted)'}">Today's $</button>`;
+  html+=`<span style="font-size:0.75em;font-weight:600;color:var(--text-muted)">Show values in:</span>`;
+  html+=`<div style="display:inline-flex;border:1.5px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;font-size:0.75em;font-weight:600">`;
+  html+=`<button onclick="_wdToggleTablePV()" style="padding:3px 12px;border:none;cursor:pointer;transition:all 0.15s;${!_gPV?'background:var(--primary);color:white':'background:var(--card);color:var(--text-muted)'}">Future $</button>`;
+  html+=`<button onclick="_wdToggleTablePV()" style="padding:3px 12px;border:none;border-left:1.5px solid var(--border);cursor:pointer;transition:all 0.15s;${_gPV?'background:var(--hold);color:white':'background:var(--card);color:var(--text-muted)'}">Today's $</button>`;
   html+=`</div></div></div>`;
 
-  /* Result sub-tabs */
-  const _defTab=window._wdUIState.resultTab||'overview';
-  html+=`<div class="wd-result-tabs">`;
-  html+=`<button class="wd-result-tab${_defTab==='overview'?' active':''}" data-tab="overview" onclick="_wdSwitchResultTab('overview')">📊 Overview</button>`;
-  html+=`<button class="wd-result-tab${_defTab==='plan'?' active':''}" data-tab="plan" onclick="_wdSwitchResultTab('plan')">📋 Schedule</button>`;
-  html+=`<button class="wd-result-tab${_defTab==='sims'?' active':''}" data-tab="sims" onclick="_wdSwitchResultTab('sims')">🎲 Simulations</button>`;
-  html+=`<button class="wd-result-tab${_defTab==='analysis'?' active':''}" data-tab="analysis" onclick="_wdSwitchResultTab('analysis')">📖 Analysis</button>`;
-  html+=`</div>`;
-
-  /* Tab panel containers (sections will be moved into these after DOM injection) */
-  html+=`<div id="wd-rtab-overview" class="wd-result-tab-panel${_defTab==='overview'?' active':''}"></div>`;
-  html+=`<div id="wd-rtab-plan" class="wd-result-tab-panel${_defTab==='plan'?' active':''}"></div>`;
-  html+=`<div id="wd-rtab-sims" class="wd-result-tab-panel${_defTab==='sims'?' active':''}"></div>`;
-  html+=`<div id="wd-rtab-analysis" class="wd-result-tab-panel${_defTab==='analysis'?' active':''}"></div>`;
+  html+=`</div></div>`; /* close wd-sticky-cards + wrapper */
 
   /* === TAB: Plan (built later, open tag here to collect conditionals) === */
 
@@ -7286,169 +7776,6 @@ function computeWithdrawalPlan(){
   const _midPvF=1/Math.pow(1+inflPct,(planEndAge-retAge)/2+(retAge-curAge));
   const _aEndMul=_aPV?_endPvF:1;
   const _aMidMul=_aPV?_midPvF:1;
-
-  /* Roth Conversion Optimizer — side-by-side comparison of all strategies */
-  if(bDeferredInit>0){
-    const optimal=optimizerResults.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,optimizerResults[0]);
-    const afterTaxGainVsNone=optimal.afterTaxLifetime-noneResult.afterTaxLifetime;
-    html+=_wdSecOpen('roth-conv','📊','Roth Conversion Optimizer');
-    html+=`<p class="wd-desc" style="margin-bottom:10px">Compares all conversion strategies side-by-side. The highlighted row maximizes lifetime after-tax income.</p>`;
-    html+=`<div style="overflow-x:auto"><table class="roth-opt-table" id="wd-roth-opt-tbl"><thead><tr>`;
-    html+=`<th>Strategy</th><th>Bracket</th><th title="Total amount moved from Tax-Deferred to Roth">Total Converted</th>`;
-    html+=`<th title="Tax paid on conversions (upfront cost)">Conv. Tax</th>`;
-    html+=`<th title="Break-Even Tax Rate (BETR) — the effective marginal rate paid on conversions (federal + state). If your expected future withdrawal rate exceeds this, conversions are beneficial. Based on Vanguard BETR research." style="background:#ecfdf5;color:#065f46">BETR</th>`;
-    html+=`<th title="Total federal + state tax paid over entire retirement">Lifetime Tax</th>`;
-    html+=`<th title="Total after-tax income received over retirement">Lifetime After-Tax</th>`;
-    html+=`<th title="Roth balance at end of plan">Ending Roth Bal</th>`;
-    html+=`<th title="Ending portfolio balance (all accounts)">Ending Total Bal</th>`;
-    html+=`<th title="Additional lifetime after-tax income vs no conversions">Gain vs None</th>`;
-    html+=`</tr></thead><tbody>`;
-    optimizerResults.forEach(r=>{
-      const isOptimal=r.key===optimal.key&&r.key!=='none';
-      const isSelected=r.key===rothConvStrategy;
-      const gain=r.afterTaxLifetime-noneResult.afterTaxLifetime;
-      const cls=isOptimal?'roth-opt-best':(isSelected&&!isOptimal?'roth-opt-selected':'');
-      html+=`<tr class="${cls}">`;
-      html+=`<td style="font-weight:600">${r.label}${isOptimal?' ★':''}</td>`;
-      html+=`<td>${r.bracket}</td>`;
-      html+=`<td class="pv-mid"  data-fv="${r.totalConversions}">${r.totalConversions>0?fmtK(r.totalConversions*_aMidMul):'—'}</td>`;
-      html+=`<td class="pv-mid"  data-fv="${r.cumConvTax}">${r.cumConvTax>0?fmtK(r.cumConvTax*_aMidMul):'—'}</td>`;
-      html+=`<td style="background:var(--success-bg);font-weight:600;color:var(--success-text)">${r.betr>0?(r.betr*100).toFixed(1)+'%':'—'}</td>`;
-      html+=`<td class="pv-mid"  data-fv="${r.cumTax}" style="font-weight:600">${fmtK(r.cumTax*_aMidMul)}</td>`;
-      html+=`<td class="pv-mid"  data-fv="${r.afterTaxLifetime}">${fmtK(r.afterTaxLifetime*_aMidMul)}</td>`;
-      html+=`<td class="pv-end"  data-fv="${r.endRoth}">${fmtK(r.endRoth*_aEndMul)}</td>`;
-      html+=`<td class="pv-end"  data-fv="${r.endTotal}">${fmtK(r.endTotal*_aEndMul)}</td>`;
-      html+=`<td class="pv-mid"  data-fv="${gain}" style="color:${gain>0?'var(--success)':'var(--danger)'};font-weight:600">${gain>0?'+'+fmtK(gain*_aMidMul):gain<0?'-'+fmtK(Math.abs(gain)*_aMidMul):'—'}</td>`;
-      html+=`</tr>`;
-    });
-    html+=`</tbody></table></div>`;
-    /* Recommendation callout */
-    if(optimal.key!=='none'&&afterTaxGainVsNone>0){
-      html+=`<div class="roth-opt-rec" id="wd-roth-rec">`;
-      html+=`<strong>\u{1F4A1} Recommendation:</strong> The <strong>${optimal.label}</strong> strategy (${optimal.bracket} bracket) maximizes lifetime after-tax income, `;
-      html+=`producing <strong><span class="pv-mid" data-fv="${afterTaxGainVsNone}">${fmtK(afterTaxGainVsNone*_aMidMul)}</span></strong> more lifetime after-tax income vs no conversions. `;
-      html+=`Converts <span class="pv-mid" data-fv="${optimal.totalConversions}">${fmtK(optimal.totalConversions*_aMidMul)}</span> over ${optimal.convYears} years (ages ${optimal.firstConvAge}–${optimal.lastConvAge}), `;
-      html+=`averaging <span class="pv-mid" data-fv="${optimal.convYears>0?optimal.totalConversions/optimal.convYears:0}">${fmtK((optimal.convYears>0?optimal.totalConversions/optimal.convYears:0)*_aMidMul)}</span>/year. `;
-      html+=`Ending Roth balance: <span class="pv-end" data-fv="${optimal.endRoth}">${fmtK(optimal.endRoth*_aEndMul)}</span> (vs <span class="pv-end" data-fv="${noneResult.endRoth}">${fmtK(noneResult.endRoth*_aEndMul)}</span> without conversions).`;
-      html+=`</div>`;
-    } else if(optimal.key==='none'){
-      html+=`<div class="roth-opt-rec" style="border-left-color:var(--warning);background:var(--warning-bg-light)">`;
-      html+=`<strong>\u{1F4A1} Finding:</strong> With your current portfolio and parameters, Roth conversions do not reduce lifetime taxes. `;
-      html+=`This can happen when tax-deferred balances are small relative to other accounts, or when RMDs don't push you into higher brackets.`;
-      html+=`</div>`;
-    }
-    /* BETR Insight Card — compare BETR vs estimated retirement withdrawal rate */
-    const noneRows=noneResult.sim.rows;
-    /* Estimate future effective tax rate from no-conversion simulation */
-    const wdRows=noneRows.filter(r=>r.age>=retAge&&r.tax>0);
-    const estRetireRate=wdRows.length>0?wdRows.reduce((s,r)=>s+r.tax,0)/wdRows.reduce((s,r)=>s+(r.totalW||0),0)||0:0;
-    /* Find best BETR among all strategies with conversions */
-    const convStrategies=optimizerResults.filter(r=>r.betr>0);
-    const bestBETRStrategy=convStrategies.length>0?convStrategies.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,convStrategies[0]):null;
-    const bestBETR=bestBETRStrategy?bestBETRStrategy.betr:0;
-    html+=`<div style="margin:12px 0;padding:14px 18px;border-radius:8px;border-left:4px solid #2563eb;background:var(--highlight-bg)">`;
-    html+=`<strong>📊 BETR Analysis</strong> <span style="font-size:0.85em;color:#6b7280">(Break-Even Tax Rate — <a href="https://corporate.vanguard.com/content/dam/corp/research/pdf/a_betr_approach_to_roth_conversions_072025.pdf" target="_blank" style="color:#2563eb">Vanguard research</a>)</span><br>`;
-    html+=`<span style="font-size:0.85em;color:#4b5563">BETR is the effective marginal tax rate paid on Roth conversions. If your future withdrawal tax rate exceeds the BETR, conversions save you money.</span><br><br>`;
-    html+=`Your estimated avg retirement withdrawal tax rate (without conversions): <strong>${(estRetireRate*100).toFixed(1)}%</strong><br>`;
-    if(bestBETR>0){
-      const favorable=estRetireRate>bestBETR;
-      html+=`Best conversion strategy BETR (<strong>${bestBETRStrategy.label}</strong>): <strong>${(bestBETR*100).toFixed(1)}%</strong> `;
-      html+=`(fed${stateTaxPct>0?' + '+((stateTaxPct*100).toFixed(1))+'% state':''})<br>`;
-      /* Show all strategy BETRs */
-      html+=`<div style="margin-top:6px;font-size:0.85em">`;
-      convStrategies.forEach(r=>{
-        const isBest=r.key===bestBETRStrategy.key;
-        html+=`<span style="display:inline-block;margin-right:14px;${isBest?'font-weight:700':''}">`;
-        html+=`${r.label}: ${(r.betr*100).toFixed(1)}%${isBest?' ★':''}`;
-        html+=`</span>`;
-      });
-      html+=`</div>`;
-      html+=`<div style="margin-top:8px;padding:6px 10px;border-radius:4px;background:${favorable?'var(--success-bg)':'var(--warning-bg-light)'}">`;
-      if(favorable){
-        html+=`<span style="color:var(--success);font-weight:600">✅ Conversions appear beneficial</span> — your future rate (${(estRetireRate*100).toFixed(1)}%) exceeds BETR (${(bestBETR*100).toFixed(1)}%).`;
-      } else {
-        html+=`<span style="color:var(--warning-text);font-weight:600">⚠️ Conversions may not be optimal</span> — BETR (${(bestBETR*100).toFixed(1)}%) ≥ your estimated future rate (${(estRetireRate*100).toFixed(1)}%).`;
-      }
-      html+=`</div>`;
-    } else {
-      html+=`No conversion strategies produced conversions — BETR not applicable with current parameters.`;
-    }
-    html+=`</div>`;
-    html+=_wdSecClose();
-  }
-  if(hasSS){
-    /* Helper to build SS age comparison table */
-    function buildSSTable(label,fraMonthly,personAge,personLifeExp,color){
-      const ages=[62,67,70];
-      const scenarios=ages.map(a=>{
-        const factor=SS_AGE_FACTOR[a]||1;
-        const monthly=fraMonthly*factor;
-        const annual=monthly*12;
-        const yearsCollecting=Math.max(0,personLifeExp-a);
-        let lifetime=0;
-        for(let y=0;y<yearsCollecting;y++) lifetime+=annual*Math.pow(1+inflPct,y+(a-personAge));
-        return {age:a,factor,monthly,annual,yearsCollecting,lifetime};
-      });
-      const best=scenarios.reduce((a,b)=>b.lifetime>a.lifetime?b:a);
-      let h=`<div style="margin-bottom:16px;border-left:3px solid ${color};padding-left:12px">`;
-      h+=`<div style="font-weight:700;font-size:0.9em;margin-bottom:6px;color:${color}">${label}</div>`;
-      h+=`<div class="wd-tbl-wrap"><table class="wd-tbl"><thead><tr><th>Start Age</th><th>Monthly</th><th>Annual</th><th>% of FRA</th><th>Years</th><th>Lifetime Total*</th><th></th></tr></thead><tbody>`;
-      scenarios.forEach(s=>{
-        const isBest=s.age===best.age;
-        const lbl=s.age===62?'Early':s.age===67?'Full (FRA)':'Maximum';
-        h+=`<tr style="${isBest?'background:var(--success-bg);font-weight:600':''}">`;
-        h+=`<td>${s.age} — ${lbl}</td><td>${fmtD(Math.round(s.monthly))}</td><td>${fmtD(Math.round(s.annual))}</td>`;
-        h+=`<td>${(s.factor*100).toFixed(0)}%</td><td>${s.yearsCollecting}</td><td><span class="pv-mid" data-fv="${s.lifetime}">${fmtK(s.lifetime*_aMidMul)}</span></td>`;
-        h+=`<td>${isBest?'\u2B50 Recommended':''}</td></tr>`;
-      });
-      h+=`</tbody></table></div>`;
-      if(best.age===70) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Delay to 70</strong> — with life expectancy ${personLifeExp}, the 24% bonus maximizes lifetime benefits.</div>`;
-      else if(best.age===67) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at FRA (67)</strong> — balances benefit size with collection years.</div>`;
-      else h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at 62</strong> — collecting earlier maximizes lifetime total for life expectancy ${personLifeExp}.</div>`;
-      h+=`</div>`;
-      return h;
-    }
-
-    html+=_wdSecOpen('ss-rec','🎯','Social Security Age Recommendation');
-    if(ssMonthly>0) html+=buildSSTable(hasSpouse?'\u{1F464} You':'Your Benefits',ssMonthly,curAge,lifeExp,'#3b82f6');
-    if(hasSpouse&&spSSMonthly>0) html+=buildSSTable('\u{1F465} Spouse',spSSMonthly,spAge,spLifeExp,'#ec4899');
-    html+=`<p style="font-size:0.75em;color:var(--text-muted);margin-top:8px">* Lifetime totals are inflation-adjusted (${inflPct*100}%/yr). Each year delayed past 62 adds ~8%/yr to benefit.</p>`;
-    html+=_wdSecClose();
-  }
-
-  /* ---- Interactive Metric Charts ---- */
-  html+=_wdSecOpen('metrics-charts','📊','Retirement Metrics Charts');
-  html+=`<p class="wd-desc">Key retirement metrics over time. Use the global toggle above to switch between Future $ and Today's $ (discounted at ${inflPct*100}% inflation).</p>`;
-  const wdChartSeries=[
-    {type:'stacked',label:'Account Balances',stack:[
-      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
-      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
-      {key:'bRoth',label:'Roth',color:'#10b981'},
-      {key:'bHSA',label:'HSA',color:'#ec4899'},
-    ]},
-    {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
-    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
-    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
-    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar',cumTotal:true},
-    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line',cumTotal:true},
-    {type:'stacked',label:'Withdrawals by Account',stack:[
-      {key:'taxableW',label:'Taxable',color:'#f59e0b'},
-      {key:'deferredW',label:'Deferred',color:'#3b82f6'},
-      {key:'rothW',label:'Roth',color:'#10b981'},
-      {key:'hsaW',label:'HSA',color:'#ec4899'},
-    ]},
-  ];
-  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
-  html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries,curAge);
-  html+=_wdSecClose();
-
-  /* ---- SS Break-Even Chart ---- */
-  if(ssAnnualFRA>0){
-    html+=_wdSecOpen('ss-breakeven','💰','Social Security Break-Even Analysis');
-    html+=`<p class="wd-desc">Cumulative lifetime Social Security income at different claiming ages. The crossover points show when delaying becomes more profitable.</p>`;
-    html+=buildSSBreakEven(ssAnnualFRA,ssStartAge,lifeExp,curAge,inflPct,hasSpouse&&spSSAnnualFRA>0?{fra:spSSAnnualFRA,startAge:spSSStartAge,lifeExp:spLifeExp,curAge:spAge}:null);
-    html+=_wdSecClose();
-  }
 
   /* ---- Monte Carlo Simulation ---- */
   const mcParams={nSims:1000,yearsInRetirement,yearsToRetire,retAge,retPct,inflPct,vol:volPct,filing,
@@ -7477,6 +7804,34 @@ function computeWithdrawalPlan(){
     bTaxableInit,bDeferredInit,bRothInit,bHSAInit,noneCumTax:noneResult.cumTax,stateTaxPct,iraBasis,getContribForAge,oneTimeByAge,oneTimeItemsByAge,hcCostFn,
     acctBuckets:{taxable:buckets.taxable.accounts,deferred:buckets.deferred.accounts,roth:buckets.roth.accounts,hsa:buckets.hsa.accounts}};
 
+
+  /* ---- Interactive Metric Charts ---- */
+  html+=`<div style="margin-top:16px"></div>`;
+  html+=_wdSecOpen('metrics-charts','📊','Retirement Metrics Charts');
+  html+=`<p class="wd-desc">Key retirement metrics over time. Use the global toggle above to switch between Future $ and Today's $ (discounted at ${inflPct*100}% inflation).</p>`;
+  const wdChartSeries=[
+    {type:'stacked',label:'Account Balances',stack:[
+      {key:'bTaxable',label:'Taxable',color:'#f59e0b'},
+      {key:'bDeferred',label:'Deferred',color:'#3b82f6'},
+      {key:'bRoth',label:'Roth',color:'#10b981'},
+      {key:'bHSA',label:'HSA',color:'#ec4899'},
+    ]},
+    {key:'bTotal',label:'Total Balance',color:'#2563eb',type:'line'},
+    {key:'tax',label:'Annual Taxes',color:'#dc2626',type:'bar',cumTotal:true},
+    {key:'afterTax',label:'After-Tax Income',color:'#059669',type:'line',cumTotal:true},
+    {key:'rmd',label:'RMD Amount',color:'#d97706',type:'bar',cumTotal:true},
+    {key:'ssIncome',label:'Social Security',color:'#8b5cf6',type:'line',cumTotal:true},
+    {type:'stacked',label:'Withdrawals by Account',stack:[
+      {key:'taxableW',label:'Taxable',color:'#f59e0b'},
+      {key:'deferredW',label:'Deferred',color:'#3b82f6'},
+      {key:'rothW',label:'Roth',color:'#10b981'},
+      {key:'hsaW',label:'HSA',color:'#ec4899'},
+    ]},
+  ];
+  if(rows.some(r=>r.rothConv>0)) wdChartSeries.push({key:'rothConv',label:'Roth Conversions',color:'#7c3aed',type:'bar',cumTotal:true});
+  html+=buildMetricCharts(rows,inflPct,retAge,yearsToRetire,'wd-charts',wdChartSeries,curAge);
+  html+=_wdSecClose();
+
   /* "See Suggestions" button — above withdrawal table */
   html+=`</div>`;
 
@@ -7486,6 +7841,20 @@ function computeWithdrawalPlan(){
   /* Render initial table */
   const hasConv=rows.some(r=>r.rothConv>0);
   html+=`<p style="font-size:0.75em;color:var(--text-muted);margin-top:8px">\u{1F4CC} = RMD required year &nbsp; * = includes Required Minimum Distribution &nbsp; Blue rows = RMD years &nbsp; Red rows = portfolio depleted${hasConv?' &nbsp; Green border = Roth conversion year':''} &nbsp; <span style="color:#7c3aed">Purple (PV) = present value in today's dollars (discounted at ${inflPct*100}% inflation)</span> &nbsp; <span style="color:#b45309">\u{270F}\uFE0F Orange = user override (edit to recalculate)</span></p>`;
+  html+=_wdSecClose();
+
+  /* Spending Suggestions panel */
+  html+=_wdSecOpen('spend-suggest','\u{1F4A1}','Spending Suggestions');
+  html+=`<div style="padding:4px 0 16px">`;
+  html+=`<p style="margin:0 0 12px;color:var(--text);line-height:1.6">Spending Suggestions uses your current retirement plan inputs to compute <strong>optimal monthly spending levels</strong> for three different retirement goals:</p>`;
+  html+=`<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-bottom:16px">`;
+  html+=`<div style="background:var(--bg-secondary);border-radius:var(--radius);padding:12px;border-left:3px solid #10b981"><strong style="color:#10b981">\u{1F3AF} Die with Zero</strong><p style="margin:6px 0 0;font-size:0.85em;color:var(--text-muted)">Maximize lifetime spending \u2014 aim to fully spend your portfolio by end of plan, leaving nothing behind.</p></div>`;
+  html+=`<div style="background:var(--bg-secondary);border-radius:var(--radius);padding:12px;border-left:3px solid #3b82f6"><strong style="color:#3b82f6">\u{1F3E1} Leave 25% Legacy</strong><p style="margin:6px 0 0;font-size:0.85em;color:var(--text-muted)">Balanced approach \u2014 spend comfortably while preserving a quarter of your starting portfolio for heirs or charity.</p></div>`;
+  html+=`<div style="background:var(--bg-secondary);border-radius:var(--radius);padding:12px;border-left:3px solid #8b5cf6"><strong style="color:#8b5cf6">\u{1F3DB}\uFE0F Leave 50% Legacy</strong><p style="margin:6px 0 0;font-size:0.85em;color:var(--text-muted)">Conservative \u2014 prioritize wealth preservation, leaving half your starting portfolio as a legacy.</p></div>`;
+  html+=`</div>`;
+  html+=`<p style="margin:0 0 12px;color:var(--text);line-height:1.6;font-size:0.9em">For each goal, the analysis solves for the maximum sustainable monthly spending using both deterministic simulation and Monte Carlo success rate validation. Results include after-tax income, lifetime taxes, portfolio depletion age, and Roth conversion impact.</p>`;
+  html+=`<div style="text-align:center;padding:8px 0"><a href="#" onclick="event.preventDefault();showWithdrawalSuggestions()" style="display:inline-flex;align-items:center;gap:8px;padding:10px 24px;background:var(--primary);color:white;border-radius:var(--radius);font-weight:600;font-size:0.95em;text-decoration:none;transition:background 0.15s" onmouseover="this.style.background='var(--primary-hover)'" onmouseout="this.style.background='var(--primary)'">\u{1F4A1} View Spending Suggestions <span style="font-size:0.9em">\u2192</span></a></div>`;
+  html+=`</div>`;
   html+=_wdSecClose();
 
   /* ---- Monte Carlo Analysis ---- */
@@ -7671,6 +8040,194 @@ function computeWithdrawalPlan(){
     html+=`</ul></div>`;
   }
 
+  /* Roth Conversion Optimizer — side-by-side comparison of all strategies */
+  if(bDeferredInit>0){
+    const optimal=optimizerResults.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,optimizerResults[0]);
+    const afterTaxGainVsNone=optimal.afterTaxLifetime-noneResult.afterTaxLifetime;
+    html+=_wdSecOpen('roth-conv','📊','Roth Conversion Optimizer');
+    html+=`<p class="wd-desc" style="margin-bottom:10px">Compares all conversion strategies side-by-side. The highlighted row maximizes lifetime after-tax income.</p>`;
+    html+=`<div style="overflow-x:auto"><table class="roth-opt-table" id="wd-roth-opt-tbl"><thead><tr>`;
+    html+=`<th>Strategy</th><th>Bracket</th><th title="Total amount moved from Tax-Deferred to Roth">Total Converted</th>`;
+    html+=`<th title="Tax paid on conversions (upfront cost)">Conv. Tax</th>`;
+    html+=`<th title="Break-Even Tax Rate (BETR) — the effective marginal rate paid on conversions (federal + state). If your expected future withdrawal rate exceeds this, conversions are beneficial. Based on Vanguard BETR research." style="background:#ecfdf5;color:#065f46">BETR</th>`;
+    html+=`<th title="Total federal + state tax paid over entire retirement">Lifetime Tax</th>`;
+    html+=`<th title="Total after-tax income received over retirement">Lifetime After-Tax</th>`;
+    html+=`<th title="Roth balance at end of plan">Ending Roth Bal</th>`;
+    html+=`<th title="Ending portfolio balance (all accounts)">Ending Total Bal</th>`;
+    html+=`<th title="Additional lifetime after-tax income vs no conversions">Gain vs None</th>`;
+    html+=`</tr></thead><tbody>`;
+    optimizerResults.forEach(r=>{
+      const isOptimal=r.key===optimal.key&&r.key!=='none';
+      const isSelected=r.key===rothConvStrategy;
+      const gain=r.afterTaxLifetime-noneResult.afterTaxLifetime;
+      const cls=isOptimal?'roth-opt-best':(isSelected&&!isOptimal?'roth-opt-selected':'');
+      html+=`<tr class="${cls}">`;
+      html+=`<td style="font-weight:600">${r.label}${isOptimal?' ★':''}</td>`;
+      html+=`<td>${r.bracket}</td>`;
+      html+=`<td class="pv-mid"  data-fv="${r.totalConversions}">${r.totalConversions>0?fmtK(r.totalConversions*_aMidMul):'—'}</td>`;
+      html+=`<td class="pv-mid"  data-fv="${r.cumConvTax}">${r.cumConvTax>0?fmtK(r.cumConvTax*_aMidMul):'—'}</td>`;
+      html+=`<td style="background:var(--success-bg);font-weight:600;color:var(--success-text)">${r.betr>0?(r.betr*100).toFixed(1)+'%':'—'}</td>`;
+      html+=`<td class="pv-mid"  data-fv="${r.cumTax}" style="font-weight:600">${fmtK(r.cumTax*_aMidMul)}</td>`;
+      html+=`<td class="pv-mid"  data-fv="${r.afterTaxLifetime}">${fmtK(r.afterTaxLifetime*_aMidMul)}</td>`;
+      html+=`<td class="pv-end"  data-fv="${r.endRoth}">${fmtK(r.endRoth*_aEndMul)}</td>`;
+      html+=`<td class="pv-end"  data-fv="${r.endTotal}">${fmtK(r.endTotal*_aEndMul)}</td>`;
+      html+=`<td class="pv-mid"  data-fv="${gain}" style="color:${gain>0?'var(--success)':'var(--danger)'};font-weight:600">${gain>0?'+'+fmtK(gain*_aMidMul):gain<0?'-'+fmtK(Math.abs(gain)*_aMidMul):'—'}</td>`;
+      html+=`</tr>`;
+    });
+    html+=`</tbody></table></div>`;
+    /* Recommendation callout */
+    if(optimal.key!=='none'&&afterTaxGainVsNone>0){
+      html+=`<div class="roth-opt-rec" id="wd-roth-rec">`;
+      html+=`<strong>\u{1F4A1} Recommendation:</strong> The <strong>${optimal.label}</strong> strategy (${optimal.bracket} bracket) maximizes lifetime after-tax income, `;
+      html+=`producing <strong><span class="pv-mid" data-fv="${afterTaxGainVsNone}">${fmtK(afterTaxGainVsNone*_aMidMul)}</span></strong> more lifetime after-tax income vs no conversions. `;
+      html+=`Converts <span class="pv-mid" data-fv="${optimal.totalConversions}">${fmtK(optimal.totalConversions*_aMidMul)}</span> over ${optimal.convYears} years (ages ${optimal.firstConvAge}–${optimal.lastConvAge}), `;
+      html+=`averaging <span class="pv-mid" data-fv="${optimal.convYears>0?optimal.totalConversions/optimal.convYears:0}">${fmtK((optimal.convYears>0?optimal.totalConversions/optimal.convYears:0)*_aMidMul)}</span>/year. `;
+      html+=`Ending Roth balance: <span class="pv-end" data-fv="${optimal.endRoth}">${fmtK(optimal.endRoth*_aEndMul)}</span> (vs <span class="pv-end" data-fv="${noneResult.endRoth}">${fmtK(noneResult.endRoth*_aEndMul)}</span> without conversions).`;
+      html+=`</div>`;
+    } else if(optimal.key==='none'){
+      html+=`<div class="roth-opt-rec" style="border-left-color:var(--warning);background:var(--warning-bg-light)">`;
+      html+=`<strong>\u{1F4A1} Finding:</strong> With your current portfolio and parameters, Roth conversions do not reduce lifetime taxes. `;
+      html+=`This can happen when tax-deferred balances are small relative to other accounts, or when RMDs don't push you into higher brackets.`;
+      html+=`</div>`;
+    }
+    /* BETR Insight Card — compare BETR vs estimated retirement withdrawal rate */
+    const noneRows=noneResult.sim.rows;
+    /* Estimate future effective tax rate from no-conversion simulation */
+    const wdRows=noneRows.filter(r=>r.age>=retAge&&r.tax>0);
+    const estRetireRate=wdRows.length>0?wdRows.reduce((s,r)=>s+r.tax,0)/wdRows.reduce((s,r)=>s+(r.totalW||0),0)||0:0;
+    /* Find best BETR among all strategies with conversions */
+    const convStrategies=optimizerResults.filter(r=>r.betr>0);
+    const bestBETRStrategy=convStrategies.length>0?convStrategies.reduce((best,r)=>r.afterTaxLifetime>best.afterTaxLifetime?r:best,convStrategies[0]):null;
+    const bestBETR=bestBETRStrategy?bestBETRStrategy.betr:0;
+    html+=`<div style="margin:12px 0;padding:14px 18px;border-radius:8px;border-left:4px solid #2563eb;background:var(--highlight-bg)">`;
+    html+=`<strong>📊 BETR Analysis</strong> <span style="font-size:0.85em;color:#6b7280">(Break-Even Tax Rate — <a href="https://corporate.vanguard.com/content/dam/corp/research/pdf/a_betr_approach_to_roth_conversions_072025.pdf" target="_blank" style="color:#2563eb">Vanguard research</a>)</span><br>`;
+    html+=`<span style="font-size:0.85em;color:#4b5563">BETR is the effective marginal tax rate paid on Roth conversions. If your future withdrawal tax rate exceeds the BETR, conversions save you money.</span><br><br>`;
+    html+=`Your estimated avg retirement withdrawal tax rate (without conversions): <strong>${(estRetireRate*100).toFixed(1)}%</strong><br>`;
+    if(bestBETR>0){
+      const favorable=estRetireRate>bestBETR;
+      html+=`Best conversion strategy BETR (<strong>${bestBETRStrategy.label}</strong>): <strong>${(bestBETR*100).toFixed(1)}%</strong> `;
+      html+=`(fed${stateTaxPct>0?' + '+((stateTaxPct*100).toFixed(1))+'% state':''})<br>`;
+      /* Show all strategy BETRs */
+      html+=`<div style="margin-top:6px;font-size:0.85em">`;
+      convStrategies.forEach(r=>{
+        const isBest=r.key===bestBETRStrategy.key;
+        html+=`<span style="display:inline-block;margin-right:14px;${isBest?'font-weight:700':''}">`;
+        html+=`${r.label}: ${(r.betr*100).toFixed(1)}%${isBest?' ★':''}`;
+        html+=`</span>`;
+      });
+      html+=`</div>`;
+      html+=`<div style="margin-top:8px;padding:6px 10px;border-radius:4px;background:${favorable?'var(--success-bg)':'var(--warning-bg-light)'}">`;
+      if(favorable){
+        html+=`<span style="color:var(--success);font-weight:600">✅ Conversions appear beneficial</span> — your future rate (${(estRetireRate*100).toFixed(1)}%) exceeds BETR (${(bestBETR*100).toFixed(1)}%).`;
+      } else {
+        html+=`<span style="color:var(--warning-text);font-weight:600">⚠️ Conversions may not be optimal</span> — BETR (${(bestBETR*100).toFixed(1)}%) ≥ your estimated future rate (${(estRetireRate*100).toFixed(1)}%).`;
+      }
+      html+=`</div>`;
+    } else {
+      html+=`No conversion strategies produced conversions — BETR not applicable with current parameters.`;
+    }
+    html+=`</div>`;
+    html+=_wdSecClose();
+  }
+  if(hasSS){
+    /* Helper to build SS age comparison table */
+    function buildSSTable(label,fraMonthly,personAge,personLifeExp,color){
+      const ages=[62,67,70];
+      const scenarios=ages.map(a=>{
+        const factor=SS_AGE_FACTOR[a]||1;
+        const monthly=fraMonthly*factor;
+        const annual=monthly*12;
+        const yearsCollecting=Math.max(0,personLifeExp-a);
+        let lifetime=0;
+        for(let y=0;y<yearsCollecting;y++) lifetime+=annual*Math.pow(1+inflPct,y+(a-personAge));
+        return {age:a,factor,monthly,annual,yearsCollecting,lifetime};
+      });
+      const best=scenarios.reduce((a,b)=>b.lifetime>a.lifetime?b:a);
+      let h=`<div style="margin-bottom:16px;border-left:3px solid ${color};padding-left:12px">`;
+      h+=`<div style="font-weight:700;font-size:0.9em;margin-bottom:6px;color:${color}">${label}</div>`;
+      h+=`<div class="wd-tbl-wrap"><table class="wd-tbl"><thead><tr><th>Start Age</th><th>Monthly</th><th>Annual</th><th>% of FRA</th><th>Years</th><th>Lifetime Total*</th><th></th></tr></thead><tbody>`;
+      scenarios.forEach(s=>{
+        const isBest=s.age===best.age;
+        const lbl=s.age===62?'Early':s.age===67?'Full (FRA)':'Maximum';
+        h+=`<tr style="${isBest?'background:var(--success-bg);font-weight:600':''}">`;
+        h+=`<td>${s.age} — ${lbl}</td><td>${fmtD(Math.round(s.monthly))}</td><td>${fmtD(Math.round(s.annual))}</td>`;
+        h+=`<td>${(s.factor*100).toFixed(0)}%</td><td>${s.yearsCollecting}</td><td><span class="pv-mid" data-fv="${s.lifetime}">${fmtK(s.lifetime*_aMidMul)}</span></td>`;
+        h+=`<td>${isBest?'\u2B50 Recommended':''}</td></tr>`;
+      });
+      h+=`</tbody></table></div>`;
+      if(best.age===70) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Delay to 70</strong> — with life expectancy ${personLifeExp}, the 24% bonus maximizes lifetime benefits.</div>`;
+      else if(best.age===67) h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at FRA (67)</strong> — balances benefit size with collection years.</div>`;
+      else h+=`<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px"><strong>Recommendation: Claim at 62</strong> — collecting earlier maximizes lifetime total for life expectancy ${personLifeExp}.</div>`;
+      h+=`</div>`;
+      return h;
+    }
+
+    html+=_wdSecOpen('ss-rec','🎯','Social Security Age Recommendation');
+    if(ssMonthly>0) html+=buildSSTable(hasSpouse?'\u{1F464} You':'Your Benefits',ssMonthly,curAge,lifeExp,'#3b82f6');
+    if(hasSpouse&&spSSMonthly>0) html+=buildSSTable('\u{1F465} Spouse',spSSMonthly,spAge,spLifeExp,'#ec4899');
+    html+=`<p style="font-size:0.75em;color:var(--text-muted);margin-top:8px">* Lifetime totals are inflation-adjusted (${inflPct*100}%/yr). Each year delayed past 62 adds ~8%/yr to benefit.</p>`;
+    html+=_wdSecClose();
+  }
+
+  /* ---- SS Break-Even Chart ---- */
+  if(ssAnnualFRA>0){
+    html+=_wdSecOpen('ss-breakeven','💰','Social Security Break-Even Analysis');
+    html+=`<p class="wd-desc">Cumulative lifetime Social Security income at different claiming ages. The crossover points show when delaying becomes more profitable.</p>`;
+    html+=buildSSBreakEven(ssAnnualFRA,ssStartAge,lifeExp,curAge,inflPct,hasSpouse&&spSSAnnualFRA>0?{fra:spSSAnnualFRA,startAge:spSSStartAge,lifeExp:spLifeExp,curAge:spAge}:null);
+    html+=_wdSecClose();
+  }
+
+  /* IRMAA Impact Section */
+  const irmaaRows=rows.filter(r=>r.irmaa>0);
+  html+=_wdSecOpen('irmaa','🩺','Medicare IRMAA Impact');
+  if(irmaaRows.length>0){
+    const lifetimeIRMAA=irmaaRows.reduce((s,r)=>s+r.irmaa,0);
+    const firstIrmaaAge=irmaaRows[0].age;
+    const maxIrmaa=Math.max(...irmaaRows.map(r=>r.irmaa));
+    html+=`<div class="roth-opt-rec" style="border-left-color:var(--warning-dark);background:var(--warning-bg-light)">`;
+    html+=`<strong>\u26A0\uFE0F IRMAA surcharges detected:</strong> ${irmaaRows.length} years trigger Medicare premium surcharges, `;
+    html+=`totaling <strong>${fmtK(lifetimeIRMAA)}</strong> in additional healthcare costs over retirement. `;
+    html+=`First triggered at age ${firstIrmaaAge}. Peak annual surcharge: <strong>${fmtD(Math.round(maxIrmaa))}</strong>.`;
+    html+=`</div>`;
+    /* IRMAA bracket table */
+    const irmaaBrackets=filing==='mfj'?IRMAA_BRACKETS_MFJ:IRMAA_BRACKETS_SINGLE;
+    html+=`<div style="overflow-x:auto;margin:12px 0"><table class="roth-opt-table"><thead><tr>`;
+    html+=`<th>MAGI Threshold (${filing==='mfj'?'MFJ':'Single'})</th><th>Part B/mo</th><th>Part D/mo</th><th>Annual / Person</th><th>Your Years in Bracket</th></tr></thead><tbody>`;
+    for(let bi=0;bi<irmaaBrackets.length;bi++){
+      const b=irmaaBrackets[bi];
+      const prevLimit=bi>0?irmaaBrackets[bi-1].magi:0;
+      const yrsInBracket=rows.filter(r=>{
+        const m=r._magi||0;
+        return r.irmaa>0&&m>prevLimit&&m<=b.magi;
+      }).length;
+      const rangeLabel=b.magi===Infinity?'> '+fmtD(irmaaBrackets[bi-1].magi):(bi===0?'≤ '+fmtD(b.magi):fmtD(prevLimit+1)+' – '+fmtD(b.magi));
+      const rowCls=yrsInBracket>0?'style="background:var(--warning-bg);font-weight:600"':'';
+      html+=`<tr ${rowCls}><td>${rangeLabel}</td><td>${b.partB>0?'$'+b.partB.toFixed(2):'$0'}</td>`;
+      html+=`<td>${b.partD>0?'$'+b.partD.toFixed(2):'$0'}</td>`;
+      html+=`<td>${fmtD(Math.round((b.partB+b.partD)*12))}</td>`;
+      html+=`<td>${yrsInBracket>0?yrsInBracket+' yr'+(yrsInBracket>1?'s':''):'—'}</td></tr>`;
+    }
+    html+=`</tbody></table></div>`;
+    /* Roth conversion interaction */
+    const convIrmaaRows=rows.filter(r=>r.irmaa>0&&r.rothConv>0);
+    if(convIrmaaRows.length>0){
+      const convIrmaaTotal=convIrmaaRows.reduce((s,r)=>s+r.irmaa,0);
+      html+=`<div class="roth-opt-rec" style="border-left-color:var(--danger-bright);background:var(--danger-bg)">`;
+      html+=`<strong>\u{1F6A8} Roth conversion × IRMAA interaction:</strong> ${convIrmaaRows.length} years have both Roth conversions AND IRMAA surcharges. `;
+      html+=`Conversions increase MAGI, which can push you into higher IRMAA brackets. `;
+      html+=`Consider smaller annual conversions to stay below IRMAA thresholds.`;
+      html+=`</div>`;
+    }
+  } else {
+    html+=`<div class="roth-opt-rec" style="border-left-color:var(--success);background:var(--success-bg)">`;
+    html+=`<strong>✅ No IRMAA surcharges.</strong> Your projected income stays below Medicare IRMAA thresholds throughout retirement. `;
+    html+=`Standard Part B and Part D premiums apply — no additional surcharges.`;
+    html+=`</div>`;
+    html+=`<p class="wd-desc" style="margin-top:8px">Medicare IRMAA (Income-Related Monthly Adjustment Amount) is a surcharge on Part B and Part D premiums for higher-income retirees. `;
+    html+=`It uses a <strong>2-year MAGI lookback</strong>. Large Roth conversions, RMDs, or other income spikes can trigger surcharges.</p>`;
+  }
+  html+=_wdSecClose();
+
   /* Strategy notes */
   html+=_wdSecOpen('wd-strategy','💡','Withdrawal Strategy Explained');
 
@@ -7710,50 +8267,6 @@ function computeWithdrawalPlan(){
   }
 
   html+=_wdSecClose();
-
-  /* IRMAA Impact Section */
-  const irmaaRows=rows.filter(r=>r.irmaa>0);
-  if(irmaaRows.length>0){
-    const lifetimeIRMAA=irmaaRows.reduce((s,r)=>s+r.irmaa,0);
-    const firstIrmaaAge=irmaaRows[0].age;
-    const maxIrmaa=Math.max(...irmaaRows.map(r=>r.irmaa));
-    html+=_wdSecOpen('irmaa','🩺','Medicare IRMAA Impact');
-    html+=`<div class="roth-opt-rec" style="border-left-color:var(--warning-dark);background:var(--warning-bg-light)">`;
-    html+=`<strong>\u26A0\uFE0F IRMAA surcharges detected:</strong> ${irmaaRows.length} years trigger Medicare premium surcharges, `;
-    html+=`totaling <strong>${fmtK(lifetimeIRMAA)}</strong> in additional healthcare costs over retirement. `;
-    html+=`First triggered at age ${firstIrmaaAge}. Peak annual surcharge: <strong>${fmtD(Math.round(maxIrmaa))}</strong>.`;
-    html+=`</div>`;
-    /* IRMAA bracket table */
-    const irmaaBrackets=filing==='mfj'?IRMAA_BRACKETS_MFJ:IRMAA_BRACKETS_SINGLE;
-    html+=`<div style="overflow-x:auto;margin:12px 0"><table class="roth-opt-table"><thead><tr>`;
-    html+=`<th>MAGI Threshold (${filing==='mfj'?'MFJ':'Single'})</th><th>Part B/mo</th><th>Part D/mo</th><th>Annual / Person</th><th>Your Years in Bracket</th></tr></thead><tbody>`;
-    for(let bi=0;bi<irmaaBrackets.length;bi++){
-      const b=irmaaBrackets[bi];
-      const prevLimit=bi>0?irmaaBrackets[bi-1].magi:0;
-      const yrsInBracket=rows.filter(r=>{
-        const m=r._magi||0;
-        return r.irmaa>0&&m>prevLimit&&m<=b.magi;
-      }).length;
-      const rangeLabel=b.magi===Infinity?'> '+fmtD(irmaaBrackets[bi-1].magi):(bi===0?'≤ '+fmtD(b.magi):fmtD(prevLimit+1)+' – '+fmtD(b.magi));
-      const rowCls=yrsInBracket>0?'style="background:var(--warning-bg);font-weight:600"':'';
-      html+=`<tr ${rowCls}><td>${rangeLabel}</td><td>${b.partB>0?'$'+b.partB.toFixed(2):'$0'}</td>`;
-      html+=`<td>${b.partD>0?'$'+b.partD.toFixed(2):'$0'}</td>`;
-      html+=`<td>${fmtD(Math.round((b.partB+b.partD)*12))}</td>`;
-      html+=`<td>${yrsInBracket>0?yrsInBracket+' yr'+(yrsInBracket>1?'s':''):'—'}</td></tr>`;
-    }
-    html+=`</tbody></table></div>`;
-    /* Roth conversion interaction */
-    const convIrmaaRows=rows.filter(r=>r.irmaa>0&&r.rothConv>0);
-    if(convIrmaaRows.length>0){
-      const convIrmaaTotal=convIrmaaRows.reduce((s,r)=>s+r.irmaa,0);
-      html+=`<div class="roth-opt-rec" style="border-left-color:var(--danger-bright);background:var(--danger-bg)">`;
-      html+=`<strong>\u{1F6A8} Roth conversion × IRMAA interaction:</strong> ${convIrmaaRows.length} years have both Roth conversions AND IRMAA surcharges. `;
-      html+=`Conversions increase MAGI, which can push you into higher IRMAA brackets. `;
-      html+=`Consider smaller annual conversions to stay below IRMAA thresholds.`;
-      html+=`</div>`;
-    }
-    html+=_wdSecClose();
-  }
 
   /* Tax efficiency notes */
   html+=`<div class="wd-note wd-note-warn"><h3>\u{1F4B0} Tax Efficiency Notes</h3><ul>`;
@@ -7885,6 +8398,12 @@ function computeWithdrawalPlan(){
       const noneResult=optimizerResults[0];
       const endDiff=convResult.afterTaxEnd-noneResult.afterTaxEnd;
       convItems.push(`After-tax ending balance: <strong>${fmtK(convResult.afterTaxEnd)}</strong> vs ${fmtK(noneResult.afterTaxEnd)} without conversions (${endDiff>=0?'+':''}${fmtK(endDiff)} difference). Ending Roth balance: <strong>${fmtK(convResult.endRoth)}</strong> — this amount passes to heirs tax-free.`);
+      /* SD harvesting explanation */
+      const sdRows=convResult.sim.rows.filter(r=>r.sdHarvestWithheld>0);
+      if(sdRows.length>0){
+        const totalWithheld=sdRows.reduce((s,r)=>s+r.sdHarvestWithheld,0);
+        convItems.push(`<strong>🛡️ Standard Deduction Harvesting:</strong> Reserved ~${fmtK(totalWithheld)} in tax-deferred accounts across ${sdRows.length} year${sdRows.length>1?'s':''} (ages ${sdRows[0].age}–${sdRows[sdRows.length-1].age}). This deferred balance will be withdrawn at 0% federal tax in later years, covered by the ~${fmtK(stdDeductionBase)}/year standard deduction — avoiding the ${bracketNames[rothConvStrategy]} marginal rate that would have applied during conversion.`);
+      }
     }
   } else {
     convItems.push(`No Roth conversions selected. Consider enabling conversions if you have a large tax-deferred balance (${fmtK(buckets.deferred.total)}) — the optimizer table above compares strategies.`);
@@ -7950,35 +8469,8 @@ function computeWithdrawalPlan(){
   _wdSaveUIState();
   document.getElementById('wd-results').innerHTML=html;
 
-  /* Move sections into their tab panels */
-  (function(){
-    const tabMap={
-      overview:['wd-sec-metrics-charts'],
-      plan:['wd-sec-wd-schedule'],
-      sims:['wd-sec-mc-analysis','wd-sec-hist-backtest'],
-      analysis:['wd-sec-ss-rec','wd-sec-ss-breakeven','wd-sec-roth-conv','wd-sec-irmaa','wd-sec-wd-strategy']
-    };
-    /* Move Suggestions button to Overview */
-    const ov=document.getElementById('wd-rtab-overview');
-    if(ov){
-      const suggBtn=document.querySelector('.sugg-btn-wrap');
-      if(suggBtn) ov.appendChild(suggBtn);
-    }
-    Object.keys(tabMap).forEach(tab=>{
-      const panel=document.getElementById('wd-rtab-'+tab);
-      if(!panel) return;
-      tabMap[tab].forEach(secId=>{
-        const el=document.getElementById(secId);
-        if(el) panel.appendChild(el);
-      });
-    });
-    /* Move historical context note into Sims tab */
-    const simsPanel=document.getElementById('wd-rtab-sims');
-    if(simsPanel){
-      const histNote=document.querySelector('#wd-results > .wd-note.wd-note-info');
-      if(histNote&&histNote.querySelector('h3')&&histNote.querySelector('h3').textContent.includes('Historical')) simsPanel.appendChild(histNote);
-    }
-  })();
+  /* Enable sidebar result/analysis nav links */
+  _wdUpdateResultNav();
 
   /* Render the initial table after DOM is ready */
   renderWdTable();
@@ -7986,11 +8478,15 @@ function computeWithdrawalPlan(){
   setTimeout(()=>{
     _renderChart('wd-charts');
     _wdRestoreUIState();
+    /* Auto-scroll to first result section */
+    const firstResult=document.getElementById('wd-sec-metrics-charts');
+    if(firstResult) _wdNavTo('wd-sec-metrics-charts');
     /* Cache results for tab persistence */
     setTimeout(()=>{const r=document.getElementById('wd-results');if(r)window._wdResultsCache=r.innerHTML;},100);
   },0);
-  saveSettings();
+  saveSettings({skipRecalc:true});
   } catch(e) { document.getElementById('wd-results').innerHTML=`<div style="color:red;padding:20px;font-family:monospace"><b>Error:</b> ${esc(e.message||'')}<br><pre>${esc(e.stack||'')}</pre></div>`; }
+  finally { _wdRecalcInProgress=false; if(_wdRecalcDirty){_wdRecalcDirty=false;_wdScheduleRecalc();} }
 }
 
 /* ---- Editable Withdrawal Table with Recalculation ---- */
@@ -8196,6 +8692,7 @@ function renderWdTable(){
     const recOtsInflAdj=recOtsNominal>0?recOtsNominal*Math.pow(1+inflPct,i+yearsToRetire):0;
     rRows.push({age,spouseAge,taxableW:wTaxable,deferredW:wDeferred,rothW:wRoth,hsaW:wHSA,
       ssIncome,yourSS,spouseSS,postRetIncome:ovrPostRetIncome,totalW,tax:totalTax,afterTax,rothConv,convTax,convMarginalRate,rmd,irmaa:recIrmaa,stateTax:recStateTax,incomeTax:incTax,capGainsTax:capTax,hsaPenalty,rmdSurplus,otsAmount:recOtsInflAdj,_magi:recMagi,
+      stdDeduction:stdDeduction,taxableIncome:taxableInc,ordinaryIncome:recTotalOrd,sdHarvestWithheld:0,sdHarvestReserve:0,
       bTaxable,bDeferred,bRoth,bHSA,bTotal:bTaxable+bDeferred+bRoth+bHSA,depleted:false,overridden,yrRet});
   }
   } /* end hasOverrides else */
@@ -8267,8 +8764,8 @@ function renderWdTable(){
   const _pvLabel=_usePV?"Today's $":'Future $';
   const _pvNote=_usePV?` <span style="font-size:0.72em;font-weight:400;color:var(--hold)">(all amounts in today's dollars)</span>`:'';
   let t=`<div class="wd-tbl-wrap"><table class="wd-tbl"><thead><tr>`;
-  t+=`<th title="Calendar year for each row.\n\nDerived from your current age and the current year.">Year</th>`;
-  t+=`<th title="Your age in each retirement year.\n\nYears before retirement age show pre-retirement (SS-only income).\nHighlighted rows indicate RMD years (age ${RMD_START_AGE}+).">Age</th>`;
+  t+=`<th class="wd-col-frozen" style="left:0" title="Calendar year for each row.\n\nDerived from your current age and the current year.">Year</th>`;
+  t+=`<th class="wd-col-frozen" style="left:52px" title="Your age in each retirement year.\n\nYears before retirement age show pre-retirement (SS-only income).\nHighlighted rows indicate RMD years (age ${RMD_START_AGE}+).">Age</th>`;
   if(ctx.hasSpouse) t+=`<th title="Spouse's age in each retirement year.\n\nDerived from your age and spouse's current age.">Sp. Age</th>`;
   if(showRetCol) t+=`<th title="Effective portfolio return used for that year from the glide path schedule.\n\nThis varies by age as the equity allocation shifts over time.">Ret %</th>`;
   t+=`<th title="Withdrawal from taxable brokerage accounts.\n\nFormula: min(remaining spending need, available taxable balance)\nTax treatment: Long-term capital gains rate (15%)\nWithdrawal order: Used before tax-deferred (pre-RMD) to preserve lower tax brackets.\n\nTaxable withdrawals are included in AGI for Social Security taxation.">Taxable</th>`;
@@ -8281,11 +8778,11 @@ function renderWdTable(){
   t+=`<th style="background:var(--warning-bg);color:var(--warning-text);font-size:0.85em" title="Portfolio withdrawal rate for the year.\n\nFormula: (Taxable + Deferred + Roth + HSA withdrawals) ÷ Beginning-of-Year Balance × 100\n\nExcludes Social Security (not a portfolio withdrawal).\nSafe zone: 3–4% | Moderate: 4–5% | Aggressive: 5%+">W/D %</th>`;
   t+=`<th title="Estimated federal tax calculation:\n\n1. Ordinary Income = Tax-Deferred withdrawal + Roth conversions + non-medical HSA\n2. AGI = Ordinary Income + Taxable (LTCG)\n3. SS Taxable = IRS Pub 915 formula using AGI + 50% of SS\n4. Taxable Income = Ordinary Income + SS Taxable − Standard Deduction ($${ctx.stdDeduction?ctx.stdDeduction.toLocaleString():(filing==='mfj'?'31,500':'15,750')})\n5. Income Tax = 2025 federal brackets on Taxable Income\n6. Capital Gains Tax = Taxable withdrawal × 15%\n7. HSA Penalty = 20% on non-medical HSA withdrawals before age 65\n8. IRMAA = Medicare Part B+D surcharge if MAGI exceeds thresholds (age 65+, per person, 2-year lookback)\n\nEst. Tax = Income Tax + Capital Gains Tax + HSA Penalty + IRMAA">Est. Tax</th>`;
   t+=`<th title="After-tax income = Total Income − Est. Tax\n\nThis is your actual spendable income after all federal taxes.\n• Roth withdrawals: included in full (tax-free)\n• HSA medical: included in full (tax-free)\n• Tax-Deferred: reduced by ordinary income tax\n• Taxable: reduced by 15% LTCG\n• SS Income: partially taxed per Pub 915 rules">After-Tax</th>`;
-  t+=`<th title="Remaining balance in taxable brokerage accounts.\n\nFormula: (Previous Balance − Withdrawal + RMD Surplus) × (1 + return%)\n\n• RMD Surplus: If forced RMD exceeds spending need, the excess is reinvested here\n• Growth rate: ${growthLabel}\n• Withdrawals are taxed at 15% LTCG rate">Taxable Bal</th>`;
-  t+=`<th title="Remaining balance in tax-deferred accounts (401k, IRA, DCP).\n\nFormula: (Previous Balance − Withdrawal − Roth Conversions) × (1 + return%)\n\n• Reduced by both withdrawals AND Roth conversions\n• RMDs are mandatory at age ${RMD_START_AGE}+ (IRS Uniform Lifetime Table)\n• Growth rate: ${growthLabel}\n• All withdrawals taxed as ordinary income">Deferred Bal</th>`;
-  t+=`<th title="Remaining balance in Roth accounts.\n\nFormula: (Previous Balance − Withdrawal + Roth Conversions) × (1 + return%)\n\n• Increased by Roth conversions from tax-deferred\n• Growth rate: ${growthLabel}\n• All growth and withdrawals are tax-free\n• No RMDs required — can grow indefinitely">Roth Bal</th>`;
-  t+=`<th title="Remaining balance in HSA.\n\nFormula: (Previous Balance − Withdrawal) × (1 + return%)\n\n• Growth rate: ${growthLabel}\n• Triple tax advantage: tax-free contributions, growth, and medical withdrawals\n• After 65: non-medical withdrawals penalty-free (taxed as ordinary income)\n• Before 65: non-medical withdrawals incur 20% penalty + income tax">HSA Bal</th>`;
-  t+=`<th title="Total portfolio balance across all account types.\n\nFormula: Taxable Bal + Deferred Bal + Roth Bal + HSA Bal\n\nThis is your total remaining wealth across all retirement accounts.\nWhen this reaches $0, the portfolio is depleted.">Total Bal</th>`;
+  t+=`<th class="wd-col-taxable-bal" title="Remaining balance in taxable brokerage accounts.\n\nFormula: (Previous Balance − Withdrawal + RMD Surplus) × (1 + return%)\n\n• RMD Surplus: If forced RMD exceeds spending need, the excess is reinvested here\n• Growth rate: ${growthLabel}\n• Withdrawals are taxed at 15% LTCG rate">Taxable Bal</th>`;
+  t+=`<th class="wd-col-deferred-bal" title="Remaining balance in tax-deferred accounts (401k, IRA, DCP).\n\nFormula: (Previous Balance − Withdrawal − Roth Conversions) × (1 + return%)\n\n• Reduced by both withdrawals AND Roth conversions\n• RMDs are mandatory at age ${RMD_START_AGE}+ (IRS Uniform Lifetime Table)\n• Growth rate: ${growthLabel}\n• All withdrawals taxed as ordinary income">Deferred Bal</th>`;
+  t+=`<th class="wd-col-roth-bal" title="Remaining balance in Roth accounts.\n\nFormula: (Previous Balance − Withdrawal + Roth Conversions) × (1 + return%)\n\n• Increased by Roth conversions from tax-deferred\n• Growth rate: ${growthLabel}\n• All growth and withdrawals are tax-free\n• No RMDs required — can grow indefinitely">Roth Bal</th>`;
+  t+=`<th class="wd-col-hsa-bal" title="Remaining balance in HSA.\n\nFormula: (Previous Balance − Withdrawal) × (1 + return%)\n\n• Growth rate: ${growthLabel}\n• Triple tax advantage: tax-free contributions, growth, and medical withdrawals\n• After 65: non-medical withdrawals penalty-free (taxed as ordinary income)\n• Before 65: non-medical withdrawals incur 20% penalty + income tax">HSA Bal</th>`;
+  t+=`<th class="wd-col-total-bal" title="Total portfolio balance across all account types.\n\nFormula: Taxable Bal + Deferred Bal + Roth Bal + HSA Bal\n\nThis is your total remaining wealth across all retirement accounts.\nWhen this reaches $0, the portfolio is depleted.">Total Bal</th>`;
   t+=`</tr></thead><tbody>`;
 
   rRows.forEach((r,i)=>{
@@ -8304,15 +8801,17 @@ function renderWdTable(){
     };
 
     t+=`<tr class="${cls}" style="${convBorder}${ovBg}">`;
-    t+=`<td style="color:var(--text-muted);font-size:0.85em">${_startYear+i}</td>`;
-    t+=`<td>${r.age}${r.age>=RMD_START_AGE&&r.bTotal>0?' \u{1F4CC}':''}</td>`;
+    t+=`<td class="wd-col-frozen" style="left:0;color:var(--text-muted);font-size:0.85em">${_startYear+i}</td>`;
+    t+=`<td class="wd-col-frozen" style="left:52px">${r.age}${r.age>=RMD_START_AGE&&r.bTotal>0?' \u{1F4CC}':''}</td>`;
     if(ctx.hasSpouse) t+=`<td>${r.spouseAge||''}</td>`;
     if(showRetCol) t+=`<td style="text-align:center;color:var(--text-muted)">${r.yrRet!=null?(r.yrRet*100).toFixed(1)+'%':'-'}</td>`;
     t+=`<td>${mkCell('taxableW',r.taxableW)}</td>`;
     t+=`<td>${mkCell('deferredW',r.deferredW)}${r.rmd>0?' *':''}</td>`;
     if(hasConv){
       const convChanged=r.overridden&&Math.abs(r.rothConv-(baseRows[i]?baseRows[i].rothConv:r.rothConv))>1;
-      t+=`<td style="color:var(--success);font-weight:600;background:${r.rothConv>0?'var(--success-bg)':'transparent'}">${r.rothConv>0?fmtD(Math.round(r.rothConv*pv)):'-'}${convChanged?' <span title="Roth conversion auto-adjusted to fill bracket — tax stays the same because ordinary income (deferred + conversion) is unchanged" style="cursor:help;color:var(--warning-dark);font-size:0.75em">⟳</span>':''}</td>`;
+      const _sdH=r.sdHarvestWithheld>0;
+      const _sdTip=_sdH?'\n\n🛡️ SD Harvesting: Conversion reduced by '+fmtD(Math.round(r.sdHarvestWithheld*pv))+' to preserve '+fmtD(Math.round(r.sdHarvestReserve*pv))+' in deferred for future 0% tax withdrawals under the standard deduction.':'';
+      t+=`<td style="color:var(--success);font-weight:600;background:${r.rothConv>0?'var(--success-bg)':'transparent'}" title="${r.rothConv>0?'Roth conversion: '+fmtD(Math.round(r.rothConv*pv))+' at '+(r.convMarginalRate*100).toFixed(1)+'% marginal rate'+_sdTip:''}">${r.rothConv>0?fmtD(Math.round(r.rothConv*pv)):'-'}${_sdH?' <span style="cursor:help;color:var(--primary);font-size:0.7em" title="SD harvesting: withheld '+fmtD(Math.round(r.sdHarvestWithheld*pv))+'">🛡️</span>':''}${convChanged?' <span title="Roth conversion auto-adjusted to fill bracket — tax stays the same because ordinary income (deferred + conversion) is unchanged" style="cursor:help;color:var(--warning-dark);font-size:0.75em">⟳</span>':''}</td>`;
       t+=`<td style="background:${r.rothConv>0?'var(--success-bg)':'transparent'};font-size:0.85em;color:var(--success-text)">${r.convMarginalRate>0?(r.convMarginalRate*100).toFixed(1)+'%':'-'}</td>`;
     }
     t+=`<td>${mkCell('rothW',r.rothW)}</td>`;
@@ -8342,10 +8841,26 @@ function renderWdTable(){
     const wdPct=beginBal>0?(portfolioW/beginBal*100):0;
     const wdColor=wdPct>5?'var(--danger)':wdPct>4?'var(--warning-dark)':'var(--success-text)';
     t+=`<td style="background:var(--warning-bg);color:${wdColor};font-size:0.85em;text-align:center">${beginBal>0?wdPct.toFixed(1)+'%':'-'}</td>`;
-    const irmaaNote=r.irmaa>0?` title="Includes IRMAA: ${fmtD(Math.round(r.irmaa*pv))}"`:'';
-    t+=`<td style="color:var(--danger)"${irmaaNote}>${fmtD(Math.round(r.tax*pv))}${r.irmaa>0?' <span style="color:var(--warning-dark);font-size:0.75em" title="Medicare IRMAA surcharge: '+fmtD(Math.round(r.irmaa*pv))+'">⚕</span>':''}</td>`;
+    /* Est. Tax cell with expanded tooltip showing deduction */
+    const _txOrd=r.ordinaryIncome||0;
+    const _txStdD=r.stdDeduction||0;
+    const _txTaxable=r.taxableIncome||0;
+    const _txParts=['Ordinary Income: '+fmtD(Math.round(_txOrd*pv)),'Standard Deduction: −'+fmtD(Math.round(_txStdD*pv)),'Taxable Ordinary Income: '+fmtD(Math.round(_txTaxable*pv))];
+    if(r.incomeTax>0) _txParts.push('Federal Tax (ordinary): '+fmtD(Math.round(r.incomeTax*pv)));
+    if(r.capitalGainsTax>0||r.capGainsTax>0) _txParts.push('Federal Tax (LTCG): '+fmtD(Math.round((r.capitalGainsTax||r.capGainsTax||0)*pv)));
+    if(r.stateTax>0) _txParts.push('State Tax: '+fmtD(Math.round(r.stateTax*pv)));
+    if(r.irmaa>0) _txParts.push('IRMAA Surcharge: '+fmtD(Math.round(r.irmaa*pv)));
+    if(r.hsaPenalty>0) _txParts.push('HSA Penalty: '+fmtD(Math.round(r.hsaPenalty*pv)));
+    _txParts.push('Total Tax: '+fmtD(Math.round(r.tax*pv)));
+    const _txTip=_txParts.join('\n');
+    t+=`<td style="color:var(--danger);cursor:help" title="${_txTip}">${fmtD(Math.round(r.tax*pv))}${r.irmaa>0?' <span style="color:var(--warning-dark);font-size:0.75em" title="Medicare IRMAA surcharge: '+fmtD(Math.round(r.irmaa*pv))+'">⚕</span>':''}</td>`;
     t+=`<td style="color:var(--success)"><strong>${fmtD(Math.round(r.afterTax*pv))}</strong></td>`;
-    t+=`<td>${fmtK(r.bTaxable*pv)}</td><td>${fmtK(r.bDeferred*pv)}</td><td>${fmtK(r.bRoth*pv)}</td><td>${fmtK(r.bHSA*pv)}</td>`;
+    t+=`<td>${fmtK(r.bTaxable*pv)}</td>`;
+    /* Deferred Bal — show SD harvesting tooltip when deferred withdrawal ≤ std deduction */
+    const _defWdUnderSD=r.deferredW>0&&r.stdDeduction>0&&r.deferredW<=r.stdDeduction*1.1&&r.age>ctx.convEndAge;
+    const _defTip=_defWdUnderSD?'Withdrawal of '+fmtD(Math.round(r.deferredW*pv))+' covered by standard deduction ('+fmtD(Math.round(r.stdDeduction*pv))+') — 0% federal tax on this amount':'';
+    t+=`<td${_defTip?' title="'+_defTip+'" style="cursor:help"':''}>${fmtK(r.bDeferred*pv)}${_defWdUnderSD?' <span style="font-size:0.65em;color:var(--success)">🛡️</span>':''}</td>`;
+    t+=`<td>${fmtK(r.bRoth*pv)}</td><td>${fmtK(r.bHSA*pv)}</td>`;
     t+=`<td><strong>${fmtK(r.bTotal*pv)}</strong></td>`;
     t+=`</tr>`;
   });
@@ -8467,6 +8982,53 @@ function _wdShowIncomeBreakdown(rowIdx){
   h+=`<tr style="font-weight:700;border-top:2px solid var(--text)"><td style="padding:6px 4px">Total Income</td>`;
   h+=`<td style="padding:6px 4px;text-align:right">${fmtD(total)}</td><td style="padding:6px 4px;text-align:right">100%</td></tr>`;
   h+=`</table>`;
+  /* Tax computation breakdown */
+  const _sdAmt=r.stdDeduction||0;
+  const _txIncome=r.taxableIncome||0;
+  const _ordIncome=r.ordinaryIncome||0;
+  const _capGTax=r.capitalGainsTax||r.capGainsTax||0;
+  const _incTax=r.incomeTax||0;
+  const _stateTax=r.stateTax||0;
+  const _hsaPen=r.hsaPenalty||0;
+  const _irmaa=r.irmaa||0;
+  const _totalTax=r.tax||0;
+  const _hasTaxData=_sdAmt>0||_totalTax>0;
+  if(_hasTaxData){
+    h+=`<div style="margin-top:14px;padding-top:12px;border-top:1px dashed var(--border)">`;
+    h+=`<div style="font-size:0.78em;font-weight:600;color:var(--text-muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">🧮 Tax Computation</div>`;
+    h+=`<table style="width:100%;border-collapse:collapse;font-size:0.85em">`;
+    /* Ordinary income section */
+    const _ordParts=[];
+    if(r.deferredW>0) _ordParts.push('Tax-Deferred: '+fmtD(r.deferredW));
+    if(r.rothConv>0) _ordParts.push('Roth Conv: '+fmtD(r.rothConv));
+    const _ssAmt=r.ssIncome||0;
+    if(_ssAmt>0) _ordParts.push('SS (taxable portion)');
+    if(r.postRetIncome>0) _ordParts.push('Pension/Income: '+fmtD(r.postRetIncome));
+    if(_hsaPen>0) _ordParts.push('HSA non-medical');
+    const _ordHint=_ordParts.length>0?'<br><span style="font-size:0.78em;color:var(--text-muted);font-weight:400">Includes: '+_ordParts.join(', ')+'</span>':'';
+    h+=`<tr><td style="padding:4px">Ordinary Income<span style="font-size:0.8em;color:var(--text-muted)">${_ordHint}</span></td><td style="padding:4px;text-align:right">${fmtD(_ordIncome)}</td></tr>`;
+    h+=`<tr style="color:var(--success)"><td style="padding:4px">Standard Deduction (${ctx.filing||'single'})</td><td style="padding:4px;text-align:right">−${fmtD(_sdAmt)}</td></tr>`;
+    h+=`<tr style="font-weight:600;border-top:1px solid var(--border)"><td style="padding:4px">Taxable Ordinary Income</td><td style="padding:4px;text-align:right">${fmtD(_txIncome)}</td></tr>`;
+    if(_incTax>0) h+=`<tr style="color:var(--danger)"><td style="padding:4px;padding-left:12px">→ Federal Tax (ordinary rates)</td><td style="padding:4px;text-align:right">${fmtD(_incTax)}</td></tr>`;
+    if(_txIncome<=0&&_incTax<=0) h+=`<tr><td colspan="2" style="padding:4px;font-size:0.85em;color:var(--success)">✅ Ordinary income fully covered by standard deduction — $0 federal tax</td></tr>`;
+    /* Capital gains section */
+    const _taxableW=r.taxableW||0;
+    if(_taxableW>0||_capGTax>0){
+      h+=`<tr style="border-top:1px dashed var(--border)"><td style="padding:6px 4px" colspan="2"><span style="font-size:0.8em;color:var(--text-muted)">Taxable account withdrawals are taxed as long-term capital gains at separate federal rates (0%/15%/20%)</span></td></tr>`;
+      h+=`<tr><td style="padding:4px">Taxable Account Withdrawal</td><td style="padding:4px;text-align:right">${fmtD(_taxableW)}</td></tr>`;
+      h+=`<tr style="color:var(--danger)"><td style="padding:4px;padding-left:12px">→ Federal Tax (LTCG rates)</td><td style="padding:4px;text-align:right">${fmtD(_capGTax)}</td></tr>`;
+    }
+    /* Federal total subtotal */
+    const _fedTotal=_incTax+_capGTax+_hsaPen;
+    if(_incTax>0&&_capGTax>0) h+=`<tr style="font-weight:600;border-top:1px solid var(--border);background:var(--row-alt,#f9fafb)"><td style="padding:5px 4px;padding-left:12px">Federal Total</td><td style="padding:5px 4px;text-align:right;color:var(--danger)">${fmtD(_fedTotal)}</td></tr>`;
+    /* Other taxes */
+    if(_stateTax>0) h+=`<tr style="color:var(--danger);border-top:1px dashed var(--border)"><td style="padding:4px">State Tax</td><td style="padding:4px;text-align:right">${fmtD(_stateTax)}</td></tr>`;
+    if(_irmaa>0) h+=`<tr style="color:var(--danger)"><td style="padding:4px">Medicare IRMAA Surcharge</td><td style="padding:4px;text-align:right">${fmtD(_irmaa)}</td></tr>`;
+    if(_hsaPen>0) h+=`<tr style="color:var(--danger)"><td style="padding:4px">HSA Early W/D Penalty (20%)</td><td style="padding:4px;text-align:right">${fmtD(_hsaPen)}</td></tr>`;
+    /* Total */
+    h+=`<tr style="font-weight:700;border-top:2px solid var(--text)"><td style="padding:6px 4px">Total Estimated Tax</td><td style="padding:6px 4px;text-align:right;color:var(--danger)">${fmtD(_totalTax)}</td></tr>`;
+    h+=`</table></div>`;
+  }
   if(r.rmdSurplus>0) h+=`<p style="margin:8px 0 0;font-size:0.8em;color:var(--text-muted)">ℹ️ Includes RMD surplus of ${fmtD(r.rmdSurplus)} reinvested in taxable account.</p>`;
 
   /* Expense / outflow section */
@@ -8487,11 +9049,8 @@ function _wdShowIncomeBreakdown(rowIdx){
   } else if(otsTotal>0){
     expenses.push({label:'One-Time Spending',value:otsTotal,color:'#f59e0b',icon:'🎯'});
   }
-  if(r.incomeTax>0) expenses.push({label:'Federal Income Tax',value:r.incomeTax,color:'#ef4444',icon:'🏛️'});
-  if(r.capGainsTax>0) expenses.push({label:'Capital Gains Tax',value:r.capGainsTax,color:'#f97316',icon:'📈'});
-  if(r.stateTax>0) expenses.push({label:'State Tax',value:r.stateTax,color:'#dc2626',icon:'🏢'});
-  if(r.irmaa>0) expenses.push({label:'Medicare IRMAA Surcharge',value:r.irmaa,color:'#be185d',icon:'⚕️'});
-  if(r.hsaPenalty>0) expenses.push({label:'HSA Early Withdrawal Penalty',value:r.hsaPenalty,color:'#9333ea',icon:'⚠️'});
+  const _totalTaxExp=r.tax||0;
+  if(_totalTaxExp>0) expenses.push({label:'Total Taxes',value:_totalTaxExp,color:'#ef4444',icon:'🏛️'});
   /* Expense bar */
   h+=`<div style="display:flex;height:18px;border-radius:6px;overflow:hidden;margin-bottom:12px">`;
   expenses.forEach(e=>{
@@ -8502,14 +9061,11 @@ function _wdShowIncomeBreakdown(rowIdx){
   h+=`<table style="width:100%;border-collapse:collapse;font-size:0.88em">`;
   expenses.forEach(e=>{
     const pct=total>0?(e.value/total*100).toFixed(1):0;
+    const isLiving=e.color==='#10b981'||e.color==='#f59e0b';
     h+=`<tr style="border-bottom:1px solid var(--border)"><td style="padding:6px 4px">${e.icon} ${e.label}</td>`;
-    h+=`<td style="padding:6px 4px;text-align:right;font-weight:600;color:${e.color==='#10b981'?'var(--success)':'var(--danger)'}">${fmtD(e.value)}</td>`;
+    h+=`<td style="padding:6px 4px;text-align:right;font-weight:600;color:${isLiving?'var(--text)':'var(--danger)'}">${fmtD(e.value)}</td>`;
     h+=`<td style="padding:6px 4px;text-align:right;color:var(--text-muted);font-size:0.9em">${pct}%</td></tr>`;
   });
-  const taxTotal=r.tax;
-  const taxPct=total>0?(taxTotal/total*100).toFixed(1):0;
-  h+=`<tr style="font-weight:700;border-top:2px solid var(--text)"><td style="padding:6px 4px">Effective Tax Rate</td>`;
-  h+=`<td style="padding:6px 4px;text-align:right;color:var(--danger)">${fmtD(taxTotal)}</td><td style="padding:6px 4px;text-align:right;color:var(--danger)">${taxPct}%</td></tr>`;
   h+=`</table>`;
   h+=`</div>`;
   h+=`</div>`;
@@ -9396,7 +9952,7 @@ function renderScenarios(){
     if(first.amount!=null) def.spend=parseInt(first.amount)||0;
   }
 
-  let html=`<div style="text-align:right;margin:0 0 10px"><button class="export-pdf-btn" onclick="exportTabToPDF('scenarios')"><svg viewBox="0 0 24 24"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>Export PDF</button></div>`;
+  let html=``;
   html+=`<div class="wd-panel" style="padding:24px">`;
   html+=`<h2 style="margin-bottom:4px">\u{1F50D} What-If Scenario Comparator</h2>`;
   html+=`<p style="color:var(--text-muted);margin-bottom:20px">Compare up to 3 retirement scenarios side-by-side. Each scenario uses your current portfolio. Adjust the key variables below to see how different choices affect your retirement outcome.</p>`;
@@ -10318,6 +10874,8 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     if(_activeTab==='withdrawals'||_activeTab==='scenarios') saveSettings();
     /* Save current tab state */
     _saveTab(_activeTab);
+    /* Unlock page scroll when leaving withdrawals */
+    if(_activeTab==='withdrawals') _wdUnfixLayout();
     document.querySelectorAll('.pivot-tab').forEach(b=>b.classList.remove('active'));
     btn.classList.add('active');
     const newTab=btn.dataset.pivot;
@@ -10345,6 +10903,12 @@ document.querySelectorAll('.pivot-tab').forEach(btn=>{
     }
     _renderedTabs.add(newTab);
     _activeTab=newTab;
+    /* Re-lock layout when entering withdrawals (from tab cache) */
+    if(newTab==='withdrawals'){
+      setTimeout(()=>_wdFixLayout(),0);
+      /* Drain dirty flag or trigger initial calc if results are empty */
+      if(_wdRecalcDirty){ _wdRecalcDirty=false; setTimeout(()=>_wdScheduleRecalc(),50); }
+    }
     saveSettings();
   });
 });

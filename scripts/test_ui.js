@@ -40,8 +40,8 @@ test('sub-tabs have icons', () => {
   assert.match(html, /🏷️/);  // Tax-Loss
 });
 
-test('Export PDF button in holdings sub-pivot bar', () => {
-  assert.match(html, /export-pdf-btn.*?exportTabToPDF\('holdings'\)/s);
+test('No inline Export PDF button in holdings (moved to settings menu)', () => {
+  assert.ok(!html.includes("exportTabToPDF('holdings')"), 'Holdings Export PDF removed');
 });
 
 test('holdingsSubPivot uses flex layout with space-between', () => {
@@ -101,7 +101,7 @@ test('cross-tab theme sync via storage event', () => {
 suite('Settings persistence — save/load/export/import');
 
 test('saveSettings function exists', () => {
-  assert.match(html, /function saveSettings\(\)/);
+  assert.match(html, /function saveSettings\(/);
 });
 
 test('loadSettings function exists', () => {
@@ -130,6 +130,15 @@ test('withdrawals template includes glide path toggle and mode selector', () => 
   assert.match(html, /id="wdGlidePanel"/);
   assert.match(html, /id="wdGlideMode"/);
   assert.match(html, /function onGlideToggleChange\b/);
+});
+
+test('Glide Path panel uses wd-opt-panel/wd-opt-header/wd-opt-body structure', () => {
+  assert.match(html, /wd-opt-panel[\s\S]*?wd-opt-header[\s\S]*?wdGlideToggle/,
+    'Glide toggle must be inside wd-opt-header inside wd-opt-panel');
+  assert.match(html, /id="wdGlidePanel"[^>]*class="wd-opt-body disabled"/,
+    'Glide panel must start with wd-opt-body disabled class');
+  assert.match(html, /data-sub-panel="wdGlidePanel"[^>]*>[\s\S]*?polyline/,
+    'Glide chevron must be an SVG with data-sub-panel attribute');
 });
 
 test('custom glide UI includes interpolation toggle controls', () => {
@@ -233,7 +242,7 @@ const requiredFunctions = [
   'randNormal', 'runMonteCarlo', 'runHistoricalBacktest',
   'getAllRetirementAccounts', 'getAccountBuckets',
   'getAnnualExpenseForAge', 'getSpendPhases', 'buildGlideSchedule', 'getReturnForAge',
-  'renderWithdrawals', 'computeWithdrawalPlan',
+  'renderWithdrawals', 'computeWithdrawalPlan', '_wdScheduleRecalc',
   'toggleSimMode', 'getGlideInterp', 'onGlideModeChange', 'setGlideInterp', 'renderGlideMiniChart',
   'renderWdTable',
   'renderTaxLoss',
@@ -255,11 +264,12 @@ requiredFunctions.forEach(fn => {
 /* ==== Print/Export ==== */
 suite('Print and Export features');
 
-test('Export PDF buttons for each main tab', () => {
-  ['holdings', 'withdrawals', 'scenarios', 'snapshot'].forEach(tab => {
-    assert.match(html, new RegExp(`exportTabToPDF\\('${tab}'\\)`),
-      `Missing Export PDF for ${tab}`);
-  });
+test('Print to PDF in settings menu (replaces per-tab Export PDF)', () => {
+  assert.ok(html.includes('printPdfBtn'), 'Print to PDF button exists in settings menu');
+  assert.ok(html.includes('exportTabToPDF'), 'exportTabToPDF function still defined');
+  assert.ok(html.includes('Print to PDF'), 'Menu label says Print to PDF');
+  /* Per-tab export buttons should NOT exist inline */
+  assert.ok(!html.includes("exportTabToPDF('holdings')"), 'No inline holdings PDF button');
 });
 
 test('exportCSV function generates timestamped filename', () => {
@@ -480,7 +490,7 @@ test('Roth optimizer removed dedicated PV column', () => {
 suite('Withdrawal input order — You → Spouse → Income → Assumptions → Glide');
 
 test('You section appears before Spouse toggle', () => {
-  const youIdx = html.indexOf('You</div>');
+  const youIdx = html.indexOf('You</span>');
   const spouseIdx = html.indexOf('Include Spouse');
   assert.ok(youIdx > 0, 'You section should exist');
   assert.ok(spouseIdx > 0, 'Spouse toggle should exist');
@@ -607,7 +617,7 @@ test('account selector has DCP help note', () => {
 });
 
 test('Income section has DCP help note', () => {
-  assert.match(html, /contribPanel[\s\S]*?DCP.*Deferred Comp.*Year-by-Year/);
+  assert.match(html, /wdContribFields[\s\S]*?DCP.*Deferred Comp.*Year-Specific/);
 });
 
 /* ==== Regression: global formatters for methodology panels ==== */
@@ -835,22 +845,25 @@ test('Print styles show collapsed sections', () => {
   assert.match(html, /\.wd-panel\.wd-collapsible\s*>\s*\.wd-section-body\s*\{\s*display:\s*block\s*!important/);
 });
 
-test('Input panel uses collapsible wrapper', () => {
-  assert.match(html, /_wdSecOpen\('wd-inputs'/);
+test('Sidebar layout replaces collapsible input wrapper', () => {
+  assert.match(html, /class="wd-sidebar"/);
+  assert.match(html, /class="wd-main"/);
+  assert.match(html, /class="wd-sidebar-nav"/);
 });
 
 test('_wdToggleAll function exists', () => {
   assert.match(html, /function _wdToggleAll\(/);
 });
 
-test('Calculate button is outside the input panel', () => {
-  const block = html.match(/_wdSecClose\(\)[\s\S]{0,300}computeWithdrawalPlan/);
-  assert.ok(block, 'Calculate button should appear after _wdSecClose for the input panel');
+test('Calculate button removed — auto-recalc replaces it', () => {
+  assert.ok(!html.includes('wd-nav-calc'), 'Calculate button should not exist in template');
 });
 
-test('Section arrow matches methodology arrow size (1.2em, bold)', () => {
-  assert.match(html, /\.wd-section-arrow\s*\{[^}]*font-size:\s*1\.2em/);
-  assert.match(html, /\.wd-section-arrow\s*\{[^}]*font-weight:\s*700/);
+test('Section arrow uses SVG chevron', () => {
+  assert.match(html, /wd-section-arrow.*viewBox.*polyline.*9 18 15 12 9 6/s,
+    'Section arrow is an SVG chevron');
+  assert.match(html, /\.wd-section-arrow\s*\{[^}]*width:\s*14px/,
+    'Section arrow is 14px wide');
 });
 
 /* ==== Panel state localStorage persistence ==== */
@@ -1151,7 +1164,7 @@ test('Historical NaN guard includes oneTimeByAge validation', () => {
 suite('Scenario results cache persistence');
 
 test('saveSettings does not unconditionally clear _scenResultsCache', () => {
-  const saveSettingsFn = html.match(/function saveSettings\(\)\{[\s\S]*?\n\}/);
+  const saveSettingsFn = html.match(/function saveSettings\([\s\S]*?\n\}/);
   assert.ok(saveSettingsFn, 'saveSettings function found');
   assert.ok(!saveSettingsFn[0].includes("_scenResultsCache=''"), 'saveSettings must not clear _scenResultsCache');
   assert.ok(!saveSettingsFn[0].includes('_scenResultsCache=""'), 'saveSettings must not clear _scenResultsCache');
@@ -1251,12 +1264,12 @@ test('Close button uses event listener (not inline onclick)', () => {
 /* ==== Result Sub-Tabs ==== */
 suite('Result Sub-Tabs');
 
-test('CSS: wd-result-tabs and wd-result-tab styles exist', () => {
-  assert.match(html, /\.wd-result-tabs\s*\{/);
-  assert.match(html, /\.wd-result-tab\s*\{/);
-  assert.match(html, /\.wd-result-tab\.active\s*\{/);
-  assert.match(html, /\.wd-result-tab-panel\s*\{/);
-  assert.match(html, /\.wd-result-tab-panel\.active\s*\{/);
+test('CSS: wd-sidebar and wd-nav-link styles exist', () => {
+  assert.match(html, /\.wd-sidebar\s*\{/);
+  assert.match(html, /\.wd-nav-link\s*\{/);
+  assert.match(html, /\.wd-nav-link\.active\s*\{/);
+  assert.match(html, /\.wd-nav-section-title\s*\{/);
+  assert.match(html, /\.wd-main\s*\{/);
 });
 
 test('CSS: sticky cards class exists', () => {
@@ -1264,47 +1277,64 @@ test('CSS: sticky cards class exists', () => {
   assert.match(html, /position:\s*sticky/);
 });
 
-test('CSS: print shows all tab panels', () => {
-  assert.match(html, /@media\s+print[\s\S]*?\.wd-result-tab-panel\s*\{[^}]*display:\s*block\s*!important/);
+test('CSS: print hides sidebar', () => {
+  assert.match(html, /@media\s+print[\s\S]*?\.wd-sidebar\s*\{[^}]*display:\s*none/);
+});
+
+test('Sidebar layout uses flex page layout', () => {
+  assert.match(html, /class="wd-page-layout"/);
+  assert.match(html, /\.wd-page-layout\s*\{[^}]*display:\s*flex/);
+});
+
+test('JS: _wdFixLayout and _wdUnfixLayout functions exist', () => {
+  assert.match(html, /function _wdFixLayout\(/);
+  assert.match(html, /function _wdUnfixLayout\(/);
+});
+
+test('CSS: wd-main has overflow-y auto for scroll container', () => {
+  assert.match(html, /\.wd-main\s*\{[^}]*overflow-y:\s*auto/);
+});
+
+test('Checkbox panels use wd-opt-panel structure', () => {
+  /* Each optional section should have checkbox inside the panel, not outside */
+  assert.match(html, /class="wd-opt-panel"[^>]*>[\s\S]*?id="wdSpouseToggle"/);
+  assert.match(html, /class="wd-opt-panel"[^>]*>[\s\S]*?id="wdContribToggle"/);
+  assert.match(html, /class="wd-opt-panel"[^>]*>[\s\S]*?id="wdHealthcareToggle"/);
+  assert.match(html, /class="wd-opt-panel"[^>]*>[\s\S]*?id="wdOneTimeSpendToggle"/);
+  /* Bodies start with disabled class (greyed out) */
+  assert.match(html, /class="wd-opt-body disabled"/);
 });
 
 test('JS: _wdSwitchResultTab function exists', () => {
   assert.match(html, /function _wdSwitchResultTab\(tabId\)/);
 });
 
-test('JS: _wdSwitchResultTab persists state', () => {
-  const fn = html.match(/function _wdSwitchResultTab\([\s\S]*?\n\}/);
-  assert.ok(fn, '_wdSwitchResultTab function found');
-  assert.ok(fn[0].includes('_wdUIState.resultTab'), 'Persists resultTab in UI state');
-  assert.ok(fn[0].includes('_wdPersistUIState'), 'Calls _wdPersistUIState');
+test('JS: _wdSwitchResultTab is a no-op for backward compat', () => {
+  assert.match(html, /function _wdSwitchResultTab\(tabId\)/);
 });
 
-test('HTML: 4 result tabs rendered (overview, plan, sims, analysis)', () => {
-  assert.match(html, /data-tab="overview"/);
-  assert.match(html, /data-tab="plan"/);
-  assert.match(html, /data-tab="sims"/);
-  assert.match(html, /data-tab="analysis"/);
+test('HTML: sidebar has PLANNER nav section with input links', () => {
+  assert.match(html, /wd-nav-section-title">Planner/);
+  assert.match(html, /data-nav="wdNavYou"/);
+  assert.match(html, /data-nav="wdNavSpouse"/);
+  assert.match(html, /data-nav="wdNavIncome"/);
+  assert.match(html, /data-nav="wdNavHealthcare"/);
+  assert.match(html, /data-nav="wdNavAssumptions"/);
 });
 
-test('HTML: 4 tab panel containers rendered', () => {
-  assert.match(html, /id="wd-rtab-overview"/);
-  assert.match(html, /id="wd-rtab-plan"/);
-  assert.match(html, /id="wd-rtab-sims"/);
-  assert.match(html, /id="wd-rtab-analysis"/);
+test('HTML: sidebar has RESULTS and ANALYSIS nav sections', () => {
+  assert.match(html, /id="wdNavResultsSection"/);
+  assert.match(html, /id="wdNavAnalysisSection"/);
+  assert.match(html, /data-nav="wd-sec-metrics-charts"/);
+  assert.match(html, /data-nav="wd-sec-wd-schedule"/);
+  assert.match(html, /data-nav="wd-sec-mc-analysis"/);
+  assert.match(html, /data-nav="wd-sec-roth-conv"/);
 });
 
-test('DOM reorganization moves sections into tab panels', () => {
-  const reorgBlock = html.match(/Move sections into their tab panels[\s\S]*?\}\)\(\)/);
-  assert.ok(reorgBlock, 'DOM reorganization IIFE exists');
-  assert.ok(reorgBlock[0].includes('wd-sec-metrics-charts'), 'Moves metrics charts to overview');
-  assert.ok(reorgBlock[0].includes('wd-sec-wd-schedule'), 'Moves schedule to plan');
-  assert.ok(reorgBlock[0].includes('wd-sec-mc-analysis'), 'Moves MC to sims');
-  assert.ok(reorgBlock[0].includes('wd-sec-hist-backtest'), 'Moves hist to sims');
-  assert.ok(reorgBlock[0].includes('wd-sec-ss-rec'), 'Moves SS rec to analysis');
-  assert.ok(reorgBlock[0].includes('wd-sec-ss-breakeven'), 'Moves SS breakeven to analysis');
-  assert.ok(reorgBlock[0].includes('wd-sec-roth-conv'), 'Moves roth conv to analysis');
-  assert.ok(reorgBlock[0].includes('wd-sec-irmaa'), 'Moves IRMAA to analysis');
-  assert.ok(reorgBlock[0].includes('wd-sec-wd-strategy'), 'Moves strategy to analysis');
+test('_wdUpdateResultNav enables sidebar result links after calc', () => {
+  assert.match(html, /function _wdUpdateResultNav\(\)/);
+  assert.match(html, /wdNavResultsSection/);
+  assert.match(html, /wdNavAnalysisSection/);
 });
 
 test('Result tab restored in _wdRestoreUIState', () => {
@@ -1322,6 +1352,70 @@ test('_wdSanitizeUIState handles subCollapsed', () => {
   const fn = html.match(/function _wdSanitizeUIState[\s\S]*?\n\}/);
   assert.ok(fn, 'sanitizer found');
   assert.ok(fn[0].includes('subCollapsed'), 'Sanitizes subCollapsed');
+});
+
+test('JS: _wdNavTo scrolls within .wd-main and accounts for sticky cards', () => {
+  assert.match(html, /function _wdNavTo\(id\)/);
+  /* Must query .wd-sticky-cards to subtract its height */
+  const fn = html.match(/function _wdNavTo\(id\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdNavTo function found');
+  assert.ok(fn[0].includes('wd-sticky-cards'), '_wdNavTo accounts for sticky cards height');
+  assert.ok(fn[0].includes('stickyH'), '_wdNavTo uses stickyH offset');
+  assert.ok(fn[0].includes('wd-collapsible'), '_wdNavTo expands collapsed panels');
+});
+
+test('JS: _wdNavSpy scroll spy accounts for sticky cards', () => {
+  assert.match(html, /function _wdNavSpy\(\)/);
+  const fn = html.match(/function _wdNavSpy\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdNavSpy function found');
+  assert.ok(fn[0].includes('wd-sticky-cards'), '_wdNavSpy accounts for sticky cards');
+  assert.ok(fn[0].includes('stickyH'), '_wdNavSpy uses stickyH in threshold');
+});
+
+test('CSS: wd-opt-header exists for checkbox panel headers', () => {
+  assert.match(html, /\.wd-opt-header\s*\{/);
+  assert.match(html, /\.wd-opt-body\.disabled/);
+  assert.match(html, /#wdGlidePanel\.disabled/);
+});
+
+test('CSS: wd-cards grid layout with compact sizing', () => {
+  assert.match(html, /\.wd-cards\s*\{[^}]*display:\s*grid/);
+  assert.match(html, /\.wd-card\s*\{[^}]*border-top:\s*3px/);
+  assert.match(html, /\.wd-card-green\s*\{[^}]*border-top-color/);
+  assert.match(html, /\.wd-card-blue\s*\{[^}]*border-top-color/);
+  assert.match(html, /\.wd-card-amber\s*\{[^}]*border-top-color/);
+});
+
+test('CSS: scrollbar-gutter stable prevents layout shift', () => {
+  assert.match(html, /scrollbar-gutter:\s*stable/);
+});
+
+test('CSS: container has no max-width cap', () => {
+  assert.match(html, /\.container\s*\{[^}]*max-width:\s*none/);
+});
+
+test('JS: _wdUpdateResultNav only enables links with existing targets', () => {
+  const fn = html.match(/function _wdUpdateResultNav\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdUpdateResultNav function found');
+  assert.ok(fn[0].includes('getElementById(target)'), 'Checks target element exists before enabling');
+});
+
+test('JS: loadSettings uses disabled class for checkbox panels', () => {
+  /* loadSettings must NOT use display:block/none for opt panels — it must use .disabled class */
+  const fn = html.match(/function loadSettings\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'loadSettings found');
+  assert.ok(fn[0].includes("classList.remove('disabled')"), 'Removes disabled class for checked panels');
+  assert.ok(fn[0].includes("classList.add('disabled')"), 'Adds disabled class for unchecked panels');
+});
+
+test('IRMAA section always renders (even without surcharges)', () => {
+  /* The section open call should NOT be inside a conditional that skips it entirely */
+  assert.match(html, /_wdSecOpen\('irmaa'/);
+  assert.match(html, /No IRMAA surcharges/);
+});
+
+test('HTML: sidebar nav includes IRMAA link', () => {
+  assert.match(html, /data-nav="wd-sec-irmaa"/);
 });
 
 /* ==== Income Breakdown Dialog ==== */
@@ -1373,11 +1467,10 @@ test('Breakdown dialog shows expense section with tax breakdown', () => {
   assert.ok(fn, 'function found');
   assert.ok(fn[0].includes('Where It Goes'), 'Has expense section header');
   assert.ok(fn[0].includes('Living Expenses'), 'Shows living expenses');
-  assert.ok(fn[0].includes('Federal Income Tax'), 'Shows federal income tax');
-  assert.ok(fn[0].includes('Capital Gains Tax'), 'Shows capital gains tax');
-  assert.ok(fn[0].includes('State Tax'), 'Shows state tax');
-  assert.ok(fn[0].includes('Medicare IRMAA'), 'Shows IRMAA');
-  assert.ok(fn[0].includes('Effective Tax Rate'), 'Shows effective tax rate');
+  assert.ok(fn[0].includes('Total Taxes'), 'Shows combined total taxes line');
+  assert.ok(fn[0].includes('Tax Computation'), 'Has detailed tax computation section');
+  assert.ok(fn[0].includes('Standard Deduction'), 'Shows standard deduction');
+  assert.ok(fn[0].includes('LTCG'), 'Shows capital gains tax in computation');
 });
 
 test('Rendered rows include tax breakdown fields', () => {
@@ -1865,6 +1958,244 @@ test('scenario engine builds _scenHcCostFn', () => {
 test('hcCostFn passed in all re-sim param objects', () => {
   const matches = html.match(/hcCostFn:/g);
   assert.ok(matches && matches.length >= 6, `hcCostFn: referenced at least 6 times in param objects, got ${matches ? matches.length : 0}`);
+});
+
+/* ==== Panel UI Consistency ==== */
+suite('Panel UI consistency');
+
+test('Fix1: all chevrons use SVG (no Unicode triangles)', () => {
+  /* Sidebar panel chevrons should be SVG elements, not text characters */
+  const svgChevrons = html.match(/class="wd-sub-chevron[^"]*"[^>]*viewBox/g) || [];
+  assert.ok(svgChevrons.length >= 6, `At least 6 SVG chevrons found, got ${svgChevrons.length}`);
+  /* No text-based chevrons remain */
+  const textChevrons = html.match(/class="wd-sub-chevron[^"]*"[^>]*>[▸▶▼]/g) || [];
+  assert.strictEqual(textChevrons.length, 0, 'No Unicode triangle chevrons remain');
+});
+
+test('Fix1: wd-sub-chevron CSS uses width/height (SVG sizing)', () => {
+  assert.match(html, /\.wd-sub-chevron\s*\{[^}]*width:\s*14px/,
+    'wd-sub-chevron is 14px wide');
+  assert.match(html, /\.wd-sub-chevron\s*\{[^}]*height:\s*14px/,
+    'wd-sub-chevron is 14px tall');
+  assert.match(html, /\.wd-sub-chevron\.expanded\s*\{[^}]*rotate\(90deg\)/,
+    'wd-sub-chevron.expanded rotates 90deg');
+});
+
+test('Fix2: collapsible panels have compact padding when closed', () => {
+  assert.match(html, /\.wd-panel\.wd-collapsible:not\(\.open\)\s*\{[^}]*padding:\s*0/,
+    'Collapsed panels have reduced padding');
+  assert.match(html, /\.wd-panel\.wd-collapsible\s*>\s*\.wd-section-toggle\s*\{[^}]*padding:\s*10px\s*0/,
+    'Section toggle has 10px vertical padding matching opt-header');
+});
+
+test('Fix3: margin spacer before Metrics Charts section', () => {
+  assert.match(html, /margin-top:16px.*_wdSecOpen\('metrics-charts'/s,
+    'Spacer div with margin-top before Metrics Charts');
+});
+
+test('Fix4: checkbox panel headers use _wdPanelToggle for collapse', () => {
+  const panels = ['wdSpousePanel', 'wdContribPanel', 'wdHealthcarePanel', 'wdOneTimeSpendPanel'];
+  panels.forEach(p => {
+    const re = new RegExp(`wd-opt-header[^>]*onclick="_wdPanelToggle\\('${p}'\\)`);
+    assert.match(html, re, `${p} header uses _wdPanelToggle for collapse`);
+  });
+});
+
+test('Fix4: checkbox toggles are inside panel body with wd-panel-toggle class', () => {
+  const toggles = ['wdSpouseToggle', 'wdContribToggle', 'wdHealthcareToggle', 'wdOneTimeSpendToggle'];
+  toggles.forEach(t => {
+    const re = new RegExp(`wd-panel-toggle[^>]*>.*?<input[^>]*id="${t}"`);
+    assert.match(html, re, `${t} is inside a wd-panel-toggle label`);
+  });
+});
+
+test('Fix5: You and Assumptions use wd-opt-panel/wd-opt-header structure', () => {
+  assert.match(html, /id="wdNavYou"\s*class="wd-opt-panel"/, 'You panel uses wd-opt-panel class');
+  assert.match(html, /id="wdNavAssumptions"\s*class="wd-opt-panel"/, 'Assumptions panel uses wd-opt-panel class');
+  /* Assumptions text should use var(--text) not var(--text-muted) */
+  const assumpHeader = html.match(/Plan Assumptions & Roth Strategy<\/span>/);
+  assert.ok(assumpHeader, 'Assumptions header text found');
+  assert.ok(!html.match(/Plan Assumptions & Roth Strategy<\/div>.*?text-muted/), 'Assumptions text is not muted');
+});
+
+test('_wdInnerToggle function is declared', () => {
+  assert.match(html, /function _wdInnerToggle\b/);
+});
+
+test('wd-panel-fields wrapper exists for all 4 checkbox panels', () => {
+  ['wdSpouseFields', 'wdContribFields', 'wdHealthcareFields', 'wdOneTimeSpendFields'].forEach(id => {
+    assert.match(html, new RegExp(`id="${id}"[^>]*class="wd-panel-fields`), `${id} wrapper exists`);
+  });
+});
+
+test('wd-panel-fields.disabled CSS rule exists', () => {
+  assert.match(html, /\.wd-panel-fields\.disabled/, 'wd-panel-fields.disabled styling exists');
+});
+
+test('Fix5: You and Assumptions chevrons start expanded', () => {
+  /* These panels are open by default, so chevrons should have expanded class */
+  const youChev = html.match(/wd-sub-chevron expanded[^>]*data-sub-panel="wdYouBody"/) ||
+                  html.match(/data-sub-panel="wdYouBody"[^>]*expanded/);
+  assert.ok(youChev, 'You chevron starts expanded');
+  const assumpChev = html.match(/wd-sub-chevron expanded[^>]*data-sub-panel="wdAssumptionsBody"/) ||
+                     html.match(/data-sub-panel="wdAssumptionsBody"[^>]*expanded/);
+  assert.ok(assumpChev, 'Assumptions chevron starts expanded');
+});
+
+test('JS: _wdSubToggle uses class toggle not textContent', () => {
+  const fn = html.match(/function _wdSubToggle\([^)]*\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdSubToggle function found');
+  assert.ok(!fn[0].includes('textContent'), '_wdSubToggle does not use textContent');
+  assert.ok(fn[0].includes("classList.remove('expanded')") || fn[0].includes("classList.add('expanded')"),
+    '_wdSubToggle uses expanded class');
+});
+
+test('JS: _wdPanelToggle uses class toggle not textContent', () => {
+  const fn = html.match(/function _wdPanelToggle\([^)]*\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdPanelToggle function found');
+  assert.ok(!fn[0].includes('textContent'), '_wdPanelToggle does not use textContent');
+  assert.ok(fn[0].includes("classList.remove('expanded')") || fn[0].includes("classList.add('expanded')"),
+    '_wdPanelToggle uses expanded class');
+});
+
+test('JS: _wdSubRestoreCollapse uses class not textContent', () => {
+  const fn = html.match(/function _wdSubRestoreCollapse\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdSubRestoreCollapse function found');
+  assert.ok(!fn[0].includes('textContent'), '_wdSubRestoreCollapse does not use textContent');
+});
+
+/* ==== Auto-recalculate on input change ==== */
+suite('Auto-recalculate infrastructure');
+
+test('_wdScheduleRecalc function is declared', () => {
+  assert.match(html, /function _wdScheduleRecalc\b/);
+});
+
+test('_wdRecalcInProgress guard variable is declared', () => {
+  assert.match(html, /let _wdRecalcInProgress\s*=/);
+});
+
+test('_wdAutoRecalcTimer debounce variable is declared', () => {
+  assert.match(html, /let _wdAutoRecalcTimer\s*=/);
+});
+
+test('_wdScheduleRecalc checks _wdRecalcInProgress to prevent re-entry', () => {
+  const fn = html.match(/function _wdScheduleRecalc\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdScheduleRecalc function found');
+  assert.ok(fn[0].includes('_wdRecalcInProgress'), 'checks re-entry guard');
+});
+
+test('_wdScheduleRecalc uses setTimeout for debounce', () => {
+  const fn = html.match(/function _wdScheduleRecalc\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdScheduleRecalc function found');
+  assert.ok(fn[0].includes('setTimeout'), 'uses setTimeout debounce');
+  assert.ok(fn[0].includes('clearTimeout'), 'clears previous timer');
+  assert.ok(fn[0].includes('800'), 'debounce interval is 800ms');
+});
+
+test('_wdScheduleRecalc checks active tab is withdrawals', () => {
+  const fn = html.match(/function _wdScheduleRecalc\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdScheduleRecalc function found');
+  assert.ok(fn[0].includes('withdrawals'), 'checks for withdrawals tab');
+});
+
+test('saveSettings calls _wdScheduleRecalc', () => {
+  const fn = html.match(/function saveSettings\([\s\S]*?\nfunction loadSettings/);
+  assert.ok(fn, 'saveSettings function found');
+  assert.ok(fn[0].includes('_wdScheduleRecalc'), 'saveSettings triggers auto-recalc');
+});
+
+test('computeWithdrawalPlan sets _wdRecalcInProgress guard', () => {
+  const fn = html.match(/function computeWithdrawalPlan\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'computeWithdrawalPlan function found');
+  assert.ok(fn[0].includes('_wdRecalcInProgress=true') || fn[0].includes('_wdRecalcInProgress = true'),
+    'sets re-entry guard at start');
+});
+
+test('computeWithdrawalPlan clears _wdRecalcInProgress in finally block', () => {
+  const fn = html.match(/function computeWithdrawalPlan\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'computeWithdrawalPlan function found');
+  assert.ok(fn[0].includes('finally'), 'has finally block');
+  assert.ok(fn[0].includes('_wdRecalcInProgress=false') || fn[0].includes('_wdRecalcInProgress = false'),
+    'clears re-entry guard in finally');
+});
+
+test('dynamic spend phase inputs attach both change and input listeners', () => {
+  assert.match(html, /row\.querySelectorAll\('input'\)\.forEach\(inp=>\{inp\.addEventListener\('change',saveSettings\);inp\.addEventListener\('input',saveSettings\);\}\)/,
+    'addSpendPhase attaches both change and input listeners');
+});
+
+test('_wdRecalcDirty flag is declared for deferred recalc', () => {
+  assert.match(html, /let _wdRecalcDirty\s*=/);
+});
+
+test('_wdScheduleRecalc sets dirty flag when recalc in progress', () => {
+  const fn = html.match(/function _wdScheduleRecalc\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdScheduleRecalc function found');
+  assert.ok(fn[0].includes('_wdRecalcDirty=true'), 'sets dirty flag when recalc in progress');
+});
+
+test('computeWithdrawalPlan drains dirty flag in finally block', () => {
+  const fn = html.match(/function computeWithdrawalPlan\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'computeWithdrawalPlan function found');
+  assert.ok(fn[0].includes('_wdRecalcDirty'), 'checks dirty flag in finally');
+});
+
+test('saveSettings calls inside computeWithdrawalPlan use skipRecalc', () => {
+  const fn = html.match(/function computeWithdrawalPlan\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'computeWithdrawalPlan function found');
+  const body = fn[0];
+  const calls = body.match(/saveSettings\([^)]*\)/g) || [];
+  assert.ok(calls.length >= 2, `found ${calls.length} saveSettings calls inside computeWithdrawalPlan`);
+  calls.forEach((call, i) => {
+    assert.ok(call.includes('skipRecalc'), `saveSettings call #${i+1} must use skipRecalc: ${call}`);
+  });
+});
+
+test('_wdPanelToggle passes skipRecalc to saveSettings', () => {
+  const fn = html.match(/function _wdPanelToggle[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdPanelToggle function found');
+  assert.ok(fn[0].includes('skipRecalc'), 'passes skipRecalc to avoid unnecessary recalc');
+});
+
+test('_wdInnerToggle sets inert attribute for accessibility', () => {
+  const fn = html.match(/function _wdInnerToggle[\s\S]*?\n\}/);
+  assert.ok(fn, '_wdInnerToggle function found');
+  assert.ok(fn[0].includes("setAttribute('inert'"), 'sets inert when disabled');
+  assert.ok(fn[0].includes("removeAttribute('inert')"), 'removes inert when enabled');
+});
+
+test('panel field wrappers start with inert attribute', () => {
+  ['wdSpouseFields', 'wdContribFields', 'wdHealthcareFields', 'wdOneTimeSpendFields'].forEach(id => {
+    const re = new RegExp(`id="${id}"[^>]*inert`);
+    assert.match(html, re, `${id} starts with inert attribute`);
+  });
+});
+
+test('renderWithdrawals triggers initial auto-calculation', () => {
+  const fn = html.match(/function renderWithdrawals\(\)[\s\S]*?\n\}/);
+  assert.ok(fn, 'renderWithdrawals function found');
+  assert.ok(fn[0].includes('computeWithdrawalPlan'), 'triggers initial calculation');
+});
+
+test('loadSettings targets *Fields wrappers for disabled class', () => {
+  const fn = html.match(/function loadSettings\([\s\S]*?\n\}[\s\S]*?function /);
+  assert.ok(fn, 'loadSettings function found');
+  ['wdSpouseFields', 'wdContribFields', 'wdHealthcareFields', 'wdOneTimeSpendFields'].forEach(id => {
+    assert.ok(fn[0].includes(id), `loadSettings references ${id} wrapper`);
+  });
+});
+
+test('Glide Path panel still uses _wdSubCheckChanged (not migrated)', () => {
+  assert.match(html, /wdGlideToggle[^>]*onchange="[^"]*_wdSubCheckChanged/,
+    'Glide toggle uses _wdSubCheckChanged');
+});
+
+test('Converted panel chevrons start with expanded class', () => {
+  ['wdSpousePanel', 'wdContribPanel', 'wdHealthcarePanel', 'wdOneTimeSpendPanel'].forEach(p => {
+    const re = new RegExp(`wd-sub-chevron expanded[^>]*data-sub-panel="${p}"`);
+    assert.match(html, re, `${p} chevron starts expanded`);
+  });
 });
 
 summarize('UI Structure');
