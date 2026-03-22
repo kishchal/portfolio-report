@@ -460,7 +460,7 @@ def main():
     cash_re = re.compile(r'^(SPAXX|FDRXX|FZFXX|VMFXX|SWVXX|CORE|FZDXX)\*?\*?$', re.IGNORECASE)
     fund_syms = set()
     for h in holdings:
-        sym = re.sub(r'\*+$', '', h.get('sym', ''))
+        sym = re.sub(r'\*+$', '', h.get('Symbol', ''))
         if not sym or cash_re.match(sym):
             continue
         # Known fund from CATEGORY_MAP

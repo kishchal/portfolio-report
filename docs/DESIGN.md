@@ -106,7 +106,7 @@ portfolio-report/
 │   ├── test_skill_accuracy.js    # 12 tests: SKILL.md vs codebase alignment
 │   ├── test_snapshot.js          # 43 tests: snapshot diff parsing/engine
 │   ├── test_tax.js               # 53 tests: tax brackets, LTCG, IRMAA, SS, RMD
-│   ├── test_ui.js                # 403 tests: template structure/regression
+│   ├── test_ui.js                # 404 tests: template structure/regression
 │   └── test_withdrawal.js        # 54 tests: spending phases, glide, MC, historical
 ├── samples/
 │   ├── inputs/                   # 4 sample Fidelity CSVs (2M/3M/4M/5M)
@@ -269,7 +269,7 @@ Hardcoded symbol → category mapping for known funds/ETFs. Categories:
 
 **Heuristic fallbacks** (when symbol not in map):
 1. BrokerageLink cash symbols → Cash / Money Market
-2. CDs (description contains "CD" patterns) → Bond Funds
+2. CDs (description contains "CD" patterns) → Cash / Money Market
 3. Stock detection (short uppercase symbol, not in fund list) → Individual Stocks
 4. Else → Other
 
@@ -340,10 +340,9 @@ Data is serialized as **JavaScript object literals** (not JSON):
 | `{{REPORT_DATE}}` | Date from CSV filename (e.g., "Mar-12-2026") |
 | `{{GENERATED_AT}}` | Generation timestamp |
 | `{{GRAND_TOTAL}}` | Formatted total (e.g., "$2,000,000.03") |
-| `{{GRAND_TOTAL_SHORT}}` | Compact total (e.g., "$2.0M") |
 | `{{GRAND_TOTAL_NUM}}` | Raw number |
 | `{{DATA_JSON}}` | Holdings hierarchy JS literal |
-| `{{RAW_CSV_JSON}}` | Original CSV data for re-export (PowerShell only) |
+| `{{RAW_CSV_JSON}}` | Original CSV data for re-export |
 | `{{SUGGESTIONS_JSON}}` | Fund metrics cache JSON |
 | `{{SOURCE_FILE}}` | Input CSV filename |
 | `{{FUND_HOLDINGS_LIVE_JSON}}` | Live fund holdings for X-Ray |
@@ -1074,7 +1073,7 @@ Results cached in `_scenResultsCache` with fingerprint-based invalidation.
 | `test_snapshot.js` | 43 | CSV parsing, currency parsing, classification, account inference, diff engine |
 | `test_csv_export.js` | 24 | Round-trip: input CSV → generated report → re-exported CSV validation (4 samples × 6 checks) |
 | `test_bounds.js` | 6 | Withdrawal solver upper-bound sanity |
-| `test_ui.js` | 403 | Template structure, function presence, settings wiring, panel structure, accessibility, auto-recalc |
+| `test_ui.js` | 404 | Template structure, function presence, settings wiring, panel structure, accessibility, auto-recalc |
 | `test_skill_accuracy.js` | 12 | SKILL.md alignment: tab counts, script mentions, test counts |
 
 **Run**: `pwsh -File scripts/run-all-tests.ps1`
@@ -1210,9 +1209,8 @@ Results cached in `_scenResultsCache` with fingerprint-based invalidation.
 ## 13. Known Gaps & Design Notes
 
 ### Python vs PowerShell Parity
-- `main.py` is missing `{{RAW_CSV_JSON}}` injection (CSV re-export broken in Python-generated reports)
-- `main.py` fund X-Ray symbol extraction uses wrong key (`'sym'` vs `'Symbol'`), so live fund enrichment is broken
-- **PowerShell (`main.ps1`) is the authoritative generator**
+- Both generators (`main.ps1` and `main.py`) produce identical output for all 9 placeholders
+- **PowerShell (`main.ps1`) is the authoritative generator** — Python is the cross-platform alternative
 
 ### Account Type Grouping
 - Python infers `Tax-Deferred TSP` but the template's `TAX_DEFERRED_TYPES` list omits TSP
