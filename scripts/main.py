@@ -398,6 +398,33 @@ def main():
         js_data += "]},"
     js_data += "]"
 
+    # --- Generate raw CSV rows JSON for export ---
+    csv_headers = list(rows[0].keys())
+    raw_rows = []
+    for h in holdings:
+        row = {hdr: '' for hdr in csv_headers}
+        row['Account Number'] = h['AccountNumber']
+        row['Account Name'] = h['AccountName']
+        row['Symbol'] = h['Symbol']
+        row['Description'] = h['FundName']
+        row['Current Value'] = '(${:.2f})'.format(abs(h['Value'])) if h['Value'] < 0 else '${:,.2f}'.format(h['Value'])
+        if h['GainLoss'] is not None:
+            row['Total Gain/Loss Dollar'] = '-${:,.2f}'.format(abs(h['GainLoss'])) if h['GainLoss'] < 0 else '+${:,.2f}'.format(h['GainLoss'])
+        else:
+            row['Total Gain/Loss Dollar'] = '--'
+        if h['GainLossPct'] is not None:
+            row['Total Gain/Loss Percent'] = '{:.2f}%'.format(h['GainLossPct'])
+        else:
+            row['Total Gain/Loss Percent'] = '--'
+        if h['CostBasis'] is not None:
+            row['Cost Basis Total'] = '${:,.2f}'.format(h['CostBasis'])
+        else:
+            row['Cost Basis Total'] = '--'
+        if 'Account Type' in csv_headers:
+            row['Account Type'] = h['AccountType']
+        raw_rows.append(row)
+    raw_csv_json = json.dumps(raw_rows, separators=(',', ':'))
+
     # --- Report date ---
     m = re.search(r'(\w{3}-\d{1,2}-\d{4})', os.path.basename(csv_path))
     report_date = m.group(1).replace('-', ' ') if m else datetime.now().strftime('%b %d, %Y')
@@ -427,6 +454,7 @@ def main():
     html = html.replace('{{GRAND_TOTAL_NUM}}', str(round(grand_total, 2)))
     html = html.replace('{{SUGGESTIONS_JSON}}', sugg_json.replace('</script', '<\\/script'))
     html = html.replace('{{SOURCE_FILE}}', os.path.basename(csv_path))
+    html = html.replace('{{RAW_CSV_JSON}}', raw_csv_json.replace('</script', '<\\/script'))
 
     # --- Fetch live fund holdings for X-Ray ---
     cash_re = re.compile(r'^(SPAXX|FDRXX|FZFXX|VMFXX|SWVXX|CORE|FZDXX)\*?\*?$', re.IGNORECASE)

@@ -361,15 +361,16 @@ template.html (~11,225 lines)
 │   ├─ Component styles (142-807)
 │   └─ Print styles (808-849)
 ├─ <body> static shell (851-952)
-│   ├─ .header (title, total, settings gear)
+│   ├─ .header (title, subtitle with generated timestamp + source file, total, settings gear)
+│   ├─ #headerSpacer (reserves space below fixed header)
 │   ├─ .container
-│   │   ├─ .pivot-tabs (4 main tabs)
+│   │   ├─ .pivot-tabs (4 main tabs — position:fixed globally)
+│   │   ├─ #pivotTabsSpacer (reserves space below fixed tabs)
 │   │   ├─ #holdingsSubPivot (8 sub-tabs)
 │   │   ├─ #allocOverview (allocation bar + legend)
 │   │   ├─ #drilldown (dynamic content area)
 │   │   ├─ #xrayContent, #rebalanceContent, etc.
 │   │   └─ .insights
-│   └─ .footer
 └─ <script> block (953-11225)
     ├─ Data bootstrapping (1047-1055)
     ├─ Utility functions (955-1090)
@@ -392,7 +393,7 @@ template.html (~11,225 lines)
     ├─ Withdrawal results rendering (7800-8470)
     ├─ Editable table + overrides (8471-9280)
     ├─ Tax-loss harvesting (9285-9470)
-    ├─ Spending suggestions modal (9473-9900)
+    ├─ Spending suggestions panel + modal (9473-9900)
     ├─ Scenario comparator (9905-10845)
     └─ Boot / tab switching / IIFE (10847-11225)
 ```
@@ -653,7 +654,11 @@ The withdrawals tab has a fixed sidebar with navigation links:
 
 **`_wdNavSpy()`**: Highlights the active sidebar link based on scroll position. Threshold = main container top + sticky cards height + 40px buffer. Uses `requestAnimationFrame` throttle.
 
-**`_wdFixLayout()`**: On desktop, locks withdrawals into fixed sidebar + scrolling main region. Sets `.wd-page-layout` height, `body.overflow = 'hidden'`.
+**`_wdFixLayout()`**: On desktop (>900px), locks withdrawals into fixed sidebar + scrolling main region. Sets `.wd-page-layout` to `position: fixed` below header + pivot-tabs, `body.overflow = 'hidden'`. On mobile (≤900px), delegates to `_wdUnfixLayout()`.
+
+**`_wdUnfixLayout()`**: Restores normal document flow — clears fixed positioning from `.wd-page-layout` and restores `body.overflow`.
+
+**`syncFixedBars()`**: Runs on DOMContentLoaded and window resize. Sets correct `top` offsets for `.pivot-tabs` (below `.header`) and `#holdingsSubPivot` (below tabs). Sets spacer heights for `#headerSpacer` and `#pivotTabsSpacer`.
 
 **`_wdUpdateResultNav()`**: Enables only sidebar links whose corresponding result sections exist in the DOM.
 

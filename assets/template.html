@@ -837,7 +837,7 @@
     .sd-toolbar { margin-bottom: 8px !important; }
     .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
-    .wd-page-layout { overflow: visible !important; height: auto !important; display: block !important; }
+    .wd-page-layout { overflow: visible !important; height: auto !important; display: block !important; position: static !important; }
     .wd-main { overflow: visible !important; height: auto !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
     .wd-summary-cards { gap: 8px !important; }
@@ -4797,29 +4797,24 @@ document.addEventListener('DOMContentLoaded',function(){
   (function syncFixedBars(){
     var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
     var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
-    if(hdr&&sp){
-      var h=hdr.offsetHeight;
-      sp.style.height=h+'px';
-      if(pt){ pt.style.top=h+'px'; }
-      var ptH=pt?pt.offsetHeight:42;
-      if(ptSp) ptSp.style.height=ptH+'px';
-      var hsp=document.getElementById('holdingsSubPivot');
-      if(hsp) hsp.style.top=(h+ptH)+'px';
+    function _sync(){
+      if(hdr&&sp){
+        var h=hdr.offsetHeight;
+        sp.style.height=h+'px';
+        if(pt){ pt.style.top=h+'px'; }
+        var ptH=pt?pt.offsetHeight:42;
+        if(ptSp) ptSp.style.height=ptH+'px';
+        var hsp=document.getElementById('holdingsSubPivot');
+        if(hsp) hsp.style.top=(h+ptH)+'px';
+      }
     }
+    _sync();
+    var _syncPending=0;
+    window.addEventListener('resize',function(){
+      if(_syncPending) return;
+      _syncPending=requestAnimationFrame(function(){_syncPending=0;_sync();});
+    });
   })();
-  window.addEventListener('resize',function(){
-    var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
-    var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
-    if(hdr&&sp){
-      var h=hdr.offsetHeight;
-      sp.style.height=h+'px';
-      if(pt) pt.style.top=h+'px';
-      var ptH=pt?pt.offsetHeight:42;
-      if(ptSp) ptSp.style.height=ptH+'px';
-      var hsp=document.getElementById('holdingsSubPivot');
-      if(hsp) hsp.style.top=(h+ptH)+'px';
-    }
-  });
 
   const gearBtn=document.getElementById('settingsGearBtn');
   const dropdown=document.getElementById('settingsDropdown');
@@ -5558,7 +5553,7 @@ function _sdRenderResults(csvText,fileName){
   const currentDateEl=document.querySelector('.header .subtitle');
   let currentDate='Current';
   if(currentDateEl){
-    const dm=currentDateEl.textContent.match(/·\s*([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
+    const dm=currentDateEl.textContent.match(/Report generated\s+([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
     if(dm) currentDate=dm[1].replace(',','');
   }
   const days=sdDaySpan(beforeDate,currentDate);
@@ -5575,11 +5570,10 @@ function _sdRenderResults(csvText,fileName){
     </div>
   </div>`;
 
-  /* Get current report source filename from footer */
+  /* Get current report source filename from subtitle */
   let currentFileName='Current Report';
-  const subtitleEl2=document.querySelector('.subtitle');
-  if(subtitleEl2){
-    const srcMatch=subtitleEl2.textContent.match(/Source:\s*(.+)/);
+  if(currentDateEl){
+    const srcMatch=currentDateEl.textContent.match(/Source:\s*(.+)/);
     if(srcMatch) currentFileName=srcMatch[1].trim();
   }
 
@@ -9668,6 +9662,9 @@ function showWithdrawalSuggestions(){
   let overlay=document.createElement('div');
   overlay.className='sugg-overlay';
   overlay.id='sugg-overlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label','Spending Suggestions');
   overlay.innerHTML=`<div class="sugg-modal" style="text-align:center;padding:60px"><div style="font-size:2em;margin-bottom:12px">⏳</div><div style="color:var(--text-muted);font-size:1.1em">Calculating optimal spending levels...</div><div style="color:var(--text-light);font-size:0.85em;margin-top:6px">Running simulations for 3 scenarios</div></div>`;
   document.body.appendChild(overlay);
   /* Helper: remove overlay + clean up Escape listener in one place */

@@ -837,7 +837,7 @@
     .sd-toolbar { margin-bottom: 8px !important; }
     .chart-print-label { display: block !important; }
     .wd-chart canvas, .wd-chart svg { max-height: 250px !important; }
-    .wd-page-layout { overflow: visible !important; height: auto !important; display: block !important; }
+    .wd-page-layout { overflow: visible !important; height: auto !important; display: block !important; position: static !important; }
     .wd-main { overflow: visible !important; height: auto !important; }
     .wd-ovr { border: none !important; background: transparent !important; box-shadow: none !important; padding: 0 2px !important; }
     .wd-summary-cards { gap: 8px !important; }
@@ -852,7 +852,7 @@
   <div class="header-inner">
     <div>
       <h1>Portfolio Analysis &amp; Insights</h1>
-      <div class="subtitle">Report generated Mar 21, 2026 at 01:49 PM &middot; Source: 4-Million-Portfolio.csv</div>
+      <div class="subtitle">Report generated Mar 21, 2026 at 11:30 PM &middot; Source: 4-Million-Portfolio.csv</div>
     </div>
     <div>
       <div class="total-label">Total Portfolio Value</div>
@@ -2735,7 +2735,7 @@ const FUND_HOLDINGS_DB = {
 };
 
 /* Merge live fund data (fetched at report generation) over static estimates */
-const _FUND_LIVE = {"FTIHX":{"n":"Fidelity Total International Index","h":{"2330.TW":3.24,"ASML.AS":1.33,"9988.HK":0.87,"005930.KS":1.24,"ROG.SW":0.76,"0700.HK":1.17,"000660.KS":0.82}},"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"TSLA":2.29,"NVDA":4.91,"MSFT":3.33,"AMZN":2.56,"IQMM":22.7,"META":2.17,"AAPL":4.45}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"TSLA":1.8,"BRK-B":1.31,"NVDA":6.92,"AVGO":2.33,"MSFT":4.77,"AMZN":3.47,"GOOG":2.34,"META":2.33,"GOOGL":2.93,"AAPL":5.72}},"FSPTX":{"n":"Fidelity Select Technology","h":{"CSCO":4.1,"GFS":2.3,"NXPI":5.01,"MU":4.09,"MSFT":9.1,"WDC":2.33,"MRVL":4.31,"NVDA":25.92,"AAPL":10.98,"ON":3.86}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"HSBA.L":0.81,"2330.TW":3.57,"ASML.AS":1.49,"9988.HK":1.09,"005930.KS":1.48,"ROG.SW":0.86,"0700.HK":1.26,"000660.KS":0.92}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"LLY":2.74,"BRK-B":3.04,"NVDA":14.15,"AVGO":4.96,"AMZN":3.56,"MSFT":9.59,"GOOG":4.76,"META":4.64,"GOOGL":5.96,"AAPL":6.41}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"AEIS":2.48,"POWL":2.5,"CDLR":2.34,"PWR":2.1,"ENPH":2.03,"DAR":2.54,"BELFB":2.12,"BE":2.71,"LAR.TO":2.34,"ESE":2.22}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"MO":4.13,"TXN":4.06,"KO":4.03,"MRK":4.23,"LMT":4.81,"PEP":4.01,"COP":4.32,"BMY":4.28,"VZ":4.31,"CVX":4.31}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"HSBA.L":0.8,"2330.TW":3.76,"AZN.L":0.79,"ASML.AS":1.43,"NOVN.SW":0.8,"9988.HK":0.81,"005930.KS":1.75,"ROG.SW":0.83,"0700.HK":1.01,"000660.KS":1.0}},"FXAIX":{"n":"Fidelity 500 Index","h":{"TSLA":2.04,"BRK-B":1.49,"NVDA":7.84,"AVGO":2.64,"MSFT":5.4,"AMZN":3.93,"GOOG":2.66,"META":2.63,"GOOGL":3.32,"AAPL":6.47}}};
+const _FUND_LIVE = {"TQQQ":{"n":"ProShares UltraPro QQQ","h":{"IQMM":22.7,"MSFT":3.33,"NVDA":4.91,"AAPL":4.45,"TSLA":2.29,"META":2.17,"AMZN":2.56}},"PBW":{"n":"Invesco WilderHill Clean Energy ETF","h":{"BELFB":2.12,"LAR.TO":2.34,"BE":2.71,"POWL":2.5,"AEIS":2.48,"ESE":2.22,"CDLR":2.34,"PWR":2.1,"ENPH":2.03,"DAR":2.54}},"VFWSX":{"n":"Vanguard FTSE All-World ex-US Index Fund","h":{"ROG.SW":0.83,"0700.HK":1.01,"2330.TW":3.76,"005930.KS":1.75,"000660.KS":1.0,"AZN.L":0.79,"NOVN.SW":0.8,"HSBA.L":0.8,"ASML.AS":1.43,"9988.HK":0.81}},"FSKAX":{"n":"Fidelity Total Market Index","h":{"TSLA":1.8,"MSFT":4.77,"NVDA":6.92,"AAPL":5.72,"BRK-B":1.31,"GOOGL":2.93,"GOOG":2.34,"AVGO":2.33,"AMZN":3.47,"META":2.33}},"FSPTX":{"n":"Fidelity Select Technology","h":{"CSCO":4.1,"ON":3.86,"WDC":2.33,"MRVL":4.31,"MSFT":9.1,"NVDA":25.92,"MU":4.09,"AAPL":10.98,"GFS":2.3,"NXPI":5.01}},"FXAIX":{"n":"Fidelity 500 Index","h":{"TSLA":2.04,"MSFT":5.4,"NVDA":7.84,"AAPL":6.47,"BRK-B":1.49,"GOOGL":3.32,"GOOG":2.66,"AVGO":2.64,"AMZN":3.93,"META":2.63}},"SCHD":{"n":"Schwab U.S. Dividend Equity ETF","h":{"TXN":4.06,"LMT":4.81,"COP":4.32,"VZ":4.31,"KO":4.03,"BMY":4.28,"PEP":4.01,"MO":4.13,"CVX":4.31,"MRK":4.23}},"FZILX":{"n":"Fidelity ZERO International Index","h":{"ROG.SW":0.86,"0700.HK":1.26,"2330.TW":3.57,"005930.KS":1.48,"000660.KS":0.92,"HSBA.L":0.81,"ASML.AS":1.49,"9988.HK":1.09}},"VOOG":{"n":"Vanguard S&P 500 Growth Index Fund ETF Shares","h":{"LLY":2.74,"MSFT":9.59,"NVDA":14.15,"AMZN":3.56,"AAPL":6.41,"GOOGL":5.96,"AVGO":4.96,"GOOG":4.76,"META":4.64,"BRK-B":3.04}},"FTIHX":{"n":"Fidelity Total International Index","h":{"ROG.SW":0.76,"0700.HK":1.17,"2330.TW":3.24,"005930.KS":1.24,"000660.KS":0.82,"ASML.AS":1.33,"9988.HK":0.87}}};
 const _FUND_DATA_FRESH = _FUND_LIVE && Object.keys(_FUND_LIVE).length > 0;
 if(_FUND_LIVE){ Object.keys(_FUND_LIVE).forEach(k=>{
   if(_FUND_LIVE[k] && _FUND_LIVE[k].h && Object.keys(_FUND_LIVE[k].h).length>0) FUND_HOLDINGS_DB[k]=_FUND_LIVE[k];
@@ -5477,29 +5477,24 @@ document.addEventListener('DOMContentLoaded',function(){
   (function syncFixedBars(){
     var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
     var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
-    if(hdr&&sp){
-      var h=hdr.offsetHeight;
-      sp.style.height=h+'px';
-      if(pt){ pt.style.top=h+'px'; }
-      var ptH=pt?pt.offsetHeight:42;
-      if(ptSp) ptSp.style.height=ptH+'px';
-      var hsp=document.getElementById('holdingsSubPivot');
-      if(hsp) hsp.style.top=(h+ptH)+'px';
+    function _sync(){
+      if(hdr&&sp){
+        var h=hdr.offsetHeight;
+        sp.style.height=h+'px';
+        if(pt){ pt.style.top=h+'px'; }
+        var ptH=pt?pt.offsetHeight:42;
+        if(ptSp) ptSp.style.height=ptH+'px';
+        var hsp=document.getElementById('holdingsSubPivot');
+        if(hsp) hsp.style.top=(h+ptH)+'px';
+      }
     }
+    _sync();
+    var _syncPending=0;
+    window.addEventListener('resize',function(){
+      if(_syncPending) return;
+      _syncPending=requestAnimationFrame(function(){_syncPending=0;_sync();});
+    });
   })();
-  window.addEventListener('resize',function(){
-    var hdr=document.querySelector('.header'), sp=document.getElementById('headerSpacer');
-    var pt=document.querySelector('.pivot-tabs'), ptSp=document.getElementById('pivotTabsSpacer');
-    if(hdr&&sp){
-      var h=hdr.offsetHeight;
-      sp.style.height=h+'px';
-      if(pt) pt.style.top=h+'px';
-      var ptH=pt?pt.offsetHeight:42;
-      if(ptSp) ptSp.style.height=ptH+'px';
-      var hsp=document.getElementById('holdingsSubPivot');
-      if(hsp) hsp.style.top=(h+ptH)+'px';
-    }
-  });
 
   const gearBtn=document.getElementById('settingsGearBtn');
   const dropdown=document.getElementById('settingsDropdown');
@@ -6238,7 +6233,7 @@ function _sdRenderResults(csvText,fileName){
   const currentDateEl=document.querySelector('.header .subtitle');
   let currentDate='Current';
   if(currentDateEl){
-    const dm=currentDateEl.textContent.match(/·\s*([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
+    const dm=currentDateEl.textContent.match(/Report generated\s+([A-Za-z]{3}\s+\d{1,2},?\s+\d{4})/);
     if(dm) currentDate=dm[1].replace(',','');
   }
   const days=sdDaySpan(beforeDate,currentDate);
@@ -6255,11 +6250,10 @@ function _sdRenderResults(csvText,fileName){
     </div>
   </div>`;
 
-  /* Get current report source filename from footer */
+  /* Get current report source filename from subtitle */
   let currentFileName='Current Report';
-  const subtitleEl2=document.querySelector('.subtitle');
-  if(subtitleEl2){
-    const srcMatch=subtitleEl2.textContent.match(/Source:\s*(.+)/);
+  if(currentDateEl){
+    const srcMatch=currentDateEl.textContent.match(/Source:\s*(.+)/);
     if(srcMatch) currentFileName=srcMatch[1].trim();
   }
 
@@ -10348,6 +10342,9 @@ function showWithdrawalSuggestions(){
   let overlay=document.createElement('div');
   overlay.className='sugg-overlay';
   overlay.id='sugg-overlay';
+  overlay.setAttribute('role','dialog');
+  overlay.setAttribute('aria-modal','true');
+  overlay.setAttribute('aria-label','Spending Suggestions');
   overlay.innerHTML=`<div class="sugg-modal" style="text-align:center;padding:60px"><div style="font-size:2em;margin-bottom:12px">⏳</div><div style="color:var(--text-muted);font-size:1.1em">Calculating optimal spending levels...</div><div style="color:var(--text-light);font-size:0.85em;margin-top:6px">Running simulations for 3 scenarios</div></div>`;
   document.body.appendChild(overlay);
   /* Helper: remove overlay + clean up Escape listener in one place */
